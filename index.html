@@ -158,6 +158,18 @@ body::before {
   gap: 10px;
 }
 
+.publish-box {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.action-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .upload-label,
 .field-label {
   display: block;
@@ -199,6 +211,22 @@ select:focus {
 
 .primary-btn:hover {
   filter: brightness(1.04);
+}
+
+.secondary-btn {
+  border: 1px solid rgba(93, 174, 160, 0.20);
+  border-radius: 16px;
+  padding: 14px 18px;
+  font: inherit;
+  font-weight: 800;
+  color: var(--accent-deep);
+  background: rgba(255, 255, 255, 0.96);
+  cursor: pointer;
+}
+
+.secondary-btn:hover {
+  border-color: rgba(93, 174, 160, 0.42);
+  background: rgba(245, 252, 250, 1);
 }
 
 .status-box {
@@ -515,7 +543,15 @@ tfoot td {
           <input id="file-input" name="file" type="file" accept=".xlsx">
           <button class="primary-btn" type="submit">更新看板</button>
         </form>
+        <div class="publish-box">
+          <label class="field-label" for="github-token-input">GitHub Token</label>
+          <input id="github-token-input" type="password" placeholder="输入 token 后可一键发布到固定链接">
+          <div class="action-row">
+            <button id="publish-button" class="secondary-btn" type="button">一键发布到固定链接</button>
+          </div>
+        </div>
         <div id="upload-status" class="status-box">当前已载入数据</div>
+        <div id="publish-status" class="status-box subtle-box">上传 Excel 后，输入 GitHub Token，再点“一键发布到固定链接”。</div>
       </div>
     </section>
 
@@ -734,6 +770,9 @@ tfoot td {
 const SUBSIDY_ACCOUNT = 'Reelife-zl-260407-01-SINO-TT';
 const ROI_DAYS = [0, 1, 2, 3, 4, 5, 6, 13];
 const DISPLAY_ROI_DAYS = [0, 1, 2, 3, 4, 5, 6];
+const GITHUB_OWNER = 'aks74uk';
+const GITHUB_REPO = 'aks74uk.github.io';
+const PUBLIC_URL = 'https://aks74uk.github.io';
 
 const state = {
   rows: window.__INITIAL_ROWS__ || [],
@@ -756,6 +795,7 @@ const ratio = (value) => Number(value || 0).toFixed(2);
 const pct = (value) => `${(Number(value || 0) * 100).toFixed(2)}%`;
 const signedPct = (value) => `${Number(value || 0) >= 0 ? '+' : ''}${(Number(value || 0) * 100).toFixed(2)}%`;
 const safeDiv = (a, b) => (b ? a / b : 0);
+const escapeBootJson = (value) => JSON.stringify(value).replace(/</g, '\\u003c');
 
 function getRevenue0Raw(row) {
   if (Number.isFinite(row.revenue0_raw)) return row.revenue0_raw;
@@ -1249,6 +1289,61 @@ function closeAllEnumFilters() {
   });
 }
 
+async function githubRequest(url, token, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${token}`,
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(options.headers || {}),
+    },
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `GitHub API 请求失败：${response.status}`);
+  }
+  return response.json();
+}
+
+function buildPublishHtml() {
+  const sourceAssignment = `window.__INITIAL_SOURCE__ = ${escapeBootJson(state.sourceLabel)};`;
+  const rowsAssignment = `window.__INITIAL_ROWS__ = ${escapeBootJson(state.rows)};`;
+  let html = document.documentElement.outerHTML;
+  html = html.replace(/window\.__INITIAL_SOURCE__ = .*?;/, sourceAssignment);
+  html = html.replace(/window\.__INITIAL_ROWS__ = [\s\S]*?;/, rowsAssignment);
+  return `<!doctype html>\n${html}`;
+}
+
+async function publishCurrentDashboard(token) {
+  const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/index.html`;
+  let sha = null;
+  try {
+    const current = await githubRequest(apiUrl, token);
+    sha = current.sha || null;
+  } catch (error) {
+    if (!String(error.message || '').includes('"status":"404"') && !String(error.message || '').includes('Not Found')) {
+      throw error;
+    }
+  }
+
+  const payload = {
+    message: `Publish dashboard from ${state.sourceLabel}`,
+    content: btoa(unescape(encodeURIComponent(buildPublishHtml()))),
+  };
+  if (sha) payload.sha = sha;
+
+  await githubRequest(apiUrl, token, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return `${PUBLIC_URL}/?v=${Date.now()}`;
+}
+
 async function uploadFile(file) {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
@@ -1314,6 +1409,26 @@ function bindEvents() {
       await uploadFile(file);
     } catch (error) {
       document.getElementById('upload-status').textContent = error.message || '上传失败，请确认文件格式';
+    }
+  });
+
+  document.getElementById('publish-button').addEventListener('click', async () => {
+    const token = document.getElementById('github-token-input').value.trim();
+    const publishStatus = document.getElementById('publish-status');
+    if (!token) {
+      publishStatus.textContent = '请先输入 GitHub Token，再发布。';
+      return;
+    }
+    if (!state.rows.length) {
+      publishStatus.textContent = '当前没有可发布的数据，请先上传 Excel。';
+      return;
+    }
+    publishStatus.textContent = '正在发布到固定链接，请稍等...';
+    try {
+      const url = await publishCurrentDashboard(token);
+      publishStatus.innerHTML = `发布成功：<a href="${url}" target="_blank" rel="noreferrer">${url}</a>`;
+    } catch (error) {
+      publishStatus.textContent = `发布失败：${error.message || error}`;
     }
   });
 }
