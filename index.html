@@ -786,7 +786,10 @@ function parseNumber(value) {
 function parseDate(value) {
   if (!value) return null;
   if (value instanceof Date && !Number.isNaN(value.valueOf())) {
-    return value.toISOString().slice(0, 10);
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
   const text = String(value).trim();
   if (!text || text === '-') return null;
@@ -896,13 +899,12 @@ function normalizeSelectedDates(availableDates, selectedDates) {
 
 function buildData(rows, filters) {
   const allDates = [...new Set(rows.map((row) => row.date))].sort();
-  const latestDate = allDates.at(-1) || null;
-  const availableDates = allDates.filter((date) => date !== latestDate);
+  const availableDates = allDates;
   const recentFiveDates = listRecentDates(availableDates, 5);
   const module2Dates = normalizeSelectedDates(availableDates, filters.module2Dates);
   const module3Dates = normalizeSelectedDates(availableDates, filters.module3Dates);
   const module4Dates = normalizeSelectedDates(availableDates, filters.module4Dates);
-  const usableRows = rows.filter((row) => row.date !== latestDate);
+  const usableRows = rows;
   const module2Rows = usableRows.filter((row) => module2Dates.includes(row.date));
   const module3Rows = usableRows.filter((row) => module3Dates.includes(row.date));
   const module4Rows = usableRows.filter((row) => module4Dates.includes(row.date));
@@ -987,7 +989,7 @@ function buildData(rows, filters) {
       dramaCount: new Set(overviewRows.map((row) => row.drama_title)).size,
     },
     notes: [
-      `已自动排除当日数据：${latestDate || '-'}`,
+      '当前版本不排除任何一天，上传几天就展示几天。',
       '模块 1 默认仅保留最近五天数据，并支持切换查看其中单日。',
       '整体 ROI 按表中“广告收入 ROAS (TikTok)”计算；补贴账户 Reelife-zl-260407-01-SINO-TT 的补贴后 ROI 固定按 1.05。',
       '模块 2 - 4 支持多选日期并做汇总展示。',
