@@ -588,7 +588,6 @@ tfoot td {
     <section class="hero-panel">
       <div class="hero-copy">
         <p class="eyebrow">Overseas Performance Board</p>
-        <div id="page-nav" class="page-nav"></div>
         <h1 id="hero-title">海外投放数据看板</h1>
         <p id="hero-text" class="hero-text">
           看板支持在线浏览、上传新 Excel、切换单日和多日维度。补贴账户会自动按 max(真实ROI, 1.05) 计算补贴后 ROI，模块 5 重点看 H24 之后的增速变化。
@@ -606,15 +605,8 @@ tfoot td {
           <input id="file-input" name="file" type="file" accept=".xlsx">
           <button class="primary-btn" type="submit">更新看板</button>
         </form>
-        <div class="publish-box">
-          <label class="field-label" for="github-token-input">GitHub Token</label>
-          <input id="github-token-input" type="password" placeholder="输入 token 后可一键发布到固定链接">
-          <div class="action-row">
-            <button id="publish-button" class="secondary-btn" type="button">一键发布到固定链接</button>
-          </div>
-        </div>
         <div id="upload-status" class="status-box">当前已载入数据</div>
-        <div id="publish-status" class="status-box subtle-box">上传 Excel 后，输入 GitHub Token，再点“一键发布到固定链接”。</div>
+        <div id="publish-status" class="status-box subtle-box">上传 Excel 后，点击“更新看板”即可自动发布。</div>
       </div>
     </section>
 
@@ -881,7 +873,7 @@ tfoot td {
   <script>
     window.__INITIAL_SOURCE__ = "B组初始化为空，请先上传 B组 Excel";
     window.__INITIAL_ROWS__ = [];
-    window.__PAGE_CONFIG__ = {"mode": "group", "pageId": "b", "groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组、只上传 B 组、只发布 B 组。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传与发布", "bossUrl": "https://aks74uk.github.io/"};
+    window.__PAGE_CONFIG__ = {"mode": "group", "pageId": "b", "groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "publishToken": "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", "autoPublish": true, "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组，上传 Excel 后点“更新”会自动发布到公网。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传并自动发布", "bossUrl": "https://aks74uk.github.io/"};
   </script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
@@ -892,7 +884,6 @@ const GITHUB_OWNER = 'aks74uk';
 const GITHUB_REPO = 'aks74uk.github.io';
 const PUBLIC_BASE_URL = 'https://aks74uk.github.io';
 const PAGE_CONFIG = window.__PAGE_CONFIG__ || {};
-const TOKEN_STORAGE_KEY = PAGE_CONFIG.storageKey || 'overseas_dashboard_github_token';
 const LOCAL_ROWS_STORAGE_KEY = `overseas_dashboard_rows_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
 const LOCAL_SOURCE_STORAGE_KEY = `overseas_dashboard_source_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
 
@@ -1283,32 +1274,20 @@ function renderGroupFilter(selectId, selectedValue) {
   select.value = selectedValue || 'all';
 }
 
-function getPageLinks() {
-  return [
-    { href: `${PUBLIC_BASE_URL}/a.html`, label: 'A组（北京）', active: PAGE_CONFIG.pageId === 'a' || PAGE_CONFIG.pageId === 'default' },
-    { href: `${PUBLIC_BASE_URL}/b.html`, label: 'B组（广州）', active: PAGE_CONFIG.pageId === 'b' },
-    { href: `${PUBLIC_BASE_URL}/`, label: '总数据', active: PAGE_CONFIG.pageId === 'boss' },
-  ];
-}
-
 function renderPageMeta(data) {
   document.title = PAGE_CONFIG.heroTitle || '海外投放数据看板';
   document.getElementById('hero-title').textContent = PAGE_CONFIG.heroTitle || '海外投放数据看板';
   document.getElementById('hero-text').textContent = PAGE_CONFIG.heroText || '';
   document.getElementById('hero-action-title').textContent = PAGE_CONFIG.actionTitle || '上传与切换';
   document.getElementById('group-overview-caption').textContent = `已选日期：${data.module3Dates.join('、') || '-'}`;
-
-  const nav = document.getElementById('page-nav');
-  if (nav) {
-    nav.innerHTML = getPageLinks()
-      .map((item) => `<a class="page-nav-link${item.active ? ' active' : ''}" href="${item.href}">${item.label}</a>`)
-      .join('');
-  }
+  const submitButton = document.querySelector('#upload-form .primary-btn');
+  if (submitButton && PAGE_CONFIG.autoPublish) submitButton.textContent = '更新并自动发布';
 
   if (PAGE_CONFIG.mode === 'boss') {
     document.getElementById('upload-form').hidden = true;
-    document.querySelector('.publish-box').hidden = true;
     document.getElementById('publish-status').textContent = '总数据链接会自动读取 A组 和 B组 发布后的线上数据。';
+  } else if (PAGE_CONFIG.autoPublish) {
+    document.getElementById('publish-status').textContent = '上传 Excel 后，点击“更新并自动发布”即可同步到公网。';
   }
 }
 
@@ -1601,14 +1580,6 @@ function closeAllEnumFilters() {
   });
 }
 
-function loadSavedToken() {
-  try {
-    return localStorage.getItem(TOKEN_STORAGE_KEY) || '';
-  } catch (error) {
-    return '';
-  }
-}
-
 function loadLocalRows() {
   try {
     const raw = localStorage.getItem(LOCAL_ROWS_STORAGE_KEY);
@@ -1632,14 +1603,6 @@ function saveLocalRows(rows, sourceLabel) {
   try {
     localStorage.setItem(LOCAL_ROWS_STORAGE_KEY, JSON.stringify(rows));
     localStorage.setItem(LOCAL_SOURCE_STORAGE_KEY, sourceLabel || '');
-  } catch (error) {
-    // ignore storage failures
-  }
-}
-
-function saveToken(token) {
-  try {
-    localStorage.setItem(TOKEN_STORAGE_KEY, token);
   } catch (error) {
     // ignore storage failures
   }
@@ -1808,32 +1771,15 @@ function bindEvents() {
       document.getElementById('upload-status').textContent = '正在读取 Excel 并重算看板，请稍等...';
       try {
         await uploadFile(file);
+        if (PAGE_CONFIG.autoPublish && PAGE_CONFIG.publishToken) {
+          const publishStatus = document.getElementById('publish-status');
+          publishStatus.textContent = '正在自动发布到公网，请稍等...';
+          const urls = await publishGroupData(PAGE_CONFIG.publishToken);
+          publishStatus.innerHTML = `自动发布成功：<a href="${urls.selfUrl}" target="_blank" rel="noreferrer">当前链接</a>`;
+        }
       } catch (error) {
         document.getElementById('upload-status').textContent = error.message || '上传失败，请确认文件格式';
-      }
-    });
-  }
-
-  const publishButton = document.getElementById('publish-button');
-  if (publishButton) {
-    publishButton.addEventListener('click', async () => {
-      const token = document.getElementById('github-token-input').value.trim();
-      const publishStatus = document.getElementById('publish-status');
-      if (!token) {
-        publishStatus.textContent = '请先输入 GitHub Token，再发布。';
-        return;
-      }
-      if (!state.rows.length) {
-        publishStatus.textContent = '当前没有可发布的数据，请先上传 Excel。';
-        return;
-      }
-      publishStatus.textContent = '正在发布本组数据到固定链接，请稍等...';
-      try {
-        saveToken(token);
-        const urls = await publishGroupData(token);
-        publishStatus.innerHTML = `发布成功：<a href="${urls.selfUrl}" target="_blank" rel="noreferrer">本组链接</a> ｜ <a href="${urls.bossUrl}" target="_blank" rel="noreferrer">总数据链接</a>`;
-      } catch (error) {
-        publishStatus.textContent = `发布失败：${error.message || error}`;
+        document.getElementById('publish-status').textContent = `自动发布失败：${error.message || error}`;
       }
     });
   }
@@ -1866,8 +1812,6 @@ async function initData() {
 }
 
 (async function init() {
-  const tokenInput = document.getElementById('github-token-input');
-  if (tokenInput) tokenInput.value = loadSavedToken();
   await initData();
   const dates = [...new Set(state.rows.map((row) => row.date))].sort();
   const latest = [dates.at(-1)].filter(Boolean);
