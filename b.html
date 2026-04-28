@@ -1188,7 +1188,7 @@ function getPageLinks() {
   return [
     { href: `${PUBLIC_BASE_URL}/a.html`, label: 'A组（北京）', active: PAGE_CONFIG.pageId === 'a' || PAGE_CONFIG.pageId === 'default' },
     { href: `${PUBLIC_BASE_URL}/b.html`, label: 'B组（广州）', active: PAGE_CONFIG.pageId === 'b' },
-    { href: `${PUBLIC_BASE_URL}/`, label: '老板综合', active: PAGE_CONFIG.pageId === 'boss' },
+    { href: `${PUBLIC_BASE_URL}/`, label: '总数据', active: PAGE_CONFIG.pageId === 'boss' },
   ];
 }
 
@@ -1209,7 +1209,7 @@ function renderPageMeta(data) {
   if (PAGE_CONFIG.mode === 'boss') {
     document.getElementById('upload-form').hidden = true;
     document.querySelector('.publish-box').hidden = true;
-    document.getElementById('publish-status').textContent = '综合链接会自动读取 A组 和 B组 发布后的线上数据。';
+    document.getElementById('publish-status').textContent = '总数据链接会自动读取 A组 和 B组 发布后的线上数据。';
   }
 }
 
@@ -1685,7 +1685,7 @@ function bindEvents() {
       try {
         saveToken(token);
         const urls = await publishGroupData(token);
-        publishStatus.innerHTML = `发布成功：<a href="${urls.selfUrl}" target="_blank" rel="noreferrer">本组链接</a> ｜ <a href="${urls.bossUrl}" target="_blank" rel="noreferrer">老板综合链接</a>`;
+        publishStatus.innerHTML = `发布成功：<a href="${urls.selfUrl}" target="_blank" rel="noreferrer">本组链接</a> ｜ <a href="${urls.bossUrl}" target="_blank" rel="noreferrer">总数据链接</a>`;
       } catch (error) {
         publishStatus.textContent = `发布失败：${error.message || error}`;
       }
