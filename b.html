@@ -603,10 +603,14 @@ tfoot td {
         <form id="upload-form" class="upload-form">
           <label class="upload-label" for="file-input">上传新的 `.xlsx` 文件</label>
           <input id="file-input" name="file" type="file" accept=".xlsx">
+          <div id="token-field">
+            <label class="upload-label" for="token-input">GitHub Token（仅本机保存一次）</label>
+            <input id="token-input" name="token" type="password" placeholder="第一次发布前输入一次，本机浏览器会记住">
+          </div>
           <button class="primary-btn" type="submit">更新看板</button>
         </form>
         <div id="upload-status" class="status-box">当前已载入数据</div>
-        <div id="publish-status" class="status-box subtle-box">上传 Excel 后，点击“更新看板”即可自动发布。</div>
+        <div id="publish-status" class="status-box subtle-box">上传 Excel 后，点击“更新看板”即可发布；token 只保存在当前浏览器。</div>
       </div>
     </section>
 
@@ -873,7 +877,7 @@ tfoot td {
   <script>
     window.__INITIAL_SOURCE__ = "B组初始化为空，请先上传 B组 Excel";
     window.__INITIAL_ROWS__ = [];
-    window.__PAGE_CONFIG__ = {"mode": "group", "pageId": "b", "groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "publishToken": "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", "autoPublish": true, "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组，上传 Excel 后点“更新”会自动发布到公网。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传并自动发布", "bossUrl": "https://aks74uk.github.io/"};
+    window.__PAGE_CONFIG__ = {"mode": "group", "pageId": "b", "groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "autoPublish": true, "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组，上传 Excel 后点“更新”会自动发布到公网。第一次发布前输入一次 GitHub token，本机浏览器会自动记住。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传并发布", "bossUrl": "https://aks74uk.github.io/"};
   </script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
@@ -886,6 +890,7 @@ const PUBLIC_BASE_URL = 'https://aks74uk.github.io';
 const PAGE_CONFIG = window.__PAGE_CONFIG__ || {};
 const LOCAL_ROWS_STORAGE_KEY = `overseas_dashboard_rows_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
 const LOCAL_SOURCE_STORAGE_KEY = `overseas_dashboard_source_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
+const TOKEN_STORAGE_KEY = PAGE_CONFIG.storageKey || `overseas_dashboard_github_token_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
 
 const state = {
   rows: Array.isArray(window.__INITIAL_ROWS__) ? window.__INITIAL_ROWS__ : [],
@@ -1281,13 +1286,24 @@ function renderPageMeta(data) {
   document.getElementById('hero-action-title').textContent = PAGE_CONFIG.actionTitle || '上传与切换';
   document.getElementById('group-overview-caption').textContent = `已选日期：${data.module3Dates.join('、') || '-'}`;
   const submitButton = document.querySelector('#upload-form .primary-btn');
+  const tokenField = document.getElementById('token-field');
+  const tokenInput = document.getElementById('token-input');
+  const storedToken = loadStoredToken();
   if (submitButton && PAGE_CONFIG.autoPublish) submitButton.textContent = '更新并自动发布';
 
   if (PAGE_CONFIG.mode === 'boss') {
     document.getElementById('upload-form').hidden = true;
     document.getElementById('publish-status').textContent = '总数据链接会自动读取 A组 和 B组 发布后的线上数据。';
+    if (tokenField) tokenField.hidden = true;
   } else if (PAGE_CONFIG.autoPublish) {
-    document.getElementById('publish-status').textContent = '上传 Excel 后，点击“更新并自动发布”即可同步到公网。';
+    if (tokenField) tokenField.hidden = false;
+    if (tokenInput) {
+      tokenInput.value = '';
+      tokenInput.placeholder = storedToken ? '本机已记住 token，留空也可以直接发布' : '第一次发布前输入一次，本机浏览器会记住';
+    }
+    document.getElementById('publish-status').textContent = storedToken
+      ? '本机已记住 GitHub token，上传 Excel 后点击“更新并自动发布”即可同步到公网。'
+      : '第一次发布前请先输入 GitHub token；之后本机浏览器会自动记住。';
   }
 }
 
@@ -1608,6 +1624,22 @@ function saveLocalRows(rows, sourceLabel) {
   }
 }
 
+function loadStoredToken() {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY) || '';
+  } catch (error) {
+    return '';
+  }
+}
+
+function saveStoredToken(token) {
+  try {
+    if (token) localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  } catch (error) {
+    // ignore storage failures
+  }
+}
+
 async function githubRequest(url, token, options = {}) {
   const response = await fetch(url, {
     ...options,
@@ -1771,11 +1803,16 @@ function bindEvents() {
       document.getElementById('upload-status').textContent = '正在读取 Excel 并重算看板，请稍等...';
       try {
         await uploadFile(file);
-        if (PAGE_CONFIG.autoPublish && PAGE_CONFIG.publishToken) {
+        if (PAGE_CONFIG.autoPublish) {
           const publishStatus = document.getElementById('publish-status');
+          const tokenInput = document.getElementById('token-input');
+          const typedToken = (tokenInput?.value || '').trim();
+          const publishToken = typedToken || loadStoredToken();
+          if (!publishToken) throw new Error('请先输入 GitHub token；本机浏览器会自动记住，下次无需再输');
+          if (typedToken) saveStoredToken(typedToken);
           publishStatus.textContent = '正在自动发布到公网，请稍等...';
-          const urls = await publishGroupData(PAGE_CONFIG.publishToken);
-          publishStatus.innerHTML = `自动发布成功：<a href="${urls.selfUrl}" target="_blank" rel="noreferrer">当前链接</a>`;
+          const urls = await publishGroupData(publishToken);
+          publishStatus.innerHTML = `自动发布成功：<a href="${urls.selfUrl}" target="_blank" rel="noreferrer">当前链接</a>；本机已记住 token`;
         }
       } catch (error) {
         document.getElementById('upload-status').textContent = error.message || '上传失败，请确认文件格式';
