@@ -1,0 +1,1729 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>海外投放数据看板</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --bg: #eef8f6;
+  --bg-soft: #f8fdfc;
+  --panel: rgba(255, 255, 255, 0.82);
+  --panel-strong: #ffffff;
+  --text: #1f3b39;
+  --muted: #6d8c89;
+  --line: rgba(94, 146, 138, 0.16);
+  --accent: #5daea0;
+  --accent-deep: #348779;
+  --accent-soft: rgba(93, 174, 160, 0.12);
+  --blue-soft: rgba(138, 188, 235, 0.16);
+  --green: #2f9179;
+  --red: #d36a75;
+  --shadow: 0 18px 48px rgba(90, 146, 137, 0.10);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Manrope', 'Noto Sans SC', sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(165, 224, 214, 0.34), transparent 28%),
+    radial-gradient(circle at top right, rgba(189, 227, 255, 0.26), transparent 24%),
+    linear-gradient(180deg, #f4fcfa 0%, #eef8f6 45%, #eaf5f4 100%);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(120, 179, 171, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(120, 179, 171, 0.035) 1px, transparent 1px);
+  background-size: 30px 30px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 85%);
+}
+
+.page-shell {
+  position: relative;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 30px 20px 64px;
+}
+
+.hero-panel,
+.summary-grid,
+.filter-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.hero-panel {
+  grid-template-columns: 1.65fr 1fr;
+  align-items: stretch;
+  margin-bottom: 18px;
+}
+
+.hero-copy {
+  padding: 30px;
+  border-radius: 30px;
+  background: linear-gradient(135deg, rgba(92, 177, 162, 0.94), rgba(116, 199, 187, 0.88));
+  color: #f8fffe;
+  box-shadow: var(--shadow);
+}
+
+.page-nav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.page-nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: rgba(248, 255, 254, 0.9);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.page-nav-link.active {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--accent-deep);
+}
+
+.eyebrow,
+.panel-kicker {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: 0.72;
+}
+
+.hero-copy h1,
+.panel-header h2 {
+  margin: 0;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+
+.hero-copy h1 {
+  font-size: clamp(32px, 4vw, 56px);
+  line-height: 1.06;
+}
+
+.hero-text {
+  max-width: 760px;
+  margin: 18px 0 0;
+  font-size: 16px;
+  line-height: 1.72;
+  color: rgba(248, 255, 254, 0.94);
+}
+
+.panel-card {
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+.soft-panel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.90), rgba(249, 255, 254, 0.80));
+}
+
+.hero-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(246, 253, 251, 0.84));
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.panel-header.compact {
+  margin-bottom: 12px;
+}
+
+.panel-header h2 {
+  font-size: 24px;
+}
+
+.panel-caption,
+.helper-text {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.helper-text {
+  margin: -2px 0 14px;
+}
+
+.upload-form {
+  display: grid;
+  gap: 10px;
+}
+
+.publish-box {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.action-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.upload-label,
+.field-label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+input[type="file"],
+input[type="password"],
+select {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid rgba(93, 174, 160, 0.20);
+  background: rgba(255, 255, 255, 0.94);
+  padding: 13px 14px;
+  font: inherit;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="file"]:focus,
+input[type="password"]:focus,
+select:focus {
+  border-color: rgba(93, 174, 160, 0.68);
+  box-shadow: 0 0 0 4px rgba(93, 174, 160, 0.10);
+}
+
+.primary-btn {
+  border: 0;
+  border-radius: 16px;
+  padding: 14px 18px;
+  font: inherit;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  filter: brightness(1.04);
+}
+
+.secondary-btn {
+  border: 1px solid rgba(93, 174, 160, 0.20);
+  border-radius: 16px;
+  padding: 14px 18px;
+  font: inherit;
+  font-weight: 800;
+  color: var(--accent-deep);
+  background: rgba(255, 255, 255, 0.96);
+  cursor: pointer;
+}
+
+.secondary-btn:hover {
+  border-color: rgba(93, 174, 160, 0.42);
+  background: rgba(245, 252, 250, 1);
+}
+
+.status-box {
+  margin-top: 12px;
+  min-height: 48px;
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.subtle-box {
+  margin-top: 28px;
+  background: var(--blue-soft);
+  color: #487b95;
+}
+
+.summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.summary-card {
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 253, 251, 0.82));
+  box-shadow: var(--shadow);
+}
+
+.summary-card .label {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.summary-card strong {
+  display: block;
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.05;
+}
+
+.summary-card .sub {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.notes-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.72;
+}
+
+.filter-panel .filter-grid,
+.module-filter-grid {
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  align-items: end;
+}
+
+.filter-inline {
+  min-width: 220px;
+}
+
+.enum-filter {
+  position: relative;
+}
+
+.enum-filter-button {
+  width: 100%;
+  min-height: 54px;
+  border: 1px solid rgba(93, 174, 160, 0.20);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  color: var(--text);
+  box-shadow: 0 8px 22px rgba(93, 174, 160, 0.06);
+}
+
+.enum-filter-button:hover {
+  border-color: rgba(93, 174, 160, 0.40);
+}
+
+.enum-filter.open .enum-filter-button {
+  border-color: rgba(93, 174, 160, 0.68);
+  box-shadow: 0 0 0 4px rgba(93, 174, 160, 0.10);
+}
+
+.enum-filter-label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 24px;
+}
+
+.enum-filter-pill,
+.enum-filter-placeholder {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  padding: 7px 10px;
+}
+
+.enum-filter-pill {
+  background: rgba(93, 174, 160, 0.14);
+  color: var(--accent-deep);
+  font-weight: 700;
+}
+
+.enum-filter-placeholder {
+  background: rgba(93, 174, 160, 0.06);
+  color: var(--muted);
+}
+
+.enum-filter-arrow {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.enum-filter.open .enum-filter-arrow {
+  transform: rotate(180deg);
+}
+
+.enum-filter-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  width: 100%;
+  z-index: 20;
+  border: 1px solid rgba(93, 174, 160, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 42px rgba(90, 146, 137, 0.18);
+  padding: 10px;
+}
+
+.enum-filter-options {
+  display: grid;
+  gap: 8px;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.enum-filter-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(93, 174, 160, 0.10);
+  margin-bottom: 2px;
+}
+
+.enum-filter-action {
+  border: 1px solid rgba(93, 174, 160, 0.18);
+  border-radius: 999px;
+  background: rgba(93, 174, 160, 0.08);
+  color: var(--accent-deep);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.enum-filter-action:hover {
+  background: rgba(93, 174, 160, 0.14);
+}
+
+.enum-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 14px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.enum-filter-option:hover {
+  background: rgba(93, 174, 160, 0.08);
+}
+
+.enum-filter-option input {
+  accent-color: var(--accent-deep);
+}
+
+.enum-filter-option span {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.table-wrap {
+  overflow: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(93, 174, 160, 0.10);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.table-wrap.tall {
+  max-height: 560px;
+}
+
+.top-gap {
+  margin-top: 18px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 920px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+th,
+td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(93, 174, 160, 0.10);
+  text-align: left;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f7fffd;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+tbody tr:hover {
+  background: rgba(93, 174, 160, 0.06);
+}
+
+tfoot td {
+  position: sticky;
+  bottom: 0;
+  background: #f2fbf8;
+  font-weight: 800;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(93, 174, 160, 0.14);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.compact-note {
+  white-space: normal;
+  line-height: 1.5;
+  color: #4b6f6a;
+}
+
+.heat {
+  font-weight: 800;
+}
+
+.heat-positive-1 { background: rgba(126, 211, 185, 0.12); }
+.heat-positive-2 { background: rgba(126, 211, 185, 0.22); }
+.heat-positive-3 { background: rgba(93, 174, 160, 0.28); color: #1f6457; }
+.heat-negative-1 { background: rgba(235, 181, 191, 0.14); }
+.heat-negative-2 { background: rgba(221, 134, 149, 0.20); color: #8c3f4d; }
+
+.empty-state {
+  color: var(--muted);
+}
+
+@media (max-width: 1120px) {
+  .hero-panel,
+  .summary-grid,
+  .filter-panel .filter-grid,
+  .module-filter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .page-shell {
+    padding: 16px 14px 40px;
+  }
+
+  .hero-panel,
+  .summary-grid,
+  .filter-panel .filter-grid,
+  .module-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-copy,
+  .panel-card {
+    border-radius: 24px;
+    padding: 18px;
+  }
+
+  .panel-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero-panel">
+      <div class="hero-copy">
+        <p class="eyebrow">Overseas Performance Board</p>
+        <div id="page-nav" class="page-nav"></div>
+        <h1 id="hero-title">海外投放数据看板</h1>
+        <p id="hero-text" class="hero-text">
+          看板支持在线浏览、上传新 Excel、切换单日和多日维度。补贴账户会自动按 max(真实ROI, 1.05) 计算补贴后 ROI，模块 5 重点看 H24 之后的增速变化。
+        </p>
+      </div>
+      <div class="hero-actions panel-card">
+        <div class="panel-header compact">
+          <div>
+            <p class="panel-kicker">数据源</p>
+            <h2 id="hero-action-title">上传与切换</h2>
+          </div>
+        </div>
+        <form id="upload-form" class="upload-form">
+          <label class="upload-label" for="file-input">上传新的 `.xlsx` 文件</label>
+          <input id="file-input" name="file" type="file" accept=".xlsx">
+          <button class="primary-btn" type="submit">更新看板</button>
+        </form>
+        <div class="publish-box">
+          <label class="field-label" for="github-token-input">GitHub Token</label>
+          <input id="github-token-input" type="password" placeholder="输入 token 后可一键发布到固定链接">
+          <div class="action-row">
+            <button id="publish-button" class="secondary-btn" type="button">一键发布到固定链接</button>
+          </div>
+        </div>
+        <div id="upload-status" class="status-box">当前已载入数据</div>
+        <div id="publish-status" class="status-box subtle-box">上传 Excel 后，输入 GitHub Token，再点“一键发布到固定链接”。</div>
+      </div>
+    </section>
+
+    <section class="summary-grid" id="summary-grid"></section>
+
+    <section class="panel-card soft-panel">
+      <div class="panel-header">
+        <div>
+          <p class="panel-kicker">新增模块</p>
+          <h2>A组 / B组总览</h2>
+        </div>
+        <div class="panel-caption" id="group-overview-caption"></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>组别</th>
+              <th>消耗</th>
+              <th>补贴前 ROI</th>
+              <th>补贴后 ROI</th>
+              <th>账户数</th>
+              <th>剧目数</th>
+            </tr>
+          </thead>
+          <tbody id="group-overview-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="notes-panel panel-card">
+      <div class="panel-header compact">
+        <div>
+          <p class="panel-kicker">说明</p>
+          <h2>口径备注</h2>
+        </div>
+      </div>
+      <ul id="notes-list" class="notes-list"></ul>
+    </section>
+
+    <section class="panel-card soft-panel">
+      <div class="panel-header">
+        <div>
+          <p class="panel-kicker">模块 1</p>
+          <h2>分日总览</h2>
+        </div>
+        <div class="filter-inline">
+          <label class="field-label" for="summary-date-filter">日期筛选</label>
+          <select id="summary-date-filter"></select>
+        </div>
+      </div>
+      <p class="helper-text">默认仅保留最近五天数据；单日总消耗小于 50 不展示。</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>消耗</th>
+              <th>H24 ROI</th>
+              <th>整体 ROI（补贴前）</th>
+              <th>整体 ROI（补贴后）</th>
+            </tr>
+          </thead>
+          <tbody id="daily-summary-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel-card soft-panel">
+      <div class="panel-header">
+        <div>
+          <p class="panel-kicker">模块 2</p>
+          <h2>分国家数据</h2>
+        </div>
+        <div class="panel-caption" id="module2-caption"></div>
+      </div>
+      <div class="filter-grid module-filter-grid">
+        <div>
+          <label class="field-label" for="module2-filter-button">日期筛选</label>
+          <div class="enum-filter" data-filter-key="module2Dates">
+            <button id="module2-filter-button" class="enum-filter-button" type="button" aria-expanded="false">
+              <span class="enum-filter-label">请选择日期</span>
+              <span class="enum-filter-arrow">▾</span>
+            </button>
+            <div class="enum-filter-menu" hidden>
+              <div class="enum-filter-options" id="module2-filter-options"></div>
+            </div>
+          </div>
+        </div>
+        <div class="status-box subtle-box" id="module2-filter-status">默认选中最新日期，可直接点选多个枚举值。</div>
+      </div>
+      <div class="table-wrap tall">
+        <table>
+          <thead>
+            <tr>
+              <th>组别</th>
+              <th>国家</th>
+              <th>消耗</th>
+              <th>补贴前 ROI</th>
+              <th>补贴后 ROI</th>
+            </tr>
+          </thead>
+          <tbody id="country-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel-card soft-panel">
+      <div class="panel-header">
+        <div>
+          <p class="panel-kicker">模块 3</p>
+          <h2>分账户数据</h2>
+        </div>
+        <div class="panel-caption" id="module3-caption"></div>
+      </div>
+      <div class="filter-grid module-filter-grid">
+        <div>
+          <label class="field-label" for="module3-filter-button">日期筛选</label>
+          <div class="enum-filter" data-filter-key="module3Dates">
+            <button id="module3-filter-button" class="enum-filter-button" type="button" aria-expanded="false">
+              <span class="enum-filter-label">请选择日期</span>
+              <span class="enum-filter-arrow">▾</span>
+            </button>
+            <div class="enum-filter-menu" hidden>
+              <div class="enum-filter-options" id="module3-filter-options"></div>
+            </div>
+          </div>
+        </div>
+        <div class="status-box subtle-box" id="module3-filter-status">默认选中最新日期，可直接点选多个枚举值。</div>
+      </div>
+      <div class="table-wrap tall">
+        <table>
+          <thead>
+            <tr>
+              <th>组别</th>
+              <th>账户</th>
+              <th>消耗</th>
+              <th>补贴前 ROI</th>
+              <th>补贴后 ROI</th>
+              <th>汇总 ROI</th>
+              <th>广告数</th>
+            </tr>
+          </thead>
+          <tbody id="account-body"></tbody>
+          <tfoot id="account-foot"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel-card soft-panel">
+      <div class="panel-header">
+        <div>
+          <p class="panel-kicker">模块 4</p>
+          <h2>分剧目数据</h2>
+        </div>
+        <div class="panel-caption" id="module4-caption"></div>
+      </div>
+      <div class="filter-grid module-filter-grid">
+        <div>
+          <label class="field-label" for="module4-filter-button">日期筛选</label>
+          <div class="enum-filter" data-filter-key="module4Dates">
+            <button id="module4-filter-button" class="enum-filter-button" type="button" aria-expanded="false">
+              <span class="enum-filter-label">请选择日期</span>
+              <span class="enum-filter-arrow">▾</span>
+            </button>
+            <div class="enum-filter-menu" hidden>
+              <div class="enum-filter-options" id="module4-filter-options"></div>
+            </div>
+          </div>
+        </div>
+        <div class="status-box subtle-box" id="module4-filter-status">默认选中最新日期，可直接点选多个枚举值。</div>
+      </div>
+      <div class="table-wrap tall">
+        <table>
+          <thead>
+            <tr>
+              <th>组别</th>
+              <th>剧目</th>
+              <th>消耗</th>
+              <th>H24 ROI</th>
+              <th>补贴前整体 ROI</th>
+              <th>补贴后整体 ROI</th>
+              <th>广告数</th>
+            </tr>
+          </thead>
+          <tbody id="drama-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel-card soft-panel">
+      <div class="panel-header">
+        <div>
+          <p class="panel-kicker">模块 5</p>
+          <h2>ROI 增速观察</h2>
+        </div>
+        <div class="panel-caption">保留两位小数；源表无 ROI7，额外展示 ROI13</div>
+      </div>
+      <div class="table-wrap tall">
+        <table>
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>消耗</th>
+              <th>ROI0</th>
+              <th>ROI1</th>
+              <th>ROI2</th>
+              <th>ROI3</th>
+              <th>ROI4</th>
+              <th>ROI5</th>
+              <th>ROI6</th>
+              <th>ROI13</th>
+            </tr>
+          </thead>
+          <tbody id="roi-level-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap tall top-gap">
+        <table>
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>ROI1-ROI0</th>
+              <th>ROI2-ROI0</th>
+              <th>ROI3-ROI0</th>
+              <th>ROI4-ROI0</th>
+              <th>ROI5-ROI0</th>
+              <th>ROI6-ROI0</th>
+              <th>ROI13-ROI0</th>
+            </tr>
+          </thead>
+          <tbody id="roi-growth-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    window.__INITIAL_SOURCE__ = "B组初始化为空，请先上传 B组 Excel";
+    window.__INITIAL_ROWS__ = [];
+    window.{"mode": "group", "pageId": "b", "groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组、只上传 B 组、只发布 B 组。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传与发布", "bossUrl": "https://aks74uk.github.io/"} = {"mode": "group", "pageId": "b", "groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组、只上传 B 组、只发布 B 组。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传与发布", "bossUrl": "https://aks74uk.github.io/"};
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+const SUBSIDY_ACCOUNT = 'Reelife-zl-260407-01-SINO-TT';
+const ROI_DAYS = [0, 1, 2, 3, 4, 5, 6, 13];
+const DISPLAY_ROI_DAYS = [0, 1, 2, 3, 4, 5, 6];
+const GITHUB_OWNER = 'aks74uk';
+const GITHUB_REPO = 'aks74uk.github.io';
+const PUBLIC_BASE_URL = 'https://aks74uk.github.io';
+const PAGE_CONFIG = window.{"mode": "group", "pageId": "b", "groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组、只上传 B 组、只发布 B 组。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传与发布", "bossUrl": "https://aks74uk.github.io/"} || {};
+const TOKEN_STORAGE_KEY = PAGE_CONFIG.storageKey || 'overseas_dashboard_github_token';
+
+const state = {
+  rows: Array.isArray(window.__INITIAL_ROWS__) ? window.__INITIAL_ROWS__ : [],
+  sourceLabel: window.__INITIAL_SOURCE__ || '内置数据',
+  filters: {
+    summaryDate: 'recent5',
+    module2Dates: [],
+    module3Dates: [],
+    module4Dates: [],
+  },
+};
+
+const money = (value) =>
+  new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(value || 0));
+
+const pct = (value) => `${(Number(value || 0) * 100).toFixed(2)}%`;
+const signedPct = (value) => `${Number(value || 0) >= 0 ? '+' : ''}${(Number(value || 0) * 100).toFixed(2)}%`;
+const safeDiv = (a, b) => (b ? a / b : 0);
+
+function parseNumber(value) {
+  if (value === null || value === undefined) return 0;
+  const text = String(value).trim().replace(/,/g, '');
+  if (!text || text === '-') return 0;
+  const parsed = Number(text);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function parseDate(value) {
+  if (!value) return null;
+  if (value instanceof Date && !Number.isNaN(value.valueOf())) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  const text = String(value).trim();
+  if (!text || text === '-') return null;
+  const normalized = text.replace(/\//g, '-');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) return normalized;
+  if (/^\d{8}$/.test(text)) return `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6, 8)}`;
+  return null;
+}
+
+function extractDramaTitle(seriesName) {
+  const text = String(seriesName || '').trim();
+  if (!text || text === '-') return '未识别剧目';
+  const matched = text.match(/^(.*?)-\d{8,}/);
+  if (matched?.[1]) return matched[1].trim();
+  return text.split(/\s+-\s+mini series ads/i)[0].trim().replace(/[-\s]+$/, '') || '未识别剧目';
+}
+
+function normalizeExistingRow(row, fallbackGroup = null) {
+  const groupMeta = fallbackGroup || PAGE_CONFIG;
+  const spend = parseNumber(row.spend);
+  const overallRoasRaw = Number.isFinite(row.overall_roas_raw)
+    ? row.overall_roas_raw
+    : safeDiv(parseNumber(row.overall_revenue_raw), spend);
+  const overallRevenueRaw = Number.isFinite(row.overall_revenue_raw)
+    ? row.overall_revenue_raw
+    : spend * overallRoasRaw;
+  const overallRoasPost = Number.isFinite(row.overall_roas_post)
+    ? row.overall_roas_post
+    : row.account === SUBSIDY_ACCOUNT
+    ? Math.max(1.05, overallRoasRaw)
+    : overallRoasRaw;
+  const overallRevenuePost = Number.isFinite(row.overall_revenue_post)
+    ? row.overall_revenue_post
+    : spend * overallRoasPost;
+  const revenuesRaw = Object.fromEntries(
+    ROI_DAYS.map((day) => [day, parseNumber(row.revenues_raw?.[day] ?? row.revenues_raw?.[String(day)] ?? row[`roi_${day}`])])
+  );
+
+  return {
+    ...row,
+    group_key: row.group_key || row.groupKey || groupMeta.groupKey || 'unknown',
+    group_label: row.group_label || row.groupLabel || groupMeta.groupLabel || '未分组',
+    date: parseDate(row.date),
+    spend,
+    account: row.account || '-',
+    country: row.country || '未标注',
+    series_name: row.series_name || '',
+    drama_title: row.drama_title || extractDramaTitle(row.series_name || ''),
+    revenue0_raw: Number.isFinite(row.revenue0_raw) ? row.revenue0_raw : revenuesRaw[0],
+    revenues_raw: revenuesRaw,
+    overall_roas_raw: overallRoasRaw,
+    overall_revenue_raw: overallRevenueRaw,
+    overall_roas_post: overallRoasPost,
+    overall_revenue_post: overallRevenuePost,
+  };
+}
+
+function normalizeWorkbookRow(row, groupMeta = PAGE_CONFIG) {
+  const account = String(row['账户名称'] || '').trim();
+  const date = parseDate(row['按天']);
+  const spend = parseNumber(row['消耗']);
+  if (!account || account.startsWith('总计') || !date || spend <= 0) return null;
+
+  const overallRoasRaw = parseNumber(row['广告收入 ROAS (TikTok)']);
+  const overallRoasPost = account === SUBSIDY_ACCOUNT ? Math.max(1.05, overallRoasRaw) : overallRoasRaw;
+  const revenuesRaw = Object.fromEntries(ROI_DAYS.map((day) => [day, parseNumber(row[`第 ${day} 天广告收入`])]));
+
+  return {
+    group_key: groupMeta.groupKey,
+    group_label: groupMeta.groupLabel,
+    account,
+    series_name: String(row['系列名称'] || '').trim(),
+    drama_title: extractDramaTitle(row['系列名称']),
+    country: String(row['国家/地区'] || '').trim() || '未标注',
+    date,
+    spend,
+    revenue0_raw: revenuesRaw[0],
+    revenues_raw: revenuesRaw,
+    overall_roas_raw: overallRoasRaw,
+    overall_revenue_raw: spend * overallRoasRaw,
+    overall_roas_post: overallRoasPost,
+    overall_revenue_post: spend * overallRoasPost,
+  };
+}
+
+function rowsFromWorkbook(workbook, groupMeta = PAGE_CONFIG) {
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  return XLSX.utils.sheet_to_json(sheet, { defval: '' }).map((row) => normalizeWorkbookRow(row, groupMeta)).filter(Boolean);
+}
+
+function getRevenue0Raw(row) {
+  if (Number.isFinite(row.revenue0_raw)) return row.revenue0_raw;
+  return parseNumber(row.revenues_raw?.[0] ?? row.revenues_raw?.['0']);
+}
+
+function getOverallRevenueRaw(row) {
+  if (Number.isFinite(row.overall_revenue_raw)) return row.overall_revenue_raw;
+  if (Number.isFinite(row.overall_roas_raw)) return row.spend * row.overall_roas_raw;
+  return 0;
+}
+
+function getOverallRevenuePost(row) {
+  if (Number.isFinite(row.overall_revenue_post)) return row.overall_revenue_post;
+  if (Number.isFinite(row.overall_roas_post)) return row.spend * row.overall_roas_post;
+  if (row.account === SUBSIDY_ACCOUNT) return row.spend * Math.max(1.05, safeDiv(getOverallRevenueRaw(row), row.spend));
+  return getOverallRevenueRaw(row);
+}
+
+function listRecentDates(dates, limit = 5) {
+  return dates.slice(Math.max(0, dates.length - limit));
+}
+
+function normalizeSelectedDates(availableDates, selectedDates) {
+  const normalized = (selectedDates || []).filter((date) => availableDates.includes(date));
+  return normalized.length ? normalized : [availableDates.at(-1)].filter(Boolean);
+}
+
+function makeGroupedRows(rows, keyName, splitByGroup = false) {
+  const grouped = new Map();
+
+  rows.forEach((row) => {
+    const itemName = row[keyName];
+    const groupLabel = row.group_label || '未分组';
+    const compositeKey = splitByGroup ? `${groupLabel}||${itemName}` : itemName;
+
+    if (!grouped.has(compositeKey)) {
+      grouped.set(compositeKey, {
+        group_label: groupLabel,
+        name: itemName,
+        spend: 0,
+        ads: 0,
+        accounts: new Set(),
+        dramas: new Set(),
+        revenue0_raw: 0,
+        overall_revenue_raw: 0,
+        overall_revenue_post: 0,
+      });
+    }
+
+    const bucket = grouped.get(compositeKey);
+    bucket.spend += row.spend;
+    bucket.ads += 1;
+    bucket.accounts.add(row.account);
+    bucket.dramas.add(row.drama_title);
+    bucket.revenue0_raw += getRevenue0Raw(row);
+    bucket.overall_revenue_raw += getOverallRevenueRaw(row);
+    bucket.overall_revenue_post += getOverallRevenuePost(row);
+  });
+
+  return Array.from(grouped.values())
+    .map((item) => ({
+      group_label: item.group_label,
+      name: item.name,
+      spend: item.spend,
+      spend_display: money(item.spend),
+      ads: item.ads,
+      account_count: item.accounts.size,
+      drama_count: item.dramas.size,
+      revenue0_raw: item.revenue0_raw,
+      overall_revenue_raw: item.overall_revenue_raw,
+      overall_revenue_post: item.overall_revenue_post,
+      overall_roas_raw: safeDiv(item.overall_revenue_raw, item.spend),
+      overall_roas_post: safeDiv(item.overall_revenue_post, item.spend),
+      overall_roas_raw_display: pct(safeDiv(item.overall_revenue_raw, item.spend)),
+      overall_roas_post_display: pct(safeDiv(item.overall_revenue_post, item.spend)),
+    }))
+    .sort((a, b) => b.spend - a.spend);
+}
+
+function buildData(rows, filters) {
+  const usableRows = rows.filter((row) => row.date);
+  const allDates = [...new Set(usableRows.map((row) => row.date))].sort();
+  const availableDates = allDates;
+  const recentFiveDates = listRecentDates(availableDates, 5);
+  const module2Dates = normalizeSelectedDates(availableDates, filters.module2Dates);
+  const module3Dates = normalizeSelectedDates(availableDates, filters.module3Dates);
+  const module4Dates = normalizeSelectedDates(availableDates, filters.module4Dates);
+  const summaryMode = filters.summaryDate;
+
+  const dailySummaryAll = availableDates
+    .map((date) => {
+      const dayRows = usableRows.filter((row) => row.date === date);
+      const spend = dayRows.reduce((sum, item) => sum + item.spend, 0);
+      if (spend < 50) return null;
+      const revenue0Raw = dayRows.reduce((sum, item) => sum + getRevenue0Raw(item), 0);
+      const overallRevenueRaw = dayRows.reduce((sum, item) => sum + getOverallRevenueRaw(item), 0);
+      const overallRevenuePost = dayRows.reduce((sum, item) => sum + getOverallRevenuePost(item), 0);
+      return {
+        date,
+        spend,
+        spend_display: money(spend),
+        roi0_raw_display: pct(safeDiv(revenue0Raw, spend)),
+        overall_roas_raw_display: pct(safeDiv(overallRevenueRaw, spend)),
+        overall_roas_post_display: pct(safeDiv(overallRevenuePost, spend)),
+      };
+    })
+    .filter(Boolean);
+
+  let summaryRows = dailySummaryAll;
+  if (summaryMode === 'recent5') summaryRows = dailySummaryAll.filter((row) => recentFiveDates.includes(row.date));
+  if (summaryMode && summaryMode !== 'all' && summaryMode !== 'recent5') summaryRows = dailySummaryAll.filter((row) => row.date === summaryMode);
+
+  const splitByGroup = PAGE_CONFIG.mode === 'boss';
+  const module2Rows = usableRows.filter((row) => module2Dates.includes(row.date));
+  const module3Rows = usableRows.filter((row) => module3Dates.includes(row.date));
+  const module4Rows = usableRows.filter((row) => module4Dates.includes(row.date));
+  const overviewRows = module3Rows;
+
+  const countryRows = makeGroupedRows(module2Rows, 'country', splitByGroup);
+  const accountRows = makeGroupedRows(module3Rows, 'account', splitByGroup);
+  const dramaRows = makeGroupedRows(module4Rows, 'drama_title', splitByGroup);
+  const groupOverviewRows = makeGroupedRows(overviewRows, 'group_label', false);
+
+  const roiGrowth = dailySummaryAll
+    .filter((row) => recentFiveDates.includes(row.date))
+    .map((summaryRow) => {
+      const dayRows = usableRows.filter((row) => row.date === summaryRow.date);
+      const spend = dayRows.reduce((sum, item) => sum + item.spend, 0);
+      const rawRoi = Object.fromEntries(
+        ROI_DAYS.map((day) => {
+          const revenue = dayRows.reduce((sum, item) => sum + parseNumber(item.revenues_raw?.[day] ?? item.revenues_raw?.[String(day)]), 0);
+          return [String(day), safeDiv(revenue, spend)];
+        })
+      );
+
+      return {
+        date: summaryRow.date,
+        spend_display: money(spend),
+        raw_roi: rawRoi,
+        growth_vs_roi0: Object.fromEntries(
+          DISPLAY_ROI_DAYS.filter((day) => day !== 0).map((day) => [String(day), rawRoi[String(day)] - rawRoi['0']])
+        ),
+        growth_vs_roi0_display: Object.fromEntries(
+          DISPLAY_ROI_DAYS.filter((day) => day !== 0).map((day) => [String(day), signedPct(rawRoi[String(day)] - rawRoi['0'])])
+        ),
+        growth_to_roi13: rawRoi['13'] - rawRoi['0'],
+        growth_to_roi13_display: signedPct(rawRoi['13'] - rawRoi['0']),
+      };
+    });
+
+  const totalSpend = overviewRows.reduce((sum, item) => sum + item.spend, 0);
+  const totalRaw = overviewRows.reduce((sum, item) => sum + getOverallRevenueRaw(item), 0);
+  const totalPost = overviewRows.reduce((sum, item) => sum + getOverallRevenuePost(item), 0);
+
+  return {
+    availableDates,
+    recentFiveDates,
+    summaryRows,
+    module2Dates,
+    module3Dates,
+    module4Dates,
+    countryRows,
+    accountRows,
+    dramaRows,
+    groupOverviewRows,
+    roiGrowth,
+    latestSummary: {
+      dateLabel: module3Dates.length ? module3Dates.join('、') : '-',
+      spend: money(totalSpend),
+      overallRoasRaw: pct(safeDiv(totalRaw, totalSpend)),
+      overallRoasPost: pct(safeDiv(totalPost, totalSpend)),
+      accountCount: new Set(overviewRows.map((row) => row.account)).size,
+      countryCount: new Set(overviewRows.map((row) => row.country)).size,
+      dramaCount: new Set(overviewRows.map((row) => row.drama_title)).size,
+      groupCount: new Set(overviewRows.map((row) => row.group_label)).size,
+    },
+    notes: [
+      PAGE_CONFIG.mode === 'boss'
+        ? '综合页会自动合并 A组（北京） 和 B组（广州） 两个链接发布过的线上数据。'
+        : `${PAGE_CONFIG.groupLabel} 页面只展示、上传并发布本组数据。`,
+      '当前版本不排除任何一天，上传几天就展示几天。',
+      '模块 1 支持全部日期、最近五天和单日切换；模块 2 - 4 支持最近五天、全选和逐个多选。',
+      '补贴账户 Reelife-zl-260407-01-SINO-TT 按单条广告逐条计算：小于 105% 按 105%，高于等于 105% 按真实 ROI。',
+      '综合页的模块 2 - 4 会把 A组 / B组分别拆开显示。',
+      '源表只有 ROI0-ROI6 和 ROI13，没有 ROI7；模块 5 已按要求保留两位小数。',
+    ],
+  };
+}
+
+function heatClass(value) {
+  const num = Number(value || 0);
+  if (num >= 0.3) return 'heat heat-positive-3';
+  if (num >= 0.15) return 'heat heat-positive-2';
+  if (num > 0) return 'heat heat-positive-1';
+  if (num <= -0.15) return 'heat heat-negative-2';
+  if (num < 0) return 'heat heat-negative-1';
+  return 'heat';
+}
+
+function getPageLinks() {
+  return [
+    { href: `${PUBLIC_BASE_URL}/a.html`, label: 'A组（北京）', active: PAGE_CONFIG.pageId === 'a' || PAGE_CONFIG.pageId === 'default' },
+    { href: `${PUBLIC_BASE_URL}/b.html`, label: 'B组（广州）', active: PAGE_CONFIG.pageId === 'b' },
+    { href: `${PUBLIC_BASE_URL}/`, label: '老板综合', active: PAGE_CONFIG.pageId === 'boss' },
+  ];
+}
+
+function renderPageMeta(data) {
+  document.title = PAGE_CONFIG.heroTitle || '海外投放数据看板';
+  document.getElementById('hero-title').textContent = PAGE_CONFIG.heroTitle || '海外投放数据看板';
+  document.getElementById('hero-text').textContent = PAGE_CONFIG.heroText || '';
+  document.getElementById('hero-action-title').textContent = PAGE_CONFIG.actionTitle || '上传与切换';
+  document.getElementById('group-overview-caption').textContent = `已选日期：${data.module3Dates.join('、') || '-'}`;
+
+  const nav = document.getElementById('page-nav');
+  if (nav) {
+    nav.innerHTML = getPageLinks()
+      .map((item) => `<a class="page-nav-link${item.active ? ' active' : ''}" href="${item.href}">${item.label}</a>`)
+      .join('');
+  }
+
+  if (PAGE_CONFIG.mode === 'boss') {
+    document.getElementById('upload-form').hidden = true;
+    document.querySelector('.publish-box').hidden = true;
+    document.getElementById('publish-status').textContent = '综合链接会自动读取 A组 和 B组 发布后的线上数据。';
+  }
+}
+
+function renderSummaryCards(data) {
+  const summary = data.latestSummary;
+  const cards = [
+    { label: '当前多选日期', value: summary.dateLabel, sub: `组别 ${summary.groupCount} 个 / 国家 ${summary.countryCount} 个 / 账户 ${summary.accountCount} 个 / 剧目 ${summary.dramaCount} 个` },
+    { label: '总消耗', value: summary.spend, sub: `数据源：${state.sourceLabel}` },
+    { label: '整体 ROI（补贴前）', value: summary.overallRoasRaw, sub: '仅展示百分比，不展示收入绝对值' },
+    { label: '整体 ROI（补贴后）', value: summary.overallRoasPost, sub: '补贴账户按逐条广告 max(真实ROI, 1.05) 口径计算' },
+  ];
+
+  document.getElementById('summary-grid').innerHTML = cards
+    .map(
+      (card) => `
+        <article class="summary-card">
+          <span class="label">${card.label}</span>
+          <strong>${card.value}</strong>
+          <div class="sub">${card.sub}</div>
+        </article>
+      `
+    )
+    .join('');
+}
+
+function renderNotes(data) {
+  document.getElementById('notes-list').innerHTML = data.notes.map((note) => `<li>${note}</li>`).join('');
+  document.getElementById('upload-status').textContent = `当前数据源：${state.sourceLabel}，更新时间：${new Date().toLocaleString('zh-CN', { hour12: false })}`;
+}
+
+function renderSummaryFilter(data) {
+  const select = document.getElementById('summary-date-filter');
+  select.innerHTML = ['<option value="all">全部日期</option>', '<option value="recent5">最近五天</option>']
+    .concat(data.availableDates.map((date) => `<option value="${date}">${date}</option>`))
+    .join('');
+  select.value = state.filters.summaryDate;
+}
+
+function renderModuleFilter(buttonId, optionsId, statusId, availableDates, selectedDates) {
+  const button = document.getElementById(buttonId);
+  const label = button.querySelector('.enum-filter-label');
+  const options = document.getElementById(optionsId);
+
+  label.innerHTML = selectedDates.length
+    ? selectedDates.map((date) => `<span class="enum-filter-pill">${date}</span>`).join('')
+    : '<span class="enum-filter-placeholder">请选择日期</span>';
+
+  options.innerHTML = `
+    <div class="enum-filter-actions">
+      <button class="enum-filter-action" type="button" data-action="select-recent5">最近五天</button>
+      <button class="enum-filter-action" type="button" data-action="select-all">全选</button>
+    </div>
+    ${availableDates
+      .map(
+        (date) => `
+          <label class="enum-filter-option">
+            <input type="checkbox" value="${date}" ${selectedDates.includes(date) ? 'checked' : ''}>
+            <span>${date}</span>
+          </label>
+        `
+      )
+      .join('')}
+  `;
+
+  const status = document.getElementById(statusId);
+  if (!availableDates.length) {
+    status.textContent = '当前没有可选日期。';
+    return;
+  }
+  if (selectedDates.length === availableDates.length) {
+    status.textContent = `当前已全选 ${availableDates.length} 个日期。`;
+    return;
+  }
+  if (selectedDates.length > 1) {
+    status.textContent = `当前已选 ${selectedDates.length} 个日期：${selectedDates.join('、')}`;
+    return;
+  }
+  status.textContent = `当前日期：${selectedDates[0] || '-'}；可选“最近五天”或“全选”。`;
+}
+
+function renderGroupOverview(data) {
+  const body = document.getElementById('group-overview-body');
+  if (!data.groupOverviewRows.length) {
+    body.innerHTML = '<tr><td colspan="6" class="empty-state">当前日期组合暂无组别数据</td></tr>';
+    return;
+  }
+  body.innerHTML = data.groupOverviewRows
+    .map(
+      (row) => `
+        <tr>
+          <td>${row.name}</td>
+          <td>${row.spend_display}</td>
+          <td>${row.overall_roas_raw_display}</td>
+          <td>${row.overall_roas_post_display}</td>
+          <td>${row.account_count}</td>
+          <td>${row.drama_count}</td>
+        </tr>
+      `
+    )
+    .join('');
+}
+
+function renderModule1(data) {
+  const body = document.getElementById('daily-summary-body');
+  if (!data.summaryRows.length) {
+    body.innerHTML = '<tr><td colspan="5" class="empty-state">暂无符合条件的分日数据</td></tr>';
+    return;
+  }
+  body.innerHTML = data.summaryRows
+    .map(
+      (row) => `
+        <tr>
+          <td><span class="badge">${row.date}</span></td>
+          <td>${row.spend_display}</td>
+          <td>${row.roi0_raw_display}</td>
+          <td>${row.overall_roas_raw_display}</td>
+          <td>${row.overall_roas_post_display}</td>
+        </tr>
+      `
+    )
+    .join('');
+}
+
+function renderCountryTable(data) {
+  const body = document.getElementById('country-body');
+  document.getElementById('module2-caption').textContent = `已选日期：${data.module2Dates.join('、') || '-'}`;
+  if (!data.countryRows.length) {
+    body.innerHTML = '<tr><td colspan="5" class="empty-state">当前日期组合暂无国家数据</td></tr>';
+    return;
+  }
+  body.innerHTML = data.countryRows
+    .map(
+      (row) => `
+        <tr>
+          <td>${row.group_label}</td>
+          <td>${row.name}</td>
+          <td>${row.spend_display}</td>
+          <td>${row.overall_roas_raw_display}</td>
+          <td>${row.overall_roas_post_display}</td>
+        </tr>
+      `
+    )
+    .join('');
+}
+
+function renderAccountTable(data) {
+  const body = document.getElementById('account-body');
+  const foot = document.getElementById('account-foot');
+  document.getElementById('module3-caption').textContent = `已选日期：${data.module3Dates.join('、') || '-'}；含汇总 ROI 列与总计行`;
+  if (!data.accountRows.length) {
+    body.innerHTML = '<tr><td colspan="7" class="empty-state">当前日期组合暂无账户数据</td></tr>';
+    foot.innerHTML = '';
+    return;
+  }
+  body.innerHTML = data.accountRows
+    .map(
+      (row) => `
+        <tr>
+          <td>${row.group_label}</td>
+          <td>${row.name}</td>
+          <td>${row.spend_display}</td>
+          <td>${row.overall_roas_raw_display}</td>
+          <td>${row.overall_roas_post_display}</td>
+          <td class="compact-note">补前 ${row.overall_roas_raw_display}<br>补后 ${row.overall_roas_post_display}</td>
+          <td>${row.ads}</td>
+        </tr>
+      `
+    )
+    .join('');
+
+  const totalSpend = data.accountRows.reduce((sum, row) => sum + row.spend, 0);
+  const totalRaw = data.accountRows.reduce((sum, row) => sum + row.overall_revenue_raw, 0);
+  const totalPost = data.accountRows.reduce((sum, row) => sum + row.overall_revenue_post, 0);
+  const totalAds = data.accountRows.reduce((sum, row) => sum + row.ads, 0);
+  foot.innerHTML = `
+    <tr>
+      <td colspan="2">总计</td>
+      <td>${money(totalSpend)}</td>
+      <td>${pct(safeDiv(totalRaw, totalSpend))}</td>
+      <td>${pct(safeDiv(totalPost, totalSpend))}</td>
+      <td class="compact-note">补前 ${pct(safeDiv(totalRaw, totalSpend))}<br>补后 ${pct(safeDiv(totalPost, totalSpend))}</td>
+      <td>${totalAds}</td>
+    </tr>
+  `;
+}
+
+function renderDramaTable(data) {
+  const body = document.getElementById('drama-body');
+  document.getElementById('module4-caption').textContent = `已选日期：${data.module4Dates.join('、') || '-'}；剧名从广告名称中抓取`;
+  if (!data.dramaRows.length) {
+    body.innerHTML = '<tr><td colspan="7" class="empty-state">当前日期组合暂无剧目数据</td></tr>';
+    return;
+  }
+  body.innerHTML = data.dramaRows
+    .map(
+      (row) => `
+        <tr>
+          <td>${row.group_label}</td>
+          <td>${row.name}</td>
+          <td>${row.spend_display}</td>
+          <td>${pct(safeDiv(row.revenue0_raw, row.spend))}</td>
+          <td>${row.overall_roas_raw_display}</td>
+          <td>${row.overall_roas_post_display}</td>
+          <td>${row.ads}</td>
+        </tr>
+      `
+    )
+    .join('');
+}
+
+function renderRoiTables(data) {
+  const levelBody = document.getElementById('roi-level-body');
+  const growthBody = document.getElementById('roi-growth-body');
+  if (!data.roiGrowth.length) {
+    levelBody.innerHTML = '<tr><td colspan="10" class="empty-state">暂无 ROI 增速数据</td></tr>';
+    growthBody.innerHTML = '<tr><td colspan="8" class="empty-state">暂无 ROI 增速数据</td></tr>';
+    return;
+  }
+
+  levelBody.innerHTML = data.roiGrowth
+    .map(
+      (row) => `
+        <tr>
+          <td><span class="badge">${row.date}</span></td>
+          <td>${row.spend_display}</td>
+          <td>${pct(row.raw_roi['0'])}</td>
+          <td>${pct(row.raw_roi['1'])}</td>
+          <td>${pct(row.raw_roi['2'])}</td>
+          <td>${pct(row.raw_roi['3'])}</td>
+          <td>${pct(row.raw_roi['4'])}</td>
+          <td>${pct(row.raw_roi['5'])}</td>
+          <td>${pct(row.raw_roi['6'])}</td>
+          <td>${pct(row.raw_roi['13'])}</td>
+        </tr>
+      `
+    )
+    .join('');
+
+  growthBody.innerHTML = data.roiGrowth
+    .map(
+      (row) => `
+        <tr>
+          <td><span class="badge">${row.date}</span></td>
+          <td class="${heatClass(row.growth_vs_roi0['1'])}">${row.growth_vs_roi0_display['1']}</td>
+          <td class="${heatClass(row.growth_vs_roi0['2'])}">${row.growth_vs_roi0_display['2']}</td>
+          <td class="${heatClass(row.growth_vs_roi0['3'])}">${row.growth_vs_roi0_display['3']}</td>
+          <td class="${heatClass(row.growth_vs_roi0['4'])}">${row.growth_vs_roi0_display['4']}</td>
+          <td class="${heatClass(row.growth_vs_roi0['5'])}">${row.growth_vs_roi0_display['5']}</td>
+          <td class="${heatClass(row.growth_vs_roi0['6'])}">${row.growth_vs_roi0_display['6']}</td>
+          <td class="${heatClass(row.growth_to_roi13)}">${row.growth_to_roi13_display}</td>
+        </tr>
+      `
+    )
+    .join('');
+}
+
+function renderAll() {
+  const data = buildData(state.rows, state.filters);
+  renderPageMeta(data);
+  renderSummaryCards(data);
+  renderGroupOverview(data);
+  renderNotes(data);
+  renderSummaryFilter(data);
+  renderModuleFilter('module2-filter-button', 'module2-filter-options', 'module2-filter-status', data.availableDates, data.module2Dates);
+  renderModuleFilter('module3-filter-button', 'module3-filter-options', 'module3-filter-status', data.availableDates, data.module3Dates);
+  renderModuleFilter('module4-filter-button', 'module4-filter-options', 'module4-filter-status', data.availableDates, data.module4Dates);
+  renderModule1(data);
+  renderCountryTable(data);
+  renderAccountTable(data);
+  renderDramaTable(data);
+  renderRoiTables(data);
+}
+
+function getCheckedValues(container) {
+  return Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map((input) => input.value);
+}
+
+function closeAllEnumFilters() {
+  document.querySelectorAll('.enum-filter').forEach((filter) => {
+    filter.classList.remove('open');
+    const button = filter.querySelector('.enum-filter-button');
+    const menu = filter.querySelector('.enum-filter-menu');
+    if (button) button.setAttribute('aria-expanded', 'false');
+    if (menu) menu.hidden = true;
+  });
+}
+
+function loadSavedToken() {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY) || '';
+  } catch (error) {
+    return '';
+  }
+}
+
+function saveToken(token) {
+  try {
+    localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  } catch (error) {
+    // ignore storage failures
+  }
+}
+
+async function githubRequest(url, token, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${token}`,
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(options.headers || {}),
+    },
+  });
+
+  if (response.status === 404) {
+    const error = new Error('404');
+    error.status = 404;
+    throw error;
+  }
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `GitHub API 请求失败：${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function loadRowsFromDataPath(dataPath, fallbackRows, groupMeta) {
+  try {
+    const response = await fetch(`${dataPath}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const rows = await response.json();
+    if (!Array.isArray(rows)) throw new Error('JSON 结构无效');
+    return rows.map((row) => normalizeExistingRow(row, groupMeta)).filter((row) => row.date);
+  } catch (error) {
+    return fallbackRows.map((row) => normalizeExistingRow(row, groupMeta)).filter((row) => row.date);
+  }
+}
+
+function base64EncodeUnicode(text) {
+  return btoa(unescape(encodeURIComponent(text)));
+}
+
+function serializeRowsForPublish(rows) {
+  return `${JSON.stringify(rows, null, 2)}\n`;
+}
+
+async function publishGroupData(token) {
+  const path = PAGE_CONFIG.dataPath;
+  const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
+  let sha = null;
+
+  try {
+    const current = await githubRequest(apiUrl, token);
+    sha = current.sha || null;
+  } catch (error) {
+    if (error.status !== 404 && error.message !== '404') throw error;
+  }
+
+  const payload = {
+    message: `Publish ${PAGE_CONFIG.groupLabel} data from ${state.sourceLabel}`,
+    content: base64EncodeUnicode(serializeRowsForPublish(state.rows)),
+  };
+  if (sha) payload.sha = sha;
+
+  await githubRequest(apiUrl, token, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  const stamp = Date.now();
+  const selfBase = PAGE_CONFIG.publicUrl || PUBLIC_BASE_URL;
+  const bossBase = (PAGE_CONFIG.bossUrl || PUBLIC_BASE_URL).replace(/\/$/, '');
+  return {
+    selfUrl: `${selfBase}${selfBase.includes('?') ? '&' : '?'}v=${stamp}`,
+    bossUrl: `${bossBase}/?v=${stamp}`,
+  };
+}
+
+async function uploadFile(file) {
+  const buffer = await file.arrayBuffer();
+  const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
+  state.rows = rowsFromWorkbook(workbook, PAGE_CONFIG);
+  state.sourceLabel = file.name;
+  const dates = [...new Set(state.rows.map((row) => row.date))].sort();
+  const latest = [dates.at(-1)].filter(Boolean);
+  state.filters.summaryDate = 'recent5';
+  state.filters.module2Dates = latest;
+  state.filters.module3Dates = latest;
+  state.filters.module4Dates = latest;
+  renderAll();
+}
+
+function bindFilterEvents(filterKey, buttonId, optionsId) {
+  const button = document.getElementById(buttonId);
+  const options = document.getElementById(optionsId);
+  const filter = button.closest('.enum-filter');
+  const menu = filter.querySelector('.enum-filter-menu');
+
+  button.addEventListener('click', () => {
+    const willOpen = !filter.classList.contains('open');
+    closeAllEnumFilters();
+    filter.classList.toggle('open', willOpen);
+    button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    menu.hidden = !willOpen;
+  });
+
+  options.addEventListener('change', () => {
+    const selected = getCheckedValues(options);
+    const fallback = [Array.from(options.querySelectorAll('input[type="checkbox"]')).at(-1)?.value].filter(Boolean);
+    state.filters[filterKey] = selected.length ? selected : fallback;
+    renderAll();
+  });
+
+  options.addEventListener('click', (event) => {
+    const actionButton = event.target.closest('.enum-filter-action');
+    if (!actionButton) return;
+    const allDates = Array.from(options.querySelectorAll('input[type="checkbox"]')).map((input) => input.value);
+    if (actionButton.dataset.action === 'select-all') state.filters[filterKey] = allDates;
+    if (actionButton.dataset.action === 'select-recent5') state.filters[filterKey] = listRecentDates(allDates, 5);
+    renderAll();
+  });
+}
+
+function bindEvents() {
+  document.getElementById('summary-date-filter').addEventListener('change', (event) => {
+    state.filters.summaryDate = event.target.value;
+    renderAll();
+  });
+
+  bindFilterEvents('module2Dates', 'module2-filter-button', 'module2-filter-options');
+  bindFilterEvents('module3Dates', 'module3-filter-button', 'module3-filter-options');
+  bindFilterEvents('module4Dates', 'module4-filter-button', 'module4-filter-options');
+
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.enum-filter')) closeAllEnumFilters();
+  });
+
+  const uploadForm = document.getElementById('upload-form');
+  if (uploadForm) {
+    uploadForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const file = document.getElementById('file-input').files[0];
+      if (!file) {
+        document.getElementById('upload-status').textContent = '请先选择一个 .xlsx 文件';
+        return;
+      }
+      document.getElementById('upload-status').textContent = '正在读取 Excel 并重算看板，请稍等...';
+      try {
+        await uploadFile(file);
+      } catch (error) {
+        document.getElementById('upload-status').textContent = error.message || '上传失败，请确认文件格式';
+      }
+    });
+  }
+
+  const publishButton = document.getElementById('publish-button');
+  if (publishButton) {
+    publishButton.addEventListener('click', async () => {
+      const token = document.getElementById('github-token-input').value.trim();
+      const publishStatus = document.getElementById('publish-status');
+      if (!token) {
+        publishStatus.textContent = '请先输入 GitHub Token，再发布。';
+        return;
+      }
+      if (!state.rows.length) {
+        publishStatus.textContent = '当前没有可发布的数据，请先上传 Excel。';
+        return;
+      }
+      publishStatus.textContent = '正在发布本组数据到固定链接，请稍等...';
+      try {
+        saveToken(token);
+        const urls = await publishGroupData(token);
+        publishStatus.innerHTML = `发布成功：<a href="${urls.selfUrl}" target="_blank" rel="noreferrer">本组链接</a> ｜ <a href="${urls.bossUrl}" target="_blank" rel="noreferrer">老板综合链接</a>`;
+      } catch (error) {
+        publishStatus.textContent = `发布失败：${error.message || error}`;
+      }
+    });
+  }
+}
+
+async function initData() {
+  if (PAGE_CONFIG.mode === 'boss') {
+    const mergedRows = [];
+    for (const source of PAGE_CONFIG.sources || []) {
+      const rows = await loadRowsFromDataPath(source.dataPath, [], source);
+      mergedRows.push(...rows);
+    }
+    state.rows = mergedRows.length
+      ? mergedRows
+      : state.rows.map((row) => normalizeExistingRow(row, PAGE_CONFIG)).filter((row) => row.date);
+    state.sourceLabel = 'A组 + B组线上合并数据';
+    return;
+  }
+
+  state.rows = await loadRowsFromDataPath(PAGE_CONFIG.dataPath, state.rows, PAGE_CONFIG);
+  state.sourceLabel = `${PAGE_CONFIG.groupLabel} 线上数据`;
+}
+
+(async function init() {
+  const tokenInput = document.getElementById('github-token-input');
+  if (tokenInput) tokenInput.value = loadSavedToken();
+  await initData();
+  const dates = [...new Set(state.rows.map((row) => row.date))].sort();
+  const latest = [dates.at(-1)].filter(Boolean);
+  state.filters.module2Dates = latest;
+  state.filters.module3Dates = latest;
+  state.filters.module4Dates = latest;
+  renderAll();
+  bindEvents();
+})();
+
+  </script>
+</body>
+</html>
