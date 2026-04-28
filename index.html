@@ -77,6 +77,31 @@ body::before {
   box-shadow: var(--shadow);
 }
 
+.page-nav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.page-nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: rgba(248, 255, 254, 0.9);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.page-nav-link.active {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--accent-deep);
+}
+
 .eyebrow,
 .panel-kicker {
   margin: 0 0 10px;
@@ -180,6 +205,7 @@ body::before {
 }
 
 input[type="file"],
+input[type="password"],
 select {
   width: 100%;
   border-radius: 16px;
@@ -193,6 +219,7 @@ select {
 }
 
 input[type="file"]:focus,
+input[type="password"]:focus,
 select:focus {
   border-color: rgba(93, 174, 160, 0.68);
   box-shadow: 0 0 0 4px rgba(93, 174, 160, 0.10);
@@ -551,8 +578,9 @@ tfoot td {
     <section class="hero-panel">
       <div class="hero-copy">
         <p class="eyebrow">Overseas Performance Board</p>
-        <h1>海外投放数据看板</h1>
-        <p class="hero-text">
+        <div id="page-nav" class="page-nav"></div>
+        <h1 id="hero-title">海外投放数据看板</h1>
+        <p id="hero-text" class="hero-text">
           看板支持在线浏览、上传新 Excel、切换单日和多日维度。补贴账户会自动按 max(真实ROI, 1.05) 计算补贴后 ROI，模块 5 重点看 H24 之后的增速变化。
         </p>
       </div>
@@ -560,7 +588,7 @@ tfoot td {
         <div class="panel-header compact">
           <div>
             <p class="panel-kicker">数据源</p>
-            <h2>上传与切换</h2>
+            <h2 id="hero-action-title">上传与切换</h2>
           </div>
         </div>
         <form id="upload-form" class="upload-form">
@@ -581,6 +609,31 @@ tfoot td {
     </section>
 
     <section class="summary-grid" id="summary-grid"></section>
+
+    <section class="panel-card soft-panel">
+      <div class="panel-header">
+        <div>
+          <p class="panel-kicker">新增模块</p>
+          <h2>A组 / B组总览</h2>
+        </div>
+        <div class="panel-caption" id="group-overview-caption"></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>组别</th>
+              <th>消耗</th>
+              <th>补贴前 ROI</th>
+              <th>补贴后 ROI</th>
+              <th>账户数</th>
+              <th>剧目数</th>
+            </tr>
+          </thead>
+          <tbody id="group-overview-body"></tbody>
+        </table>
+      </div>
+    </section>
 
     <section class="notes-panel panel-card">
       <div class="panel-header compact">
@@ -647,6 +700,7 @@ tfoot td {
         <table>
           <thead>
             <tr>
+              <th>组别</th>
               <th>国家</th>
               <th>消耗</th>
               <th>补贴前 ROI</th>
@@ -685,6 +739,7 @@ tfoot td {
         <table>
           <thead>
             <tr>
+              <th>组别</th>
               <th>账户</th>
               <th>消耗</th>
               <th>补贴前 ROI</th>
@@ -726,6 +781,7 @@ tfoot td {
         <table>
           <thead>
             <tr>
+              <th>组别</th>
               <th>剧目</th>
               <th>消耗</th>
               <th>H24 ROI</th>
@@ -787,8 +843,9 @@ tfoot td {
   </main>
 
   <script>
-    window.__INITIAL_SOURCE__ = "zl.xlsx";
-    window.__INITIAL_ROWS__ = [{"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "조심해! 내가 레이디 보스야 惊蛰-42000006269-印尼语-印尼-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "조심해! 내가 레이디 보스야 惊蛰", "country": "印尼", "date": "2026-04-23", "spend": 304.54, "revenue0_raw": 331.34, "revenues_raw": {"0": 331.34, "1": 331.48, "2": 331.48, "3": 331.48, "4": 331.48, "5": 331.48, "6": 331.48, "13": 331.48}, "overall_roas_raw": 1.09, "overall_revenue_raw": 331.94860000000006, "overall_roas_post": 1.09, "overall_revenue_post": 331.94860000000006}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "惊蛰（日语配音版）-41000117135-日语-日本-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰（日语配音版）", "country": "日本", "date": "2026-04-23", "spend": 301.09, "revenue0_raw": 328.74, "revenues_raw": {"0": 328.74, "1": 328.74, "2": 328.74, "3": 328.74, "4": 328.74, "5": 328.74, "6": 328.74, "13": 328.74}, "overall_roas_raw": 1.09, "overall_revenue_raw": 328.1881, "overall_roas_post": 1.09, "overall_revenue_post": 328.1881}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "조심해! 내가 레이디 보스야 惊蛰-42000006269-印尼语-印尼-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "조심해! 내가 레이디 보스야 惊蛰", "country": "印尼", "date": "2026-04-24", "spend": 276.08, "revenue0_raw": 249.74, "revenues_raw": {"0": 249.74, "1": 249.8, "2": 249.8, "3": 249.8, "4": 249.8, "5": 249.8, "6": 249.74, "13": 249.74}, "overall_roas_raw": 0.9, "overall_revenue_raw": 248.47199999999998, "overall_roas_post": 0.9, "overall_revenue_post": 248.47199999999998}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "人面桃花长相忆-41000117548-印尼语-印尼-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆", "country": "印尼", "date": "2026-04-23", "spend": 262.76, "revenue0_raw": 254.12, "revenues_raw": {"0": 254.12, "1": 254.18, "2": 254.18, "3": 254.18, "4": 254.18, "5": 254.18, "6": 254.18, "13": 254.18}, "overall_roas_raw": 0.97, "overall_revenue_raw": 254.8772, "overall_roas_post": 0.97, "overall_revenue_post": 254.8772}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "诀别当天，傅先生哭晕了-42000005441-日语-日本-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "诀别当天，傅先生哭晕了", "country": "日本", "date": "2026-04-22", "spend": 250.0, "revenue0_raw": 103.08, "revenues_raw": {"0": 103.08, "1": 103.93, "2": 103.93, "3": 103.93, "4": 103.93, "5": 103.93, "6": 103.93, "13": 103.93}, "overall_roas_raw": 0.42, "overall_revenue_raw": 105.0, "overall_roas_post": 1.05, "overall_revenue_post": 262.5}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "封总，太太的离婚生效了（泰语配音版）-41000118978-泰语-泰国-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了（泰语配音版）", "country": "泰国", "date": "2026-04-23", "spend": 247.79, "revenue0_raw": 249.85, "revenues_raw": {"0": 249.85, "1": 249.95, "2": 249.95, "3": 249.95, "4": 249.95, "5": 249.95, "6": 249.95, "13": 249.95}, "overall_roas_raw": 1.01, "overall_revenue_raw": 250.2679, "overall_roas_post": 1.01, "overall_revenue_post": 250.2679}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "诀别当天，傅先生哭晕了-42000005441-日语-日本-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "诀别当天，傅先生哭晕了", "country": "日本", "date": "2026-04-23", "spend": 243.72, "revenue0_raw": 116.37, "revenues_raw": {"0": 116.37, "1": 117.03, "2": 117.03, "3": 117.03, "4": 117.03, "5": 117.03, "6": 117.03, "13": 117.03}, "overall_roas_raw": 0.48, "overall_revenue_raw": 116.98559999999999, "overall_roas_post": 1.05, "overall_revenue_post": 255.906}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "惊蛰 (葡语配音版)-41000113183-葡萄牙语-巴西-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰 (葡语配音版)", "country": "巴西", "date": "2026-04-21", "spend": 242.72, "revenue0_raw": 143.85, "revenues_raw": {"0": 143.85, "1": 143.85, "2": 143.85, "3": 143.85, "4": 143.85, "5": 143.85, "6": 143.85, "13": 143.85}, "overall_roas_raw": 0.59, "overall_revenue_raw": 143.2048, "overall_roas_post": 1.05, "overall_revenue_post": 254.85600000000002}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）-42000004027-葡萄牙语-巴西-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）", "country": "巴西", "date": "2026-04-21", "spend": 239.33, "revenue0_raw": 143.25, "revenues_raw": {"0": 143.25, "1": 143.46, "2": 143.53, "3": 143.53, "4": 143.53, "5": 143.53, "6": 143.53, "13": 143.53}, "overall_roas_raw": 0.6, "overall_revenue_raw": 143.598, "overall_roas_post": 1.05, "overall_revenue_post": 251.29650000000004}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "家庭煮夫（印尼语配音版）-42000000651-印尼语-印尼-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "家庭煮夫（印尼语配音版）", "country": "印尼", "date": "2026-04-21", "spend": 226.37, "revenue0_raw": 161.5, "revenues_raw": {"0": 161.5, "1": 161.77, "2": 161.78, "3": 161.79, "4": 161.79, "5": 161.79, "6": 161.79, "13": 161.79}, "overall_roas_raw": 0.71, "overall_revenue_raw": 160.7227, "overall_roas_post": 1.05, "overall_revenue_post": 237.6885}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "人面桃花长相忆（泰语配音版版）-41000117929-泰语-泰国-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆（泰语配音版版）", "country": "泰国", "date": "2026-04-21", "spend": 225.71, "revenue0_raw": 175.27, "revenues_raw": {"0": 175.27, "1": 176.69, "2": 177.16, "3": 177.24, "4": 177.24, "5": 177.24, "6": 177.24, "13": 177.24}, "overall_roas_raw": 0.79, "overall_revenue_raw": 178.3109, "overall_roas_post": 1.05, "overall_revenue_post": 236.99550000000002}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "万里江山入我怀（泰语配音版）-41000120371-泰语-泰国-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "万里江山入我怀（泰语配音版）", "country": "泰国", "date": "2026-04-21", "spend": 218.4, "revenue0_raw": 201.9, "revenues_raw": {"0": 201.9, "1": 202.13, "2": 202.19, "3": 202.19, "4": 202.19, "5": 202.19, "6": 202.19, "13": 202.19}, "overall_roas_raw": 0.93, "overall_revenue_raw": 203.11200000000002, "overall_roas_post": 1.05, "overall_revenue_post": 229.32000000000002}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "幸得相遇离婚时（印尼语）-41000121412-印尼语-印尼-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "幸得相遇离婚时（印尼语）", "country": "印尼", "date": "2026-04-21", "spend": 217.11, "revenue0_raw": 170.67, "revenues_raw": {"0": 170.67, "1": 170.8, "2": 170.81, "3": 170.81, "4": 170.81, "5": 170.81, "6": 170.81, "13": 170.81}, "overall_roas_raw": 0.79, "overall_revenue_raw": 171.51690000000002, "overall_roas_post": 1.05, "overall_revenue_post": 227.96550000000002}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "幸得相遇离婚时（印尼语）-41000121412-印尼语-印尼-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "幸得相遇离婚时（印尼语）", "country": "印尼", "date": "2026-04-21", "spend": 216.02, "revenue0_raw": 158.03, "revenues_raw": {"0": 158.03, "1": 158.44, "2": 158.59, "3": 158.6, "4": 158.6, "5": 158.6, "6": 158.6, "13": 158.6}, "overall_roas_raw": 0.73, "overall_revenue_raw": 157.6946, "overall_roas_post": 1.05, "overall_revenue_post": 226.82100000000003}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "幸得相遇离婚时（印尼语）-41000121412-印尼语-印尼-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "幸得相遇离婚时（印尼语）", "country": "印尼", "date": "2026-04-22", "spend": 213.47, "revenue0_raw": 275.61, "revenues_raw": {"0": 275.61, "1": 276.07, "2": 276.26, "3": 276.26, "4": 276.26, "5": 276.26, "6": 276.26, "13": 276.26}, "overall_roas_raw": 1.29, "overall_revenue_raw": 275.3763, "overall_roas_post": 1.29, "overall_revenue_post": 275.3763}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "万里江山入我怀（泰语配音版）-41000120371-泰语-泰国-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "万里江山入我怀（泰语配音版）", "country": "泰国", "date": "2026-04-21", "spend": 212.52, "revenue0_raw": 246.05, "revenues_raw": {"0": 246.05, "1": 246.88, "2": 246.92, "3": 246.95, "4": 246.95, "5": 246.95, "6": 246.95, "13": 246.95}, "overall_roas_raw": 1.16, "overall_revenue_raw": 246.5232, "overall_roas_post": 1.16, "overall_revenue_post": 246.5232}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "家庭煮夫（印尼语配音版）-42000000651-印尼语-印尼-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "家庭煮夫（印尼语配音版）", "country": "印尼", "date": "2026-04-21", "spend": 210.98, "revenue0_raw": 219.0, "revenues_raw": {"0": 219.0, "1": 219.31, "2": 219.31, "3": 219.31, "4": 219.31, "5": 219.31, "6": 219.31, "13": 219.31}, "overall_roas_raw": 1.04, "overall_revenue_raw": 219.4192, "overall_roas_post": 1.05, "overall_revenue_post": 221.529}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "人面桃花长相忆（泰语配音版版）-41000117929-泰语-泰国-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆（泰语配音版版）", "country": "泰国", "date": "2026-04-21", "spend": 209.4, "revenue0_raw": 173.1, "revenues_raw": {"0": 173.1, "1": 173.31, "2": 173.31, "3": 173.31, "4": 173.31, "5": 173.31, "6": 173.31, "13": 173.31}, "overall_roas_raw": 0.83, "overall_revenue_raw": 173.802, "overall_roas_post": 1.05, "overall_revenue_post": 219.87}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "人面桃花长相忆（泰语配音版版）-41000117929-泰语-泰国-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆（泰语配音版版）", "country": "泰国", "date": "2026-04-22", "spend": 208.62, "revenue0_raw": 212.99, "revenues_raw": {"0": 212.99, "1": 213.14, "2": 213.14, "3": 213.14, "4": 213.14, "5": 213.14, "6": 213.14, "13": 213.14}, "overall_roas_raw": 1.02, "overall_revenue_raw": 212.79240000000001, "overall_roas_post": 1.05, "overall_revenue_post": 219.05100000000002}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "潜龙出山，有眼不识金镶玉-42000006203-日语-日本-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "潜龙出山，有眼不识金镶玉", "country": "日本", "date": "2026-04-22", "spend": 207.35, "revenue0_raw": 168.11, "revenues_raw": {"0": 168.11, "1": 172.97, "2": 173.42, "3": 173.42, "4": 173.42, "5": 173.42, "6": 173.42, "13": 173.42}, "overall_roas_raw": 0.84, "overall_revenue_raw": 174.17399999999998, "overall_roas_post": 1.05, "overall_revenue_post": 217.7175}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "潜龙出山，有眼不识金镶玉-42000006203-日语-日本-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "潜龙出山，有眼不识金镶玉", "country": "日本", "date": "2026-04-21", "spend": 204.71, "revenue0_raw": 98.64, "revenues_raw": {"0": 98.64, "1": 99.19, "2": 99.22, "3": 99.22, "4": 99.22, "5": 99.22, "6": 99.22, "13": 99.22}, "overall_roas_raw": 0.48, "overall_revenue_raw": 98.2608, "overall_roas_post": 1.05, "overall_revenue_post": 214.9455}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）-42000004027-葡萄牙语-巴西-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）", "country": "巴西", "date": "2026-04-21", "spend": 204.66, "revenue0_raw": 186.58, "revenues_raw": {"0": 186.58, "1": 187.23, "2": 187.35, "3": 187.35, "4": 187.35, "5": 187.35, "6": 187.35, "13": 187.35}, "overall_roas_raw": 0.92, "overall_revenue_raw": 188.2872, "overall_roas_post": 1.05, "overall_revenue_post": 214.893}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "惊蛰 (葡语配音版)-41000113183-葡萄牙语-巴西-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰 (葡语配音版)", "country": "巴西", "date": "2026-04-21", "spend": 203.0, "revenue0_raw": 259.98, "revenues_raw": {"0": 259.98, "1": 260.0, "2": 260.0, "3": 260.0, "4": 260.0, "5": 260.0, "6": 260.0, "13": 260.0}, "overall_roas_raw": 1.28, "overall_revenue_raw": 259.84000000000003, "overall_roas_post": 1.28, "overall_revenue_post": 259.84000000000003}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "人面桃花长相忆-41000117548-印尼语-印尼-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆", "country": "印尼", "date": "2026-04-24", "spend": 202.65, "revenue0_raw": 167.64, "revenues_raw": {"0": 167.64, "1": 167.86, "2": 167.86, "3": 167.86, "4": 167.86, "5": 167.86, "6": 167.64, "13": 167.64}, "overall_roas_raw": 0.83, "overall_revenue_raw": 168.1995, "overall_roas_post": 0.83, "overall_revenue_post": 168.1995}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "惊蛰（日语配音版）-41000117135-日语-日本-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰（日语配音版）", "country": "日本", "date": "2026-04-24", "spend": 202.42, "revenue0_raw": 151.84, "revenues_raw": {"0": 151.84, "1": 151.9, "2": 151.9, "3": 151.9, "4": 151.9, "5": 151.9, "6": 151.84, "13": 151.84}, "overall_roas_raw": 0.75, "overall_revenue_raw": 151.815, "overall_roas_post": 0.75, "overall_revenue_post": 151.815}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "惊蛰 (葡语配音版)-41000113183-葡萄牙语-巴西-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰 (葡语配音版)", "country": "巴西", "date": "2026-04-22", "spend": 200.14, "revenue0_raw": 154.08, "revenues_raw": {"0": 154.08, "1": 154.08, "2": 154.17, "3": 154.17, "4": 154.17, "5": 154.17, "6": 154.17, "13": 154.17}, "overall_roas_raw": 0.77, "overall_revenue_raw": 154.1078, "overall_roas_post": 1.05, "overall_revenue_post": 210.147}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "家庭煮夫（印尼语配音版）-42000000651-印尼语-印尼-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "家庭煮夫（印尼语配音版）", "country": "印尼", "date": "2026-04-22", "spend": 200.05, "revenue0_raw": 211.06, "revenues_raw": {"0": 211.06, "1": 211.22, "2": 211.22, "3": 211.22, "4": 211.22, "5": 211.22, "6": 211.22, "13": 211.22}, "overall_roas_raw": 1.06, "overall_revenue_raw": 212.05300000000003, "overall_roas_post": 1.06, "overall_revenue_post": 212.05300000000003}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "万里江山入我怀（泰语配音版）-41000120371-泰语-泰国-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "万里江山入我怀（泰语配音版）", "country": "泰国", "date": "2026-04-22", "spend": 199.58, "revenue0_raw": 226.89, "revenues_raw": {"0": 226.89, "1": 227.56, "2": 228.4, "3": 228.4, "4": 228.4, "5": 228.4, "6": 228.4, "13": 228.4}, "overall_roas_raw": 1.14, "overall_revenue_raw": 227.5212, "overall_roas_post": 1.14, "overall_revenue_post": 227.5212}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）-42000004027-葡萄牙语-巴西-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）", "country": "巴西", "date": "2026-04-22", "spend": 199.03, "revenue0_raw": 178.88, "revenues_raw": {"0": 178.88, "1": 178.88, "2": 178.88, "3": 178.88, "4": 178.88, "5": 178.88, "6": 178.88, "13": 178.88}, "overall_roas_raw": 0.9, "overall_revenue_raw": 179.127, "overall_roas_post": 1.05, "overall_revenue_post": 208.9815}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "封总，太太的离婚生效了（泰语配音版）-41000118978-泰语-泰国-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了（泰语配音版）", "country": "泰国", "date": "2026-04-24", "spend": 196.89, "revenue0_raw": 144.94, "revenues_raw": {"0": 144.94, "1": 144.97, "2": 144.97, "3": 144.97, "4": 144.97, "5": 144.97, "6": 144.94, "13": 144.94}, "overall_roas_raw": 0.74, "overall_revenue_raw": 145.6986, "overall_roas_post": 0.74, "overall_revenue_post": 145.6986}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "加拿大", "date": "2026-04-23", "spend": 172.48, "revenue0_raw": 205.67, "revenues_raw": {"0": 205.67, "1": 205.67, "2": 205.67, "3": 205.67, "4": 205.67, "5": 205.67, "6": 205.67, "13": 205.67}, "overall_roas_raw": 1.19, "overall_revenue_raw": 205.25119999999998, "overall_roas_post": 1.19, "overall_revenue_post": 205.25119999999998}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "加拿大", "date": "2026-04-22", "spend": 168.72, "revenue0_raw": 137.0, "revenues_raw": {"0": 137.0, "1": 137.0, "2": 137.18, "3": 137.18, "4": 137.18, "5": 137.18, "6": 137.18, "13": 137.18}, "overall_roas_raw": 0.81, "overall_revenue_raw": 136.66320000000002, "overall_roas_post": 1.05, "overall_revenue_post": 177.156}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "诀别当天，傅先生哭晕了-42000005441-日语-日本-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "诀别当天，傅先生哭晕了", "country": "日本", "date": "2026-04-21", "spend": 150.57, "revenue0_raw": 75.81, "revenues_raw": {"0": 75.81, "1": 77.14, "2": 77.14, "3": 77.14, "4": 77.14, "5": 77.14, "6": 77.14, "13": 77.14}, "overall_roas_raw": 0.51, "overall_revenue_raw": 76.7907, "overall_roas_post": 1.05, "overall_revenue_post": 158.0985}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "潜龙出山，有眼不识金镶玉-42000006203-日语-日本-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "潜龙出山，有眼不识金镶玉", "country": "日本", "date": "2026-04-21", "spend": 143.81, "revenue0_raw": 100.72, "revenues_raw": {"0": 100.72, "1": 101.05, "2": 101.08, "3": 101.08, "4": 101.08, "5": 101.08, "6": 101.08, "13": 101.08}, "overall_roas_raw": 0.7, "overall_revenue_raw": 100.667, "overall_roas_post": 1.05, "overall_revenue_post": 151.00050000000002}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "加拿大", "date": "2026-04-23", "spend": 143.58, "revenue0_raw": 97.12, "revenues_raw": {"0": 97.12, "1": 97.12, "2": 97.12, "3": 97.12, "4": 97.12, "5": 97.12, "6": 97.12, "13": 97.12}, "overall_roas_raw": 0.68, "overall_revenue_raw": 97.63440000000001, "overall_roas_post": 1.05, "overall_revenue_post": 150.75900000000001}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "加拿大", "date": "2026-04-24", "spend": 142.48, "revenue0_raw": 171.24, "revenues_raw": {"0": 171.24, "1": 171.24, "2": 171.24, "3": 171.24, "4": 171.24, "5": 171.24, "6": 171.24, "13": 171.24}, "overall_roas_raw": 1.2, "overall_revenue_raw": 170.97599999999997, "overall_roas_post": 1.2, "overall_revenue_post": 170.97599999999997}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260415 - mini series ads IAA Smart+ tROAS", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "加拿大", "date": "2026-04-21", "spend": 138.13, "revenue0_raw": 92.66, "revenues_raw": {"0": 92.66, "1": 92.72, "2": 92.72, "3": 92.72, "4": 92.72, "5": 92.72, "6": 92.72, "13": 92.72}, "overall_roas_raw": 0.67, "overall_revenue_raw": 92.5471, "overall_roas_post": 1.05, "overall_revenue_post": 145.0365}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "加拿大", "date": "2026-04-22", "spend": 135.46, "revenue0_raw": 81.64, "revenues_raw": {"0": 81.64, "1": 81.64, "2": 81.64, "3": 81.64, "4": 81.64, "5": 81.64, "6": 81.64, "13": 81.64}, "overall_roas_raw": 0.6, "overall_revenue_raw": 81.276, "overall_roas_post": 1.05, "overall_revenue_post": 142.233}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "皇帝回乡（泰语配音版）-41000112792-泰语-泰国-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "皇帝回乡（泰语配音版）", "country": "泰国", "date": "2026-04-24", "spend": 126.88, "revenue0_raw": 115.46, "revenues_raw": {"0": 115.46, "1": 115.5, "2": 115.5, "3": 115.5, "4": 115.5, "5": 115.5, "6": 115.46, "13": 115.46}, "overall_roas_raw": 0.91, "overall_revenue_raw": 115.4608, "overall_roas_post": 0.91, "overall_revenue_post": 115.4608}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260414-去掉拒审素材- mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了", "country": "加拿大", "date": "2026-04-21", "spend": 106.16, "revenue0_raw": 28.91, "revenues_raw": {"0": 28.91, "1": 28.95, "2": 28.95, "3": 28.95, "4": 28.95, "5": 28.95, "6": 28.95, "13": 28.95}, "overall_roas_raw": 0.27, "overall_revenue_raw": 28.6632, "overall_roas_post": 1.05, "overall_revenue_post": 111.468}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "澳大利亚", "date": "2026-04-22", "spend": 96.8, "revenue0_raw": 60.34, "revenues_raw": {"0": 60.34, "1": 60.89, "2": 60.89, "3": 60.89, "4": 60.89, "5": 60.89, "6": 60.89, "13": 60.89}, "overall_roas_raw": 0.63, "overall_revenue_raw": 60.984, "overall_roas_post": 1.05, "overall_revenue_post": 101.64}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "诀别当天，傅先生哭晕了-42000005441-日语-日本-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "诀别当天，傅先生哭晕了", "country": "日本", "date": "2026-04-24", "spend": 95.77, "revenue0_raw": 39.78, "revenues_raw": {"0": 39.78, "1": 39.78, "2": 39.78, "3": 39.78, "4": 39.78, "5": 39.78, "6": 39.78, "13": 39.78}, "overall_roas_raw": 0.42, "overall_revenue_raw": 40.2234, "overall_roas_post": 1.05, "overall_revenue_post": 100.5585}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "诀别当天，傅先生哭晕了-42000005441-日语-日本-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "诀别当天，傅先生哭晕了", "country": "日本", "date": "2026-04-21", "spend": 85.3, "revenue0_raw": 42.47, "revenues_raw": {"0": 42.47, "1": 42.71, "2": 42.71, "3": 42.71, "4": 42.71, "5": 42.71, "6": 42.71, "13": 42.71}, "overall_roas_raw": 0.5, "overall_revenue_raw": 42.65, "overall_roas_post": 1.05, "overall_revenue_post": 89.565}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "澳大利亚", "date": "2026-04-23", "spend": 82.06, "revenue0_raw": 35.35, "revenues_raw": {"0": 35.35, "1": 35.35, "2": 35.35, "3": 35.35, "4": 35.35, "5": 35.35, "6": 35.35, "13": 35.35}, "overall_roas_raw": 0.43, "overall_revenue_raw": 35.2858, "overall_roas_post": 1.05, "overall_revenue_post": 86.16300000000001}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "加拿大", "date": "2026-04-21", "spend": 67.5, "revenue0_raw": 45.65, "revenues_raw": {"0": 45.65, "1": 45.65, "2": 45.65, "3": 45.65, "4": 45.65, "5": 45.65, "6": 45.65, "13": 45.65}, "overall_roas_raw": 0.68, "overall_revenue_raw": 45.900000000000006, "overall_roas_post": 1.05, "overall_revenue_post": 70.875}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "澳大利亚", "date": "2026-04-22", "spend": 66.64, "revenue0_raw": 86.99, "revenues_raw": {"0": 86.99, "1": 87.88, "2": 87.88, "3": 87.88, "4": 87.88, "5": 87.88, "6": 87.88, "13": 87.88}, "overall_roas_raw": 1.32, "overall_revenue_raw": 87.96480000000001, "overall_roas_post": 1.32, "overall_revenue_post": 87.96480000000001}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260414-去掉拒审素材- mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了", "country": "澳大利亚", "date": "2026-04-21", "spend": 66.56, "revenue0_raw": 26.63, "revenues_raw": {"0": 26.63, "1": 26.74, "2": 26.74, "3": 26.74, "4": 26.74, "5": 26.74, "6": 26.74, "13": 26.74}, "overall_roas_raw": 0.4, "overall_revenue_raw": 26.624000000000002, "overall_roas_post": 1.05, "overall_revenue_post": 69.888}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260415 - mini series ads IAA Smart+ tROAS", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "澳大利亚", "date": "2026-04-21", "spend": 63.52, "revenue0_raw": 45.98, "revenues_raw": {"0": 45.98, "1": 47.07, "2": 47.07, "3": 47.07, "4": 47.07, "5": 47.07, "6": 47.07, "13": 47.07}, "overall_roas_raw": 0.74, "overall_revenue_raw": 47.0048, "overall_roas_post": 1.05, "overall_revenue_post": 66.69600000000001}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "加拿大", "date": "2026-04-24", "spend": 63.46, "revenue0_raw": 48.62, "revenues_raw": {"0": 48.62, "1": 48.62, "2": 48.62, "3": 48.62, "4": 48.62, "5": 48.62, "6": 48.62, "13": 48.62}, "overall_roas_raw": 0.77, "overall_revenue_raw": 48.864200000000004, "overall_roas_post": 1.05, "overall_revenue_post": 66.63300000000001}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "桃花马上请长缨（泰语配音版）-41000109912-泰语-泰国-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "桃花马上请长缨（泰语配音版）", "country": "泰国", "date": "2026-04-23", "spend": 55.17, "revenue0_raw": 54.52, "revenues_raw": {"0": 54.52, "1": 54.58, "2": 54.58, "3": 54.58, "4": 54.58, "5": 54.58, "6": 54.58, "13": 54.58}, "overall_roas_raw": 0.99, "overall_revenue_raw": 54.6183, "overall_roas_post": 0.99, "overall_revenue_post": 54.6183}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "澳大利亚", "date": "2026-04-23", "spend": 53.51, "revenue0_raw": 69.9, "revenues_raw": {"0": 69.9, "1": 69.9, "2": 69.9, "3": 69.9, "4": 69.9, "5": 69.9, "6": 69.9, "13": 69.9}, "overall_roas_raw": 1.31, "overall_revenue_raw": 70.0981, "overall_roas_post": 1.31, "overall_revenue_post": 70.0981}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "澳大利亚", "date": "2026-04-24", "spend": 47.12, "revenue0_raw": 59.9, "revenues_raw": {"0": 59.9, "1": 59.9, "2": 59.9, "3": 59.9, "4": 59.9, "5": 59.9, "6": 59.9, "13": 59.9}, "overall_roas_raw": 1.27, "overall_revenue_raw": 59.8424, "overall_roas_post": 1.27, "overall_revenue_post": 59.8424}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "加拿大", "date": "2026-04-21", "spend": 39.89, "revenue0_raw": 18.74, "revenues_raw": {"0": 18.74, "1": 18.74, "2": 18.74, "3": 18.74, "4": 18.74, "5": 18.74, "6": 18.74, "13": 18.74}, "overall_roas_raw": 0.47, "overall_revenue_raw": 18.7483, "overall_roas_post": 1.05, "overall_revenue_post": 41.8845}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "澳大利亚", "date": "2026-04-21", "spend": 38.12, "revenue0_raw": 20.84, "revenues_raw": {"0": 20.84, "1": 20.84, "2": 20.84, "3": 20.84, "4": 20.84, "5": 20.84, "6": 20.84, "13": 20.84}, "overall_roas_raw": 0.55, "overall_revenue_raw": 20.966, "overall_roas_post": 1.05, "overall_revenue_post": 40.025999999999996}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "澳大利亚", "date": "2026-04-21", "spend": 31.93, "revenue0_raw": 14.16, "revenues_raw": {"0": 14.16, "1": 14.35, "2": 14.35, "3": 14.35, "4": 14.35, "5": 14.35, "6": 14.35, "13": 14.35}, "overall_roas_raw": 0.45, "overall_revenue_raw": 14.368500000000001, "overall_roas_post": 1.05, "overall_revenue_post": 33.5265}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "澳大利亚", "date": "2026-04-24", "spend": 30.36, "revenue0_raw": 28.76, "revenues_raw": {"0": 28.76, "1": 28.76, "2": 28.76, "3": 28.76, "4": 28.76, "5": 28.76, "6": 28.76, "13": 28.76}, "overall_roas_raw": 0.95, "overall_revenue_raw": 28.842, "overall_roas_post": 1.05, "overall_revenue_post": 31.878}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "桃花马上请长缨（泰语配音版）-41000109912-泰语-泰国-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "桃花马上请长缨（泰语配音版）", "country": "泰国", "date": "2026-04-24", "spend": 30.1, "revenue0_raw": 24.18, "revenues_raw": {"0": 24.18, "1": 24.18, "2": 24.18, "3": 24.18, "4": 24.18, "5": 24.18, "6": 24.18, "13": 24.18}, "overall_roas_raw": 0.8, "overall_revenue_raw": 24.080000000000002, "overall_roas_post": 0.8, "overall_revenue_post": 24.080000000000002}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "Waking Up Married To My Crush!-41000107274-英语-澳新加-20260414-去掉拒审素材复制 - mini series ads IAA Smart+ tROAS", "drama_title": "Waking Up Married To My Crush!", "country": "加拿大", "date": "2026-04-21", "spend": 23.83, "revenue0_raw": 0.8, "revenues_raw": {"0": 0.8, "1": 0.8, "2": 0.8, "3": 0.8, "4": 0.8, "5": 0.8, "6": 0.8, "13": 0.8}, "overall_roas_raw": 0.03, "overall_revenue_raw": 0.7148999999999999, "overall_roas_post": 1.05, "overall_revenue_post": 25.0215}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "人面桃花长相忆-41000117548-印尼语-印尼-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆", "country": "印尼", "date": "2026-04-22", "spend": 22.74, "revenue0_raw": 27.78, "revenues_raw": {"0": 27.78, "1": 27.78, "2": 27.78, "3": 27.78, "4": 27.78, "5": 27.78, "6": 27.78, "13": 27.78}, "overall_roas_raw": 1.22, "overall_revenue_raw": 27.7428, "overall_roas_post": 1.22, "overall_revenue_post": 27.7428}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "폭풍같은 결혼생활韩版乘风破浪的婚姻-41000120820-日语-日本-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "폭풍같은 결혼생활韩版乘风破浪的婚姻", "country": "日本", "date": "2026-04-23", "spend": 21.42, "revenue0_raw": 12.91, "revenues_raw": {"0": 12.91, "1": 12.94, "2": 12.94, "3": 12.94, "4": 12.94, "5": 12.94, "6": 12.94, "13": 12.94}, "overall_roas_raw": 0.6, "overall_revenue_raw": 12.852, "overall_roas_post": 0.6, "overall_revenue_post": 12.852}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "惊蛰（日语配音版）-41000117135-日语-日本-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰（日语配音版）", "country": "日本", "date": "2026-04-22", "spend": 21.04, "revenue0_raw": 20.82, "revenues_raw": {"0": 20.82, "1": 20.82, "2": 20.82, "3": 20.82, "4": 20.82, "5": 20.82, "6": 20.82, "13": 20.82}, "overall_roas_raw": 0.99, "overall_revenue_raw": 20.8296, "overall_roas_post": 0.99, "overall_revenue_post": 20.8296}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "조심해! 내가 레이디 보스야 惊蛰-42000006269-印尼语-印尼-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "조심해! 내가 레이디 보스야 惊蛰", "country": "印尼", "date": "2026-04-22", "spend": 20.85, "revenue0_raw": 24.22, "revenues_raw": {"0": 24.22, "1": 24.22, "2": 24.22, "3": 24.22, "4": 24.22, "5": 24.22, "6": 24.22, "13": 24.22}, "overall_roas_raw": 1.16, "overall_revenue_raw": 24.186, "overall_roas_post": 1.16, "overall_revenue_post": 24.186}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "新西兰", "date": "2026-04-22", "spend": 17.74, "revenue0_raw": 4.48, "revenues_raw": {"0": 4.48, "1": 4.48, "2": 4.48, "3": 4.48, "4": 4.48, "5": 4.48, "6": 4.48, "13": 4.48}, "overall_roas_raw": 0.25, "overall_revenue_raw": 4.435, "overall_roas_post": 1.05, "overall_revenue_post": 18.627}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "新西兰", "date": "2026-04-23", "spend": 17.72, "revenue0_raw": 5.32, "revenues_raw": {"0": 5.32, "1": 5.32, "2": 5.32, "3": 5.32, "4": 5.32, "5": 5.32, "6": 5.32, "13": 5.32}, "overall_roas_raw": 0.3, "overall_revenue_raw": 5.316, "overall_roas_post": 1.05, "overall_revenue_post": 18.605999999999998}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "폭풍같은 결혼생활韩版乘风破浪的婚姻-41000120820-日语-日本-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "폭풍같은 결혼생활韩版乘风破浪的婚姻", "country": "日本", "date": "2026-04-22", "spend": 16.92, "revenue0_raw": 9.25, "revenues_raw": {"0": 9.25, "1": 9.25, "2": 9.25, "3": 9.25, "4": 9.25, "5": 9.25, "6": 9.25, "13": 9.25}, "overall_roas_raw": 0.55, "overall_revenue_raw": 9.306000000000001, "overall_roas_post": 0.55, "overall_revenue_post": 9.306000000000001}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "新西兰", "date": "2026-04-22", "spend": 14.64, "revenue0_raw": 12.83, "revenues_raw": {"0": 12.83, "1": 12.83, "2": 12.83, "3": 12.83, "4": 12.83, "5": 12.83, "6": 12.83, "13": 12.83}, "overall_roas_raw": 0.88, "overall_revenue_raw": 12.8832, "overall_roas_post": 1.05, "overall_revenue_post": 15.372000000000002}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "Waking Up Married To My Crush!-41000107274-英语-澳新加-20260414-去掉拒审素材复制 - mini series ads IAA Smart+ tROAS", "drama_title": "Waking Up Married To My Crush!", "country": "澳大利亚", "date": "2026-04-21", "spend": 13.96, "revenue0_raw": 0.23, "revenues_raw": {"0": 0.23, "1": 0.23, "2": 0.23, "3": 0.23, "4": 0.23, "5": 0.23, "6": 0.23, "13": 0.23}, "overall_roas_raw": 0.02, "overall_revenue_raw": 0.2792, "overall_roas_post": 1.05, "overall_revenue_post": 14.658000000000001}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260414-去掉拒审素材- mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了", "country": "新西兰", "date": "2026-04-21", "spend": 13.62, "revenue0_raw": 5.9, "revenues_raw": {"0": 5.9, "1": 5.93, "2": 5.93, "3": 5.93, "4": 5.93, "5": 5.93, "6": 5.93, "13": 5.93}, "overall_roas_raw": 0.44, "overall_revenue_raw": 5.9928, "overall_roas_post": 1.05, "overall_revenue_post": 14.301}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "新西兰", "date": "2026-04-23", "spend": 13.12, "revenue0_raw": 16.07, "revenues_raw": {"0": 16.07, "1": 16.29, "2": 16.29, "3": 16.29, "4": 16.29, "5": 16.29, "6": 16.29, "13": 16.29}, "overall_roas_raw": 1.24, "overall_revenue_raw": 16.2688, "overall_roas_post": 1.24, "overall_revenue_post": 16.2688}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260415 - mini series ads IAA Smart+ tROAS", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "新西兰", "date": "2026-04-21", "spend": 11.87, "revenue0_raw": 0.99, "revenues_raw": {"0": 0.99, "1": 0.99, "2": 0.99, "3": 0.99, "4": 0.99, "5": 0.99, "6": 0.99, "13": 0.99}, "overall_roas_raw": 0.08, "overall_revenue_raw": 0.9496, "overall_roas_post": 1.05, "overall_revenue_post": 12.4635}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "陆先生，余生不再见（泰语配音版）-42000000600-泰语-泰国-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "陆先生，余生不再见（泰语配音版）", "country": "泰国", "date": "2026-04-24", "spend": 11.44, "revenue0_raw": 7.99, "revenues_raw": {"0": 7.99, "1": 7.99, "2": 7.99, "3": 7.99, "4": 7.99, "5": 7.99, "6": 7.99, "13": 7.99}, "overall_roas_raw": 0.7, "overall_revenue_raw": 8.008, "overall_roas_post": 0.7, "overall_revenue_post": 8.008}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "新西兰", "date": "2026-04-24", "spend": 9.82, "revenue0_raw": 4.85, "revenues_raw": {"0": 4.85, "1": 4.85, "2": 4.85, "3": 4.85, "4": 4.85, "5": 4.85, "6": 4.85, "13": 4.85}, "overall_roas_raw": 0.49, "overall_revenue_raw": 4.8118, "overall_roas_post": 1.05, "overall_revenue_post": 10.311}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "폭풍같은 결혼생활韩版乘风破浪的婚姻-41000120820-日语-日本-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "폭풍같은 결혼생활韩版乘风破浪的婚姻", "country": "日本", "date": "2026-04-24", "spend": 8.17, "revenue0_raw": 5.17, "revenues_raw": {"0": 5.17, "1": 5.17, "2": 5.17, "3": 5.17, "4": 5.17, "5": 5.17, "6": 5.17, "13": 5.17}, "overall_roas_raw": 0.63, "overall_revenue_raw": 5.1471, "overall_roas_post": 0.63, "overall_revenue_post": 5.1471}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "新西兰", "date": "2026-04-24", "spend": 7.14, "revenue0_raw": 3.06, "revenues_raw": {"0": 3.06, "1": 3.06, "2": 3.06, "3": 3.06, "4": 3.06, "5": 3.06, "6": 3.06, "13": 3.06}, "overall_roas_raw": 0.43, "overall_revenue_raw": 3.0702, "overall_roas_post": 1.05, "overall_revenue_post": 7.497}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "新西兰", "date": "2026-04-21", "spend": 5.64, "revenue0_raw": 2.78, "revenues_raw": {"0": 2.78, "1": 2.78, "2": 2.78, "3": 2.78, "4": 2.78, "5": 2.78, "6": 2.78, "13": 2.78}, "overall_roas_raw": 0.49, "overall_revenue_raw": 2.7636, "overall_roas_post": 1.05, "overall_revenue_post": 5.922}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "万里江山入我怀（印尼语配音版）-41000122939-印尼语-印尼-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "万里江山入我怀（印尼语配音版）", "country": "印尼", "date": "2026-04-24", "spend": 4.64, "revenue0_raw": 1.42, "revenues_raw": {"0": 1.42, "1": 1.43, "2": 1.43, "3": 1.43, "4": 1.43, "5": 1.43, "6": 1.42, "13": 1.42}, "overall_roas_raw": 0.31, "overall_revenue_raw": 1.4384, "overall_roas_post": 0.31, "overall_revenue_post": 1.4384}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "皇帝回乡（泰语配音版）-41000112792-泰语-泰国-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "皇帝回乡（泰语配音版）", "country": "泰国", "date": "2026-04-23", "spend": 4.15, "revenue0_raw": 0.63, "revenues_raw": {"0": 0.63, "1": 0.63, "2": 0.63, "3": 0.63, "4": 0.63, "5": 0.63, "6": 0.63, "13": 0.63}, "overall_roas_raw": 0.15, "overall_revenue_raw": 0.6225, "overall_roas_post": 0.15, "overall_revenue_post": 0.6225}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "新西兰", "date": "2026-04-21", "spend": 2.83, "revenue0_raw": 1.09, "revenues_raw": {"0": 1.09, "1": 1.09, "2": 1.09, "3": 1.09, "4": 1.09, "5": 1.09, "6": 1.09, "13": 1.09}, "overall_roas_raw": 0.38, "overall_revenue_raw": 1.0754000000000001, "overall_roas_post": 1.05, "overall_revenue_post": 2.9715000000000003}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "男人五十（日语配音版）-41000115138-日语-日本-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "男人五十（日语配音版）", "country": "日本", "date": "2026-04-24", "spend": 1.57, "revenue0_raw": 0.04, "revenues_raw": {"0": 0.04, "1": 0.04, "2": 0.04, "3": 0.04, "4": 0.04, "5": 0.04, "6": 0.04, "13": 0.04}, "overall_roas_raw": 0.02, "overall_revenue_raw": 0.031400000000000004, "overall_roas_post": 0.02, "overall_revenue_post": 0.031400000000000004}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "Waking Up Married To My Crush!-41000107274-英语-澳新加-20260414-去掉拒审素材复制 - mini series ads IAA Smart+ tROAS", "drama_title": "Waking Up Married To My Crush!", "country": "新西兰", "date": "2026-04-21", "spend": 1.53, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 1.6065}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "潜龙出山，有眼不识金镶玉-42000006203-日语-日本-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "潜龙出山，有眼不识金镶玉", "country": "日本", "date": "2026-04-23", "spend": 1.05, "revenue0_raw": 0.01, "revenues_raw": {"0": 0.01, "1": 0.01, "2": 0.01, "3": 0.01, "4": 0.01, "5": 0.01, "6": 0.01, "13": 0.01}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 1.1025}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "皇帝回乡（日语配音版）-41000115692-日语-日本-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "皇帝回乡（日语配音版）", "country": "日本", "date": "2026-04-24", "spend": 1.03, "revenue0_raw": 0.11, "revenues_raw": {"0": 0.11, "1": 0.11, "2": 0.11, "3": 0.11, "4": 0.11, "5": 0.11, "6": 0.11, "13": 0.11}, "overall_roas_raw": 0.1, "overall_revenue_raw": 0.10300000000000001, "overall_roas_post": 0.1, "overall_revenue_post": 0.10300000000000001}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "桃花马上请长缨（泰语配音版）-41000109912-泰语-泰国-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "桃花马上请长缨（泰语配音版）", "country": "泰国", "date": "2026-04-22", "spend": 0.88, "revenue0_raw": 0.61, "revenues_raw": {"0": 0.61, "1": 0.61, "2": 0.61, "3": 0.61, "4": 0.61, "5": 0.61, "6": 0.61, "13": 0.61}, "overall_roas_raw": 0.7, "overall_revenue_raw": 0.616, "overall_roas_post": 0.7, "overall_revenue_post": 0.616}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "人面桃花长相忆（泰语配音版版）-41000117929-泰语-泰国-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆（泰语配音版版）", "country": "泰国", "date": "2026-04-23", "spend": 0.87, "revenue0_raw": 0.55, "revenues_raw": {"0": 0.55, "1": 0.56, "2": 0.56, "3": 0.56, "4": 0.56, "5": 0.56, "6": 0.56, "13": 0.56}, "overall_roas_raw": 0.65, "overall_revenue_raw": 0.5655, "overall_roas_post": 1.05, "overall_revenue_post": 0.9135}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "家庭煮夫（印尼语配音版）-42000000651-印尼语-印尼-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "家庭煮夫（印尼语配音版）", "country": "印尼", "date": "2026-04-23", "spend": 0.56, "revenue0_raw": 0.27, "revenues_raw": {"0": 0.27, "1": 0.27, "2": 0.27, "3": 0.27, "4": 0.27, "5": 0.27, "6": 0.27, "13": 0.27}, "overall_roas_raw": 0.48, "overall_revenue_raw": 0.26880000000000004, "overall_roas_post": 1.05, "overall_revenue_post": 0.5880000000000001}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "封总，太太的离婚生效了（泰语配音版）-41000118978-泰语-泰国-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了（泰语配音版）", "country": "泰国", "date": "2026-04-22", "spend": 0.54, "revenue0_raw": 1.32, "revenues_raw": {"0": 1.32, "1": 1.32, "2": 1.32, "3": 1.32, "4": 1.32, "5": 1.32, "6": 1.32, "13": 1.32}, "overall_roas_raw": 2.45, "overall_revenue_raw": 1.3230000000000002, "overall_roas_post": 2.45, "overall_revenue_post": 1.3230000000000002}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "幸得相遇离婚时（印尼语）-41000121412-印尼语-印尼-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "幸得相遇离婚时（印尼语）", "country": "印尼", "date": "2026-04-23", "spend": 0.46, "revenue0_raw": 0.77, "revenues_raw": {"0": 0.77, "1": 0.77, "2": 0.77, "3": 0.77, "4": 0.77, "5": 0.77, "6": 0.77, "13": 0.77}, "overall_roas_raw": 1.68, "overall_revenue_raw": 0.7728, "overall_roas_post": 1.68, "overall_revenue_post": 0.7728}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "惊蛰 (葡语配音版)-41000113183-葡萄牙语-巴西-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰 (葡语配音版)", "country": "巴西", "date": "2026-04-23", "spend": 0.39, "revenue0_raw": 0.55, "revenues_raw": {"0": 0.55, "1": 0.55, "2": 0.55, "3": 0.55, "4": 0.55, "5": 0.55, "6": 0.55, "13": 0.55}, "overall_roas_raw": 1.42, "overall_revenue_raw": 0.5538, "overall_roas_post": 1.42, "overall_revenue_post": 0.5538}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "万里江山入我怀（泰语配音版）-41000120371-泰语-泰国-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "万里江山入我怀（泰语配音版）", "country": "泰国", "date": "2026-04-23", "spend": 0.26, "revenue0_raw": 0.7, "revenues_raw": {"0": 0.7, "1": 0.7, "2": 0.7, "3": 0.7, "4": 0.7, "5": 0.7, "6": 0.7, "13": 0.7}, "overall_roas_raw": 2.7, "overall_revenue_raw": 0.7020000000000001, "overall_roas_post": 2.7, "overall_revenue_post": 0.7020000000000001}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "陆先生，余生不再见（泰语配音版）-42000000600-泰语-泰国-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "陆先生，余生不再见（泰语配音版）", "country": "泰国", "date": "2026-04-23", "spend": 0.2, "revenue0_raw": 0.17, "revenues_raw": {"0": 0.17, "1": 0.17, "2": 0.17, "3": 0.17, "4": 0.17, "5": 0.17, "6": 0.17, "13": 0.17}, "overall_roas_raw": 0.87, "overall_revenue_raw": 0.17400000000000002, "overall_roas_post": 0.87, "overall_revenue_post": 0.17400000000000002}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "惊蛰 (葡语配音版)-41000113183-葡萄牙语-巴西-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰 (葡语配音版)", "country": "巴西", "date": "2026-04-20", "spend": 0.15, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.1575}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260414-去掉拒审素材- mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了", "country": "加拿大", "date": "2026-04-20", "spend": 0.12, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.126}, {"account": "Reelife-zl-260407-02-SINO-TT", "series_name": "少帅你老婆又跑了-41000117508-印尼语-印尼-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "少帅你老婆又跑了", "country": "印尼", "date": "2026-04-24", "spend": 0.07, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 0.0, "overall_revenue_post": 0.0}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）-42000004027-葡萄牙语-巴西-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）", "country": "巴西", "date": "2026-04-23", "spend": 0.06, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.063}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "人面桃花长相忆（泰语配音版版）-41000117929-泰语-泰国-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆（泰语配音版版）", "country": "泰国", "date": "2026-04-20", "spend": 0.04, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.042}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "家庭煮夫（印尼语配音版）-42000000651-印尼语-印尼-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "家庭煮夫（印尼语配音版）", "country": "印尼", "date": "2026-04-20", "spend": 0.04, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.042}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）-42000004027-葡萄牙语-巴西-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）", "country": "巴西", "date": "2026-04-20", "spend": 0.03, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0315}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260415 - mini series ads IAA Smart+ tROAS", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "加拿大", "date": "2026-04-20", "spend": 0.03, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0315}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "幸得相遇离婚时（印尼语）-41000121412-印尼语-印尼-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "幸得相遇离婚时（印尼语）", "country": "印尼", "date": "2026-04-20", "spend": 0.03, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0315}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "诀别当天，傅先生哭晕了-42000005441-日语-日本-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "诀别当天，傅先生哭晕了", "country": "日本", "date": "2026-04-20", "spend": 0.02, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.021}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "万里江山入我怀（泰语配音版）-41000120371-泰语-泰国-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "万里江山入我怀（泰语配音版）", "country": "泰国", "date": "2026-04-20", "spend": 0.02, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.021}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "惊蛰 (葡语配音版)-41000113183-葡萄牙语-巴西-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰 (葡语配音版)", "country": "巴西", "date": "2026-04-24", "spend": 0.01, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0105}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "人面桃花长相忆（泰语配音版版）-41000117929-泰语-泰国-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆（泰语配音版版）", "country": "泰国", "date": "2026-04-24", "spend": 0.01, "revenue0_raw": 0.02, "revenues_raw": {"0": 0.02, "1": 0.02, "2": 0.02, "3": 0.02, "4": 0.02, "5": 0.02, "6": 0.02, "13": 0.02}, "overall_roas_raw": 1.81, "overall_revenue_raw": 0.0181, "overall_roas_post": 1.81, "overall_revenue_post": 0.0181}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260414-去掉拒审素材- mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了", "country": "澳大利亚", "date": "2026-04-20", "spend": 0.01, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0105}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260414-去掉拒审素材- mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了", "country": "新西兰", "date": "2026-04-20", "spend": 0.01, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0105}, {"account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260415 - mini series ads IAA Smart+ tROAS", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "新西兰", "date": "2026-04-20", "spend": 0.01, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0105}];
+    window.__INITIAL_SOURCE__ = "zl.xlsx（综合页默认预置）";
+    window.__INITIAL_ROWS__ = [{"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "조심해! 내가 레이디 보스야 惊蛰-42000006269-印尼语-印尼-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "조심해! 내가 레이디 보스야 惊蛰", "country": "印尼", "date": "2026-04-23", "spend": 304.54, "revenue0_raw": 331.34, "revenues_raw": {"0": 331.34, "1": 331.48, "2": 331.48, "3": 331.48, "4": 331.48, "5": 331.48, "6": 331.48, "13": 331.48}, "overall_roas_raw": 1.09, "overall_revenue_raw": 331.94860000000006, "overall_roas_post": 1.09, "overall_revenue_post": 331.94860000000006}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "惊蛰（日语配音版）-41000117135-日语-日本-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰（日语配音版）", "country": "日本", "date": "2026-04-23", "spend": 301.09, "revenue0_raw": 328.74, "revenues_raw": {"0": 328.74, "1": 328.74, "2": 328.74, "3": 328.74, "4": 328.74, "5": 328.74, "6": 328.74, "13": 328.74}, "overall_roas_raw": 1.09, "overall_revenue_raw": 328.1881, "overall_roas_post": 1.09, "overall_revenue_post": 328.1881}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "조심해! 내가 레이디 보스야 惊蛰-42000006269-印尼语-印尼-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "조심해! 내가 레이디 보스야 惊蛰", "country": "印尼", "date": "2026-04-24", "spend": 276.08, "revenue0_raw": 249.74, "revenues_raw": {"0": 249.74, "1": 249.8, "2": 249.8, "3": 249.8, "4": 249.8, "5": 249.8, "6": 249.74, "13": 249.74}, "overall_roas_raw": 0.9, "overall_revenue_raw": 248.47199999999998, "overall_roas_post": 0.9, "overall_revenue_post": 248.47199999999998}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "人面桃花长相忆-41000117548-印尼语-印尼-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆", "country": "印尼", "date": "2026-04-23", "spend": 262.76, "revenue0_raw": 254.12, "revenues_raw": {"0": 254.12, "1": 254.18, "2": 254.18, "3": 254.18, "4": 254.18, "5": 254.18, "6": 254.18, "13": 254.18}, "overall_roas_raw": 0.97, "overall_revenue_raw": 254.8772, "overall_roas_post": 0.97, "overall_revenue_post": 254.8772}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "诀别当天，傅先生哭晕了-42000005441-日语-日本-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "诀别当天，傅先生哭晕了", "country": "日本", "date": "2026-04-22", "spend": 250.0, "revenue0_raw": 103.08, "revenues_raw": {"0": 103.08, "1": 103.93, "2": 103.93, "3": 103.93, "4": 103.93, "5": 103.93, "6": 103.93, "13": 103.93}, "overall_roas_raw": 0.42, "overall_revenue_raw": 105.0, "overall_roas_post": 1.05, "overall_revenue_post": 262.5}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "封总，太太的离婚生效了（泰语配音版）-41000118978-泰语-泰国-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了（泰语配音版）", "country": "泰国", "date": "2026-04-23", "spend": 247.79, "revenue0_raw": 249.85, "revenues_raw": {"0": 249.85, "1": 249.95, "2": 249.95, "3": 249.95, "4": 249.95, "5": 249.95, "6": 249.95, "13": 249.95}, "overall_roas_raw": 1.01, "overall_revenue_raw": 250.2679, "overall_roas_post": 1.01, "overall_revenue_post": 250.2679}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "诀别当天，傅先生哭晕了-42000005441-日语-日本-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "诀别当天，傅先生哭晕了", "country": "日本", "date": "2026-04-23", "spend": 243.72, "revenue0_raw": 116.37, "revenues_raw": {"0": 116.37, "1": 117.03, "2": 117.03, "3": 117.03, "4": 117.03, "5": 117.03, "6": 117.03, "13": 117.03}, "overall_roas_raw": 0.48, "overall_revenue_raw": 116.98559999999999, "overall_roas_post": 1.05, "overall_revenue_post": 255.906}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "惊蛰 (葡语配音版)-41000113183-葡萄牙语-巴西-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰 (葡语配音版)", "country": "巴西", "date": "2026-04-21", "spend": 242.72, "revenue0_raw": 143.85, "revenues_raw": {"0": 143.85, "1": 143.85, "2": 143.85, "3": 143.85, "4": 143.85, "5": 143.85, "6": 143.85, "13": 143.85}, "overall_roas_raw": 0.59, "overall_revenue_raw": 143.2048, "overall_roas_post": 1.05, "overall_revenue_post": 254.85600000000002}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）-42000004027-葡萄牙语-巴西-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）", "country": "巴西", "date": "2026-04-21", "spend": 239.33, "revenue0_raw": 143.25, "revenues_raw": {"0": 143.25, "1": 143.46, "2": 143.53, "3": 143.53, "4": 143.53, "5": 143.53, "6": 143.53, "13": 143.53}, "overall_roas_raw": 0.6, "overall_revenue_raw": 143.598, "overall_roas_post": 1.05, "overall_revenue_post": 251.29650000000004}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "家庭煮夫（印尼语配音版）-42000000651-印尼语-印尼-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "家庭煮夫（印尼语配音版）", "country": "印尼", "date": "2026-04-21", "spend": 226.37, "revenue0_raw": 161.5, "revenues_raw": {"0": 161.5, "1": 161.77, "2": 161.78, "3": 161.79, "4": 161.79, "5": 161.79, "6": 161.79, "13": 161.79}, "overall_roas_raw": 0.71, "overall_revenue_raw": 160.7227, "overall_roas_post": 1.05, "overall_revenue_post": 237.6885}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "人面桃花长相忆（泰语配音版版）-41000117929-泰语-泰国-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆（泰语配音版版）", "country": "泰国", "date": "2026-04-21", "spend": 225.71, "revenue0_raw": 175.27, "revenues_raw": {"0": 175.27, "1": 176.69, "2": 177.16, "3": 177.24, "4": 177.24, "5": 177.24, "6": 177.24, "13": 177.24}, "overall_roas_raw": 0.79, "overall_revenue_raw": 178.3109, "overall_roas_post": 1.05, "overall_revenue_post": 236.99550000000002}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "万里江山入我怀（泰语配音版）-41000120371-泰语-泰国-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "万里江山入我怀（泰语配音版）", "country": "泰国", "date": "2026-04-21", "spend": 218.4, "revenue0_raw": 201.9, "revenues_raw": {"0": 201.9, "1": 202.13, "2": 202.19, "3": 202.19, "4": 202.19, "5": 202.19, "6": 202.19, "13": 202.19}, "overall_roas_raw": 0.93, "overall_revenue_raw": 203.11200000000002, "overall_roas_post": 1.05, "overall_revenue_post": 229.32000000000002}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "幸得相遇离婚时（印尼语）-41000121412-印尼语-印尼-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "幸得相遇离婚时（印尼语）", "country": "印尼", "date": "2026-04-21", "spend": 217.11, "revenue0_raw": 170.67, "revenues_raw": {"0": 170.67, "1": 170.8, "2": 170.81, "3": 170.81, "4": 170.81, "5": 170.81, "6": 170.81, "13": 170.81}, "overall_roas_raw": 0.79, "overall_revenue_raw": 171.51690000000002, "overall_roas_post": 1.05, "overall_revenue_post": 227.96550000000002}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "幸得相遇离婚时（印尼语）-41000121412-印尼语-印尼-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "幸得相遇离婚时（印尼语）", "country": "印尼", "date": "2026-04-21", "spend": 216.02, "revenue0_raw": 158.03, "revenues_raw": {"0": 158.03, "1": 158.44, "2": 158.59, "3": 158.6, "4": 158.6, "5": 158.6, "6": 158.6, "13": 158.6}, "overall_roas_raw": 0.73, "overall_revenue_raw": 157.6946, "overall_roas_post": 1.05, "overall_revenue_post": 226.82100000000003}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "幸得相遇离婚时（印尼语）-41000121412-印尼语-印尼-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "幸得相遇离婚时（印尼语）", "country": "印尼", "date": "2026-04-22", "spend": 213.47, "revenue0_raw": 275.61, "revenues_raw": {"0": 275.61, "1": 276.07, "2": 276.26, "3": 276.26, "4": 276.26, "5": 276.26, "6": 276.26, "13": 276.26}, "overall_roas_raw": 1.29, "overall_revenue_raw": 275.3763, "overall_roas_post": 1.29, "overall_revenue_post": 275.3763}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "万里江山入我怀（泰语配音版）-41000120371-泰语-泰国-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "万里江山入我怀（泰语配音版）", "country": "泰国", "date": "2026-04-21", "spend": 212.52, "revenue0_raw": 246.05, "revenues_raw": {"0": 246.05, "1": 246.88, "2": 246.92, "3": 246.95, "4": 246.95, "5": 246.95, "6": 246.95, "13": 246.95}, "overall_roas_raw": 1.16, "overall_revenue_raw": 246.5232, "overall_roas_post": 1.16, "overall_revenue_post": 246.5232}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "家庭煮夫（印尼语配音版）-42000000651-印尼语-印尼-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "家庭煮夫（印尼语配音版）", "country": "印尼", "date": "2026-04-21", "spend": 210.98, "revenue0_raw": 219.0, "revenues_raw": {"0": 219.0, "1": 219.31, "2": 219.31, "3": 219.31, "4": 219.31, "5": 219.31, "6": 219.31, "13": 219.31}, "overall_roas_raw": 1.04, "overall_revenue_raw": 219.4192, "overall_roas_post": 1.05, "overall_revenue_post": 221.529}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "人面桃花长相忆（泰语配音版版）-41000117929-泰语-泰国-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆（泰语配音版版）", "country": "泰国", "date": "2026-04-21", "spend": 209.4, "revenue0_raw": 173.1, "revenues_raw": {"0": 173.1, "1": 173.31, "2": 173.31, "3": 173.31, "4": 173.31, "5": 173.31, "6": 173.31, "13": 173.31}, "overall_roas_raw": 0.83, "overall_revenue_raw": 173.802, "overall_roas_post": 1.05, "overall_revenue_post": 219.87}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "人面桃花长相忆（泰语配音版版）-41000117929-泰语-泰国-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆（泰语配音版版）", "country": "泰国", "date": "2026-04-22", "spend": 208.62, "revenue0_raw": 212.99, "revenues_raw": {"0": 212.99, "1": 213.14, "2": 213.14, "3": 213.14, "4": 213.14, "5": 213.14, "6": 213.14, "13": 213.14}, "overall_roas_raw": 1.02, "overall_revenue_raw": 212.79240000000001, "overall_roas_post": 1.05, "overall_revenue_post": 219.05100000000002}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "潜龙出山，有眼不识金镶玉-42000006203-日语-日本-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "潜龙出山，有眼不识金镶玉", "country": "日本", "date": "2026-04-22", "spend": 207.35, "revenue0_raw": 168.11, "revenues_raw": {"0": 168.11, "1": 172.97, "2": 173.42, "3": 173.42, "4": 173.42, "5": 173.42, "6": 173.42, "13": 173.42}, "overall_roas_raw": 0.84, "overall_revenue_raw": 174.17399999999998, "overall_roas_post": 1.05, "overall_revenue_post": 217.7175}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "潜龙出山，有眼不识金镶玉-42000006203-日语-日本-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "潜龙出山，有眼不识金镶玉", "country": "日本", "date": "2026-04-21", "spend": 204.71, "revenue0_raw": 98.64, "revenues_raw": {"0": 98.64, "1": 99.19, "2": 99.22, "3": 99.22, "4": 99.22, "5": 99.22, "6": 99.22, "13": 99.22}, "overall_roas_raw": 0.48, "overall_revenue_raw": 98.2608, "overall_roas_post": 1.05, "overall_revenue_post": 214.9455}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）-42000004027-葡萄牙语-巴西-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）", "country": "巴西", "date": "2026-04-21", "spend": 204.66, "revenue0_raw": 186.58, "revenues_raw": {"0": 186.58, "1": 187.23, "2": 187.35, "3": 187.35, "4": 187.35, "5": 187.35, "6": 187.35, "13": 187.35}, "overall_roas_raw": 0.92, "overall_revenue_raw": 188.2872, "overall_roas_post": 1.05, "overall_revenue_post": 214.893}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "惊蛰 (葡语配音版)-41000113183-葡萄牙语-巴西-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰 (葡语配音版)", "country": "巴西", "date": "2026-04-21", "spend": 203.0, "revenue0_raw": 259.98, "revenues_raw": {"0": 259.98, "1": 260.0, "2": 260.0, "3": 260.0, "4": 260.0, "5": 260.0, "6": 260.0, "13": 260.0}, "overall_roas_raw": 1.28, "overall_revenue_raw": 259.84000000000003, "overall_roas_post": 1.28, "overall_revenue_post": 259.84000000000003}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "人面桃花长相忆-41000117548-印尼语-印尼-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆", "country": "印尼", "date": "2026-04-24", "spend": 202.65, "revenue0_raw": 167.64, "revenues_raw": {"0": 167.64, "1": 167.86, "2": 167.86, "3": 167.86, "4": 167.86, "5": 167.86, "6": 167.64, "13": 167.64}, "overall_roas_raw": 0.83, "overall_revenue_raw": 168.1995, "overall_roas_post": 0.83, "overall_revenue_post": 168.1995}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "惊蛰（日语配音版）-41000117135-日语-日本-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰（日语配音版）", "country": "日本", "date": "2026-04-24", "spend": 202.42, "revenue0_raw": 151.84, "revenues_raw": {"0": 151.84, "1": 151.9, "2": 151.9, "3": 151.9, "4": 151.9, "5": 151.9, "6": 151.84, "13": 151.84}, "overall_roas_raw": 0.75, "overall_revenue_raw": 151.815, "overall_roas_post": 0.75, "overall_revenue_post": 151.815}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "惊蛰 (葡语配音版)-41000113183-葡萄牙语-巴西-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰 (葡语配音版)", "country": "巴西", "date": "2026-04-22", "spend": 200.14, "revenue0_raw": 154.08, "revenues_raw": {"0": 154.08, "1": 154.08, "2": 154.17, "3": 154.17, "4": 154.17, "5": 154.17, "6": 154.17, "13": 154.17}, "overall_roas_raw": 0.77, "overall_revenue_raw": 154.1078, "overall_roas_post": 1.05, "overall_revenue_post": 210.147}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "家庭煮夫（印尼语配音版）-42000000651-印尼语-印尼-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "家庭煮夫（印尼语配音版）", "country": "印尼", "date": "2026-04-22", "spend": 200.05, "revenue0_raw": 211.06, "revenues_raw": {"0": 211.06, "1": 211.22, "2": 211.22, "3": 211.22, "4": 211.22, "5": 211.22, "6": 211.22, "13": 211.22}, "overall_roas_raw": 1.06, "overall_revenue_raw": 212.05300000000003, "overall_roas_post": 1.06, "overall_revenue_post": 212.05300000000003}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "万里江山入我怀（泰语配音版）-41000120371-泰语-泰国-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "万里江山入我怀（泰语配音版）", "country": "泰国", "date": "2026-04-22", "spend": 199.58, "revenue0_raw": 226.89, "revenues_raw": {"0": 226.89, "1": 227.56, "2": 228.4, "3": 228.4, "4": 228.4, "5": 228.4, "6": 228.4, "13": 228.4}, "overall_roas_raw": 1.14, "overall_revenue_raw": 227.5212, "overall_roas_post": 1.14, "overall_revenue_post": 227.5212}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）-42000004027-葡萄牙语-巴西-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）", "country": "巴西", "date": "2026-04-22", "spend": 199.03, "revenue0_raw": 178.88, "revenues_raw": {"0": 178.88, "1": 178.88, "2": 178.88, "3": 178.88, "4": 178.88, "5": 178.88, "6": 178.88, "13": 178.88}, "overall_roas_raw": 0.9, "overall_revenue_raw": 179.127, "overall_roas_post": 1.05, "overall_revenue_post": 208.9815}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "封总，太太的离婚生效了（泰语配音版）-41000118978-泰语-泰国-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了（泰语配音版）", "country": "泰国", "date": "2026-04-24", "spend": 196.89, "revenue0_raw": 144.94, "revenues_raw": {"0": 144.94, "1": 144.97, "2": 144.97, "3": 144.97, "4": 144.97, "5": 144.97, "6": 144.94, "13": 144.94}, "overall_roas_raw": 0.74, "overall_revenue_raw": 145.6986, "overall_roas_post": 0.74, "overall_revenue_post": 145.6986}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "加拿大", "date": "2026-04-23", "spend": 172.48, "revenue0_raw": 205.67, "revenues_raw": {"0": 205.67, "1": 205.67, "2": 205.67, "3": 205.67, "4": 205.67, "5": 205.67, "6": 205.67, "13": 205.67}, "overall_roas_raw": 1.19, "overall_revenue_raw": 205.25119999999998, "overall_roas_post": 1.19, "overall_revenue_post": 205.25119999999998}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "加拿大", "date": "2026-04-22", "spend": 168.72, "revenue0_raw": 137.0, "revenues_raw": {"0": 137.0, "1": 137.0, "2": 137.18, "3": 137.18, "4": 137.18, "5": 137.18, "6": 137.18, "13": 137.18}, "overall_roas_raw": 0.81, "overall_revenue_raw": 136.66320000000002, "overall_roas_post": 1.05, "overall_revenue_post": 177.156}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "诀别当天，傅先生哭晕了-42000005441-日语-日本-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "诀别当天，傅先生哭晕了", "country": "日本", "date": "2026-04-21", "spend": 150.57, "revenue0_raw": 75.81, "revenues_raw": {"0": 75.81, "1": 77.14, "2": 77.14, "3": 77.14, "4": 77.14, "5": 77.14, "6": 77.14, "13": 77.14}, "overall_roas_raw": 0.51, "overall_revenue_raw": 76.7907, "overall_roas_post": 1.05, "overall_revenue_post": 158.0985}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "潜龙出山，有眼不识金镶玉-42000006203-日语-日本-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "潜龙出山，有眼不识金镶玉", "country": "日本", "date": "2026-04-21", "spend": 143.81, "revenue0_raw": 100.72, "revenues_raw": {"0": 100.72, "1": 101.05, "2": 101.08, "3": 101.08, "4": 101.08, "5": 101.08, "6": 101.08, "13": 101.08}, "overall_roas_raw": 0.7, "overall_revenue_raw": 100.667, "overall_roas_post": 1.05, "overall_revenue_post": 151.00050000000002}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "加拿大", "date": "2026-04-23", "spend": 143.58, "revenue0_raw": 97.12, "revenues_raw": {"0": 97.12, "1": 97.12, "2": 97.12, "3": 97.12, "4": 97.12, "5": 97.12, "6": 97.12, "13": 97.12}, "overall_roas_raw": 0.68, "overall_revenue_raw": 97.63440000000001, "overall_roas_post": 1.05, "overall_revenue_post": 150.75900000000001}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "加拿大", "date": "2026-04-24", "spend": 142.48, "revenue0_raw": 171.24, "revenues_raw": {"0": 171.24, "1": 171.24, "2": 171.24, "3": 171.24, "4": 171.24, "5": 171.24, "6": 171.24, "13": 171.24}, "overall_roas_raw": 1.2, "overall_revenue_raw": 170.97599999999997, "overall_roas_post": 1.2, "overall_revenue_post": 170.97599999999997}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260415 - mini series ads IAA Smart+ tROAS", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "加拿大", "date": "2026-04-21", "spend": 138.13, "revenue0_raw": 92.66, "revenues_raw": {"0": 92.66, "1": 92.72, "2": 92.72, "3": 92.72, "4": 92.72, "5": 92.72, "6": 92.72, "13": 92.72}, "overall_roas_raw": 0.67, "overall_revenue_raw": 92.5471, "overall_roas_post": 1.05, "overall_revenue_post": 145.0365}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "加拿大", "date": "2026-04-22", "spend": 135.46, "revenue0_raw": 81.64, "revenues_raw": {"0": 81.64, "1": 81.64, "2": 81.64, "3": 81.64, "4": 81.64, "5": 81.64, "6": 81.64, "13": 81.64}, "overall_roas_raw": 0.6, "overall_revenue_raw": 81.276, "overall_roas_post": 1.05, "overall_revenue_post": 142.233}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "皇帝回乡（泰语配音版）-41000112792-泰语-泰国-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "皇帝回乡（泰语配音版）", "country": "泰国", "date": "2026-04-24", "spend": 126.88, "revenue0_raw": 115.46, "revenues_raw": {"0": 115.46, "1": 115.5, "2": 115.5, "3": 115.5, "4": 115.5, "5": 115.5, "6": 115.46, "13": 115.46}, "overall_roas_raw": 0.91, "overall_revenue_raw": 115.4608, "overall_roas_post": 0.91, "overall_revenue_post": 115.4608}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260414-去掉拒审素材- mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了", "country": "加拿大", "date": "2026-04-21", "spend": 106.16, "revenue0_raw": 28.91, "revenues_raw": {"0": 28.91, "1": 28.95, "2": 28.95, "3": 28.95, "4": 28.95, "5": 28.95, "6": 28.95, "13": 28.95}, "overall_roas_raw": 0.27, "overall_revenue_raw": 28.6632, "overall_roas_post": 1.05, "overall_revenue_post": 111.468}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "澳大利亚", "date": "2026-04-22", "spend": 96.8, "revenue0_raw": 60.34, "revenues_raw": {"0": 60.34, "1": 60.89, "2": 60.89, "3": 60.89, "4": 60.89, "5": 60.89, "6": 60.89, "13": 60.89}, "overall_roas_raw": 0.63, "overall_revenue_raw": 60.984, "overall_roas_post": 1.05, "overall_revenue_post": 101.64}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "诀别当天，傅先生哭晕了-42000005441-日语-日本-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "诀别当天，傅先生哭晕了", "country": "日本", "date": "2026-04-24", "spend": 95.77, "revenue0_raw": 39.78, "revenues_raw": {"0": 39.78, "1": 39.78, "2": 39.78, "3": 39.78, "4": 39.78, "5": 39.78, "6": 39.78, "13": 39.78}, "overall_roas_raw": 0.42, "overall_revenue_raw": 40.2234, "overall_roas_post": 1.05, "overall_revenue_post": 100.5585}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "诀别当天，傅先生哭晕了-42000005441-日语-日本-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "诀别当天，傅先生哭晕了", "country": "日本", "date": "2026-04-21", "spend": 85.3, "revenue0_raw": 42.47, "revenues_raw": {"0": 42.47, "1": 42.71, "2": 42.71, "3": 42.71, "4": 42.71, "5": 42.71, "6": 42.71, "13": 42.71}, "overall_roas_raw": 0.5, "overall_revenue_raw": 42.65, "overall_roas_post": 1.05, "overall_revenue_post": 89.565}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "澳大利亚", "date": "2026-04-23", "spend": 82.06, "revenue0_raw": 35.35, "revenues_raw": {"0": 35.35, "1": 35.35, "2": 35.35, "3": 35.35, "4": 35.35, "5": 35.35, "6": 35.35, "13": 35.35}, "overall_roas_raw": 0.43, "overall_revenue_raw": 35.2858, "overall_roas_post": 1.05, "overall_revenue_post": 86.16300000000001}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "加拿大", "date": "2026-04-21", "spend": 67.5, "revenue0_raw": 45.65, "revenues_raw": {"0": 45.65, "1": 45.65, "2": 45.65, "3": 45.65, "4": 45.65, "5": 45.65, "6": 45.65, "13": 45.65}, "overall_roas_raw": 0.68, "overall_revenue_raw": 45.900000000000006, "overall_roas_post": 1.05, "overall_revenue_post": 70.875}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "澳大利亚", "date": "2026-04-22", "spend": 66.64, "revenue0_raw": 86.99, "revenues_raw": {"0": 86.99, "1": 87.88, "2": 87.88, "3": 87.88, "4": 87.88, "5": 87.88, "6": 87.88, "13": 87.88}, "overall_roas_raw": 1.32, "overall_revenue_raw": 87.96480000000001, "overall_roas_post": 1.32, "overall_revenue_post": 87.96480000000001}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260414-去掉拒审素材- mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了", "country": "澳大利亚", "date": "2026-04-21", "spend": 66.56, "revenue0_raw": 26.63, "revenues_raw": {"0": 26.63, "1": 26.74, "2": 26.74, "3": 26.74, "4": 26.74, "5": 26.74, "6": 26.74, "13": 26.74}, "overall_roas_raw": 0.4, "overall_revenue_raw": 26.624000000000002, "overall_roas_post": 1.05, "overall_revenue_post": 69.888}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260415 - mini series ads IAA Smart+ tROAS", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "澳大利亚", "date": "2026-04-21", "spend": 63.52, "revenue0_raw": 45.98, "revenues_raw": {"0": 45.98, "1": 47.07, "2": 47.07, "3": 47.07, "4": 47.07, "5": 47.07, "6": 47.07, "13": 47.07}, "overall_roas_raw": 0.74, "overall_revenue_raw": 47.0048, "overall_roas_post": 1.05, "overall_revenue_post": 66.69600000000001}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "加拿大", "date": "2026-04-24", "spend": 63.46, "revenue0_raw": 48.62, "revenues_raw": {"0": 48.62, "1": 48.62, "2": 48.62, "3": 48.62, "4": 48.62, "5": 48.62, "6": 48.62, "13": 48.62}, "overall_roas_raw": 0.77, "overall_revenue_raw": 48.864200000000004, "overall_roas_post": 1.05, "overall_revenue_post": 66.63300000000001}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "桃花马上请长缨（泰语配音版）-41000109912-泰语-泰国-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "桃花马上请长缨（泰语配音版）", "country": "泰国", "date": "2026-04-23", "spend": 55.17, "revenue0_raw": 54.52, "revenues_raw": {"0": 54.52, "1": 54.58, "2": 54.58, "3": 54.58, "4": 54.58, "5": 54.58, "6": 54.58, "13": 54.58}, "overall_roas_raw": 0.99, "overall_revenue_raw": 54.6183, "overall_roas_post": 0.99, "overall_revenue_post": 54.6183}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "澳大利亚", "date": "2026-04-23", "spend": 53.51, "revenue0_raw": 69.9, "revenues_raw": {"0": 69.9, "1": 69.9, "2": 69.9, "3": 69.9, "4": 69.9, "5": 69.9, "6": 69.9, "13": 69.9}, "overall_roas_raw": 1.31, "overall_revenue_raw": 70.0981, "overall_roas_post": 1.31, "overall_revenue_post": 70.0981}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "澳大利亚", "date": "2026-04-24", "spend": 47.12, "revenue0_raw": 59.9, "revenues_raw": {"0": 59.9, "1": 59.9, "2": 59.9, "3": 59.9, "4": 59.9, "5": 59.9, "6": 59.9, "13": 59.9}, "overall_roas_raw": 1.27, "overall_revenue_raw": 59.8424, "overall_roas_post": 1.27, "overall_revenue_post": 59.8424}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "加拿大", "date": "2026-04-21", "spend": 39.89, "revenue0_raw": 18.74, "revenues_raw": {"0": 18.74, "1": 18.74, "2": 18.74, "3": 18.74, "4": 18.74, "5": 18.74, "6": 18.74, "13": 18.74}, "overall_roas_raw": 0.47, "overall_revenue_raw": 18.7483, "overall_roas_post": 1.05, "overall_revenue_post": 41.8845}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "澳大利亚", "date": "2026-04-21", "spend": 38.12, "revenue0_raw": 20.84, "revenues_raw": {"0": 20.84, "1": 20.84, "2": 20.84, "3": 20.84, "4": 20.84, "5": 20.84, "6": 20.84, "13": 20.84}, "overall_roas_raw": 0.55, "overall_revenue_raw": 20.966, "overall_roas_post": 1.05, "overall_revenue_post": 40.025999999999996}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "澳大利亚", "date": "2026-04-21", "spend": 31.93, "revenue0_raw": 14.16, "revenues_raw": {"0": 14.16, "1": 14.35, "2": 14.35, "3": 14.35, "4": 14.35, "5": 14.35, "6": 14.35, "13": 14.35}, "overall_roas_raw": 0.45, "overall_revenue_raw": 14.368500000000001, "overall_roas_post": 1.05, "overall_revenue_post": 33.5265}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "澳大利亚", "date": "2026-04-24", "spend": 30.36, "revenue0_raw": 28.76, "revenues_raw": {"0": 28.76, "1": 28.76, "2": 28.76, "3": 28.76, "4": 28.76, "5": 28.76, "6": 28.76, "13": 28.76}, "overall_roas_raw": 0.95, "overall_revenue_raw": 28.842, "overall_roas_post": 1.05, "overall_revenue_post": 31.878}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "桃花马上请长缨（泰语配音版）-41000109912-泰语-泰国-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "桃花马上请长缨（泰语配音版）", "country": "泰国", "date": "2026-04-24", "spend": 30.1, "revenue0_raw": 24.18, "revenues_raw": {"0": 24.18, "1": 24.18, "2": 24.18, "3": 24.18, "4": 24.18, "5": 24.18, "6": 24.18, "13": 24.18}, "overall_roas_raw": 0.8, "overall_revenue_raw": 24.080000000000002, "overall_roas_post": 0.8, "overall_revenue_post": 24.080000000000002}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "Waking Up Married To My Crush!-41000107274-英语-澳新加-20260414-去掉拒审素材复制 - mini series ads IAA Smart+ tROAS", "drama_title": "Waking Up Married To My Crush!", "country": "加拿大", "date": "2026-04-21", "spend": 23.83, "revenue0_raw": 0.8, "revenues_raw": {"0": 0.8, "1": 0.8, "2": 0.8, "3": 0.8, "4": 0.8, "5": 0.8, "6": 0.8, "13": 0.8}, "overall_roas_raw": 0.03, "overall_revenue_raw": 0.7148999999999999, "overall_roas_post": 1.05, "overall_revenue_post": 25.0215}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "人面桃花长相忆-41000117548-印尼语-印尼-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆", "country": "印尼", "date": "2026-04-22", "spend": 22.74, "revenue0_raw": 27.78, "revenues_raw": {"0": 27.78, "1": 27.78, "2": 27.78, "3": 27.78, "4": 27.78, "5": 27.78, "6": 27.78, "13": 27.78}, "overall_roas_raw": 1.22, "overall_revenue_raw": 27.7428, "overall_roas_post": 1.22, "overall_revenue_post": 27.7428}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "폭풍같은 결혼생활韩版乘风破浪的婚姻-41000120820-日语-日本-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "폭풍같은 결혼생활韩版乘风破浪的婚姻", "country": "日本", "date": "2026-04-23", "spend": 21.42, "revenue0_raw": 12.91, "revenues_raw": {"0": 12.91, "1": 12.94, "2": 12.94, "3": 12.94, "4": 12.94, "5": 12.94, "6": 12.94, "13": 12.94}, "overall_roas_raw": 0.6, "overall_revenue_raw": 12.852, "overall_roas_post": 0.6, "overall_revenue_post": 12.852}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "惊蛰（日语配音版）-41000117135-日语-日本-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰（日语配音版）", "country": "日本", "date": "2026-04-22", "spend": 21.04, "revenue0_raw": 20.82, "revenues_raw": {"0": 20.82, "1": 20.82, "2": 20.82, "3": 20.82, "4": 20.82, "5": 20.82, "6": 20.82, "13": 20.82}, "overall_roas_raw": 0.99, "overall_revenue_raw": 20.8296, "overall_roas_post": 0.99, "overall_revenue_post": 20.8296}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "조심해! 내가 레이디 보스야 惊蛰-42000006269-印尼语-印尼-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "조심해! 내가 레이디 보스야 惊蛰", "country": "印尼", "date": "2026-04-22", "spend": 20.85, "revenue0_raw": 24.22, "revenues_raw": {"0": 24.22, "1": 24.22, "2": 24.22, "3": 24.22, "4": 24.22, "5": 24.22, "6": 24.22, "13": 24.22}, "overall_roas_raw": 1.16, "overall_revenue_raw": 24.186, "overall_roas_post": 1.16, "overall_revenue_post": 24.186}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "新西兰", "date": "2026-04-22", "spend": 17.74, "revenue0_raw": 4.48, "revenues_raw": {"0": 4.48, "1": 4.48, "2": 4.48, "3": 4.48, "4": 4.48, "5": 4.48, "6": 4.48, "13": 4.48}, "overall_roas_raw": 0.25, "overall_revenue_raw": 4.435, "overall_roas_post": 1.05, "overall_revenue_post": 18.627}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "新西兰", "date": "2026-04-23", "spend": 17.72, "revenue0_raw": 5.32, "revenues_raw": {"0": 5.32, "1": 5.32, "2": 5.32, "3": 5.32, "4": 5.32, "5": 5.32, "6": 5.32, "13": 5.32}, "overall_roas_raw": 0.3, "overall_revenue_raw": 5.316, "overall_roas_post": 1.05, "overall_revenue_post": 18.605999999999998}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "폭풍같은 결혼생활韩版乘风破浪的婚姻-41000120820-日语-日本-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "폭풍같은 결혼생활韩版乘风破浪的婚姻", "country": "日本", "date": "2026-04-22", "spend": 16.92, "revenue0_raw": 9.25, "revenues_raw": {"0": 9.25, "1": 9.25, "2": 9.25, "3": 9.25, "4": 9.25, "5": 9.25, "6": 9.25, "13": 9.25}, "overall_roas_raw": 0.55, "overall_revenue_raw": 9.306000000000001, "overall_roas_post": 0.55, "overall_revenue_post": 9.306000000000001}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "新西兰", "date": "2026-04-22", "spend": 14.64, "revenue0_raw": 12.83, "revenues_raw": {"0": 12.83, "1": 12.83, "2": 12.83, "3": 12.83, "4": 12.83, "5": 12.83, "6": 12.83, "13": 12.83}, "overall_roas_raw": 0.88, "overall_revenue_raw": 12.8832, "overall_roas_post": 1.05, "overall_revenue_post": 15.372000000000002}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "Waking Up Married To My Crush!-41000107274-英语-澳新加-20260414-去掉拒审素材复制 - mini series ads IAA Smart+ tROAS", "drama_title": "Waking Up Married To My Crush!", "country": "澳大利亚", "date": "2026-04-21", "spend": 13.96, "revenue0_raw": 0.23, "revenues_raw": {"0": 0.23, "1": 0.23, "2": 0.23, "3": 0.23, "4": 0.23, "5": 0.23, "6": 0.23, "13": 0.23}, "overall_roas_raw": 0.02, "overall_revenue_raw": 0.2792, "overall_roas_post": 1.05, "overall_revenue_post": 14.658000000000001}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260414-去掉拒审素材- mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了", "country": "新西兰", "date": "2026-04-21", "spend": 13.62, "revenue0_raw": 5.9, "revenues_raw": {"0": 5.9, "1": 5.93, "2": 5.93, "3": 5.93, "4": 5.93, "5": 5.93, "6": 5.93, "13": 5.93}, "overall_roas_raw": 0.44, "overall_revenue_raw": 5.9928, "overall_roas_post": 1.05, "overall_revenue_post": 14.301}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "新西兰", "date": "2026-04-23", "spend": 13.12, "revenue0_raw": 16.07, "revenues_raw": {"0": 16.07, "1": 16.29, "2": 16.29, "3": 16.29, "4": 16.29, "5": 16.29, "6": 16.29, "13": 16.29}, "overall_roas_raw": 1.24, "overall_revenue_raw": 16.2688, "overall_roas_post": 1.24, "overall_revenue_post": 16.2688}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260415 - mini series ads IAA Smart+ tROAS", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "新西兰", "date": "2026-04-21", "spend": 11.87, "revenue0_raw": 0.99, "revenues_raw": {"0": 0.99, "1": 0.99, "2": 0.99, "3": 0.99, "4": 0.99, "5": 0.99, "6": 0.99, "13": 0.99}, "overall_roas_raw": 0.08, "overall_revenue_raw": 0.9496, "overall_roas_post": 1.05, "overall_revenue_post": 12.4635}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "陆先生，余生不再见（泰语配音版）-42000000600-泰语-泰国-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "陆先生，余生不再见（泰语配音版）", "country": "泰国", "date": "2026-04-24", "spend": 11.44, "revenue0_raw": 7.99, "revenues_raw": {"0": 7.99, "1": 7.99, "2": 7.99, "3": 7.99, "4": 7.99, "5": 7.99, "6": 7.99, "13": 7.99}, "overall_roas_raw": 0.7, "overall_revenue_raw": 8.008, "overall_roas_post": 0.7, "overall_revenue_post": 8.008}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "新西兰", "date": "2026-04-24", "spend": 9.82, "revenue0_raw": 4.85, "revenues_raw": {"0": 4.85, "1": 4.85, "2": 4.85, "3": 4.85, "4": 4.85, "5": 4.85, "6": 4.85, "13": 4.85}, "overall_roas_raw": 0.49, "overall_revenue_raw": 4.8118, "overall_roas_post": 1.05, "overall_revenue_post": 10.311}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "폭풍같은 결혼생활韩版乘风破浪的婚姻-41000120820-日语-日本-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "폭풍같은 결혼생활韩版乘风破浪的婚姻", "country": "日本", "date": "2026-04-24", "spend": 8.17, "revenue0_raw": 5.17, "revenues_raw": {"0": 5.17, "1": 5.17, "2": 5.17, "3": 5.17, "4": 5.17, "5": 5.17, "6": 5.17, "13": 5.17}, "overall_roas_raw": 0.63, "overall_revenue_raw": 5.1471, "overall_roas_post": 0.63, "overall_revenue_post": 5.1471}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "新西兰", "date": "2026-04-24", "spend": 7.14, "revenue0_raw": 3.06, "revenues_raw": {"0": 3.06, "1": 3.06, "2": 3.06, "3": 3.06, "4": 3.06, "5": 3.06, "6": 3.06, "13": 3.06}, "overall_roas_raw": 0.43, "overall_revenue_raw": 3.0702, "overall_roas_post": 1.05, "overall_revenue_post": 7.497}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "新西兰", "date": "2026-04-21", "spend": 5.64, "revenue0_raw": 2.78, "revenues_raw": {"0": 2.78, "1": 2.78, "2": 2.78, "3": 2.78, "4": 2.78, "5": 2.78, "6": 2.78, "13": 2.78}, "overall_roas_raw": 0.49, "overall_revenue_raw": 2.7636, "overall_roas_post": 1.05, "overall_revenue_post": 5.922}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "万里江山入我怀（印尼语配音版）-41000122939-印尼语-印尼-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "万里江山入我怀（印尼语配音版）", "country": "印尼", "date": "2026-04-24", "spend": 4.64, "revenue0_raw": 1.42, "revenues_raw": {"0": 1.42, "1": 1.43, "2": 1.43, "3": 1.43, "4": 1.43, "5": 1.43, "6": 1.42, "13": 1.42}, "overall_roas_raw": 0.31, "overall_revenue_raw": 1.4384, "overall_roas_post": 0.31, "overall_revenue_post": 1.4384}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "皇帝回乡（泰语配音版）-41000112792-泰语-泰国-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "皇帝回乡（泰语配音版）", "country": "泰国", "date": "2026-04-23", "spend": 4.15, "revenue0_raw": 0.63, "revenues_raw": {"0": 0.63, "1": 0.63, "2": 0.63, "3": 0.63, "4": 0.63, "5": 0.63, "6": 0.63, "13": 0.63}, "overall_roas_raw": 0.15, "overall_revenue_raw": 0.6225, "overall_roas_post": 0.15, "overall_revenue_post": 0.6225}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260421-去掉拒审素材- mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "封总，太太的离婚生效了", "country": "新西兰", "date": "2026-04-21", "spend": 2.83, "revenue0_raw": 1.09, "revenues_raw": {"0": 1.09, "1": 1.09, "2": 1.09, "3": 1.09, "4": 1.09, "5": 1.09, "6": 1.09, "13": 1.09}, "overall_roas_raw": 0.38, "overall_revenue_raw": 1.0754000000000001, "overall_roas_post": 1.05, "overall_revenue_post": 2.9715000000000003}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "男人五十（日语配音版）-41000115138-日语-日本-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "男人五十（日语配音版）", "country": "日本", "date": "2026-04-24", "spend": 1.57, "revenue0_raw": 0.04, "revenues_raw": {"0": 0.04, "1": 0.04, "2": 0.04, "3": 0.04, "4": 0.04, "5": 0.04, "6": 0.04, "13": 0.04}, "overall_roas_raw": 0.02, "overall_revenue_raw": 0.031400000000000004, "overall_roas_post": 0.02, "overall_revenue_post": 0.031400000000000004}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "Waking Up Married To My Crush!-41000107274-英语-澳新加-20260414-去掉拒审素材复制 - mini series ads IAA Smart+ tROAS", "drama_title": "Waking Up Married To My Crush!", "country": "新西兰", "date": "2026-04-21", "spend": 1.53, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 1.6065}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "潜龙出山，有眼不识金镶玉-42000006203-日语-日本-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "潜龙出山，有眼不识金镶玉", "country": "日本", "date": "2026-04-23", "spend": 1.05, "revenue0_raw": 0.01, "revenues_raw": {"0": 0.01, "1": 0.01, "2": 0.01, "3": 0.01, "4": 0.01, "5": 0.01, "6": 0.01, "13": 0.01}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 1.1025}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "皇帝回乡（日语配音版）-41000115692-日语-日本-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "皇帝回乡（日语配音版）", "country": "日本", "date": "2026-04-24", "spend": 1.03, "revenue0_raw": 0.11, "revenues_raw": {"0": 0.11, "1": 0.11, "2": 0.11, "3": 0.11, "4": 0.11, "5": 0.11, "6": 0.11, "13": 0.11}, "overall_roas_raw": 0.1, "overall_revenue_raw": 0.10300000000000001, "overall_roas_post": 0.1, "overall_revenue_post": 0.10300000000000001}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "桃花马上请长缨（泰语配音版）-41000109912-泰语-泰国-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "桃花马上请长缨（泰语配音版）", "country": "泰国", "date": "2026-04-22", "spend": 0.88, "revenue0_raw": 0.61, "revenues_raw": {"0": 0.61, "1": 0.61, "2": 0.61, "3": 0.61, "4": 0.61, "5": 0.61, "6": 0.61, "13": 0.61}, "overall_roas_raw": 0.7, "overall_revenue_raw": 0.616, "overall_roas_post": 0.7, "overall_revenue_post": 0.616}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "人面桃花长相忆（泰语配音版版）-41000117929-泰语-泰国-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆（泰语配音版版）", "country": "泰国", "date": "2026-04-23", "spend": 0.87, "revenue0_raw": 0.55, "revenues_raw": {"0": 0.55, "1": 0.56, "2": 0.56, "3": 0.56, "4": 0.56, "5": 0.56, "6": 0.56, "13": 0.56}, "overall_roas_raw": 0.65, "overall_revenue_raw": 0.5655, "overall_roas_post": 1.05, "overall_revenue_post": 0.9135}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "家庭煮夫（印尼语配音版）-42000000651-印尼语-印尼-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "家庭煮夫（印尼语配音版）", "country": "印尼", "date": "2026-04-23", "spend": 0.56, "revenue0_raw": 0.27, "revenues_raw": {"0": 0.27, "1": 0.27, "2": 0.27, "3": 0.27, "4": 0.27, "5": 0.27, "6": 0.27, "13": 0.27}, "overall_roas_raw": 0.48, "overall_revenue_raw": 0.26880000000000004, "overall_roas_post": 1.05, "overall_revenue_post": 0.5880000000000001}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "封总，太太的离婚生效了（泰语配音版）-41000118978-泰语-泰国-20260422 - mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了（泰语配音版）", "country": "泰国", "date": "2026-04-22", "spend": 0.54, "revenue0_raw": 1.32, "revenues_raw": {"0": 1.32, "1": 1.32, "2": 1.32, "3": 1.32, "4": 1.32, "5": 1.32, "6": 1.32, "13": 1.32}, "overall_roas_raw": 2.45, "overall_revenue_raw": 1.3230000000000002, "overall_roas_post": 2.45, "overall_revenue_post": 1.3230000000000002}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "幸得相遇离婚时（印尼语）-41000121412-印尼语-印尼-20260421 - mini series ads IAA Smart+ tROAS 的副本 1", "drama_title": "幸得相遇离婚时（印尼语）", "country": "印尼", "date": "2026-04-23", "spend": 0.46, "revenue0_raw": 0.77, "revenues_raw": {"0": 0.77, "1": 0.77, "2": 0.77, "3": 0.77, "4": 0.77, "5": 0.77, "6": 0.77, "13": 0.77}, "overall_roas_raw": 1.68, "overall_revenue_raw": 0.7728, "overall_roas_post": 1.68, "overall_revenue_post": 0.7728}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "惊蛰 (葡语配音版)-41000113183-葡萄牙语-巴西-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰 (葡语配音版)", "country": "巴西", "date": "2026-04-23", "spend": 0.39, "revenue0_raw": 0.55, "revenues_raw": {"0": 0.55, "1": 0.55, "2": 0.55, "3": 0.55, "4": 0.55, "5": 0.55, "6": 0.55, "13": 0.55}, "overall_roas_raw": 1.42, "overall_revenue_raw": 0.5538, "overall_roas_post": 1.42, "overall_revenue_post": 0.5538}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "万里江山入我怀（泰语配音版）-41000120371-泰语-泰国-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "万里江山入我怀（泰语配音版）", "country": "泰国", "date": "2026-04-23", "spend": 0.26, "revenue0_raw": 0.7, "revenues_raw": {"0": 0.7, "1": 0.7, "2": 0.7, "3": 0.7, "4": 0.7, "5": 0.7, "6": 0.7, "13": 0.7}, "overall_roas_raw": 2.7, "overall_revenue_raw": 0.7020000000000001, "overall_roas_post": 2.7, "overall_revenue_post": 0.7020000000000001}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "陆先生，余生不再见（泰语配音版）-42000000600-泰语-泰国-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "陆先生，余生不再见（泰语配音版）", "country": "泰国", "date": "2026-04-23", "spend": 0.2, "revenue0_raw": 0.17, "revenues_raw": {"0": 0.17, "1": 0.17, "2": 0.17, "3": 0.17, "4": 0.17, "5": 0.17, "6": 0.17, "13": 0.17}, "overall_roas_raw": 0.87, "overall_revenue_raw": 0.17400000000000002, "overall_roas_post": 0.87, "overall_revenue_post": 0.17400000000000002}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "惊蛰 (葡语配音版)-41000113183-葡萄牙语-巴西-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰 (葡语配音版)", "country": "巴西", "date": "2026-04-20", "spend": 0.15, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.1575}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260414-去掉拒审素材- mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了", "country": "加拿大", "date": "2026-04-20", "spend": 0.12, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.126}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-02-SINO-TT", "series_name": "少帅你老婆又跑了-41000117508-印尼语-印尼-20260423 - mini series ads IAA Smart+ tROAS", "drama_title": "少帅你老婆又跑了", "country": "印尼", "date": "2026-04-24", "spend": 0.07, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 0.0, "overall_revenue_post": 0.0}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）-42000004027-葡萄牙语-巴西-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）", "country": "巴西", "date": "2026-04-23", "spend": 0.06, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.063}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "人面桃花长相忆（泰语配音版版）-41000117929-泰语-泰国-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆（泰语配音版版）", "country": "泰国", "date": "2026-04-20", "spend": 0.04, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.042}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "家庭煮夫（印尼语配音版）-42000000651-印尼语-印尼-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "家庭煮夫（印尼语配音版）", "country": "印尼", "date": "2026-04-20", "spend": 0.04, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.042}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）-42000004027-葡萄牙语-巴西-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "If Only You Loved Me More 离婚后裴总哭红眼（葡语配音版）", "country": "巴西", "date": "2026-04-20", "spend": 0.03, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0315}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260415 - mini series ads IAA Smart+ tROAS", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "加拿大", "date": "2026-04-20", "spend": 0.03, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0315}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "幸得相遇离婚时（印尼语）-41000121412-印尼语-印尼-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "幸得相遇离婚时（印尼语）", "country": "印尼", "date": "2026-04-20", "spend": 0.03, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0315}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "诀别当天，傅先生哭晕了-42000005441-日语-日本-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "诀别当天，傅先生哭晕了", "country": "日本", "date": "2026-04-20", "spend": 0.02, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.021}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "万里江山入我怀（泰语配音版）-41000120371-泰语-泰国-20260417 - mini series ads IAA Smart+ tROAS", "drama_title": "万里江山入我怀（泰语配音版）", "country": "泰国", "date": "2026-04-20", "spend": 0.02, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.021}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "惊蛰 (葡语配音版)-41000113183-葡萄牙语-巴西-20260421- mini series ads IAA Smart+ tROAS", "drama_title": "惊蛰 (葡语配音版)", "country": "巴西", "date": "2026-04-24", "spend": 0.01, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0105}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "人面桃花长相忆（泰语配音版版）-41000117929-泰语-泰国-20260421 - mini series ads IAA Smart+ tROAS", "drama_title": "人面桃花长相忆（泰语配音版版）", "country": "泰国", "date": "2026-04-24", "spend": 0.01, "revenue0_raw": 0.02, "revenues_raw": {"0": 0.02, "1": 0.02, "2": 0.02, "3": 0.02, "4": 0.02, "5": 0.02, "6": 0.02, "13": 0.02}, "overall_roas_raw": 1.81, "overall_revenue_raw": 0.0181, "overall_roas_post": 1.81, "overall_revenue_post": 0.0181}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260414-去掉拒审素材- mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了", "country": "澳大利亚", "date": "2026-04-20", "spend": 0.01, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0105}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "封总，太太的离婚生效了-41000120977-英语-澳新加-20260414-去掉拒审素材- mini series ads IAA Smart+ tROAS", "drama_title": "封总，太太的离婚生效了", "country": "新西兰", "date": "2026-04-20", "spend": 0.01, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0105}, {"group_key": "a", "group_label": "A组（北京）", "account": "Reelife-zl-260407-01-SINO-TT", "series_name": "A Mother's Triumph: I Have Three Powerful Sons-42000000482-英语-澳新加-20260415 - mini series ads IAA Smart+ tROAS", "drama_title": "A Mother's Triumph: I Have Three Powerful Sons", "country": "新西兰", "date": "2026-04-20", "spend": 0.01, "revenue0_raw": 0.0, "revenues_raw": {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "13": 0.0}, "overall_roas_raw": 0.0, "overall_revenue_raw": 0.0, "overall_roas_post": 1.05, "overall_revenue_post": 0.0105}];
+    window.{"mode": "boss", "pageId": "boss", "groupKey": "boss", "groupLabel": "老板综合看板", "publicUrl": "https://aks74uk.github.io/", "storageKey": "overseas_dashboard_github_token_boss", "heroTitle": "老板综合看板", "heroText": "综合链接会自动汇总 A组（北京） 和 B组（广州） 的线上数据。老板打开这个链接即可直接看两组汇总结果。", "actionTitle": "综合数据预览", "sources": [{"groupKey": "a", "groupLabel": "A组（北京）", "dataPath": "data/group-a.json", "publicUrl": "https://aks74uk.github.io/a.html", "storageKey": "overseas_dashboard_github_token_a", "heroTitle": "A组（北京）投放看板", "heroText": "A组专用链接。只看 A 组、只上传 A 组、只发布 A 组。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "A组上传与发布"}, {"groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组、只上传 B 组、只发布 B 组。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传与发布"}]} = {"mode": "boss", "pageId": "boss", "groupKey": "boss", "groupLabel": "老板综合看板", "publicUrl": "https://aks74uk.github.io/", "storageKey": "overseas_dashboard_github_token_boss", "heroTitle": "老板综合看板", "heroText": "综合链接会自动汇总 A组（北京） 和 B组（广州） 的线上数据。老板打开这个链接即可直接看两组汇总结果。", "actionTitle": "综合数据预览", "sources": [{"groupKey": "a", "groupLabel": "A组（北京）", "dataPath": "data/group-a.json", "publicUrl": "https://aks74uk.github.io/a.html", "storageKey": "overseas_dashboard_github_token_a", "heroTitle": "A组（北京）投放看板", "heroText": "A组专用链接。只看 A 组、只上传 A 组、只发布 A 组。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "A组上传与发布"}, {"groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组、只上传 B 组、只发布 B 组。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传与发布"}]};
   </script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
@@ -797,11 +854,12 @@ const ROI_DAYS = [0, 1, 2, 3, 4, 5, 6, 13];
 const DISPLAY_ROI_DAYS = [0, 1, 2, 3, 4, 5, 6];
 const GITHUB_OWNER = 'aks74uk';
 const GITHUB_REPO = 'aks74uk.github.io';
-const PUBLIC_URL = 'https://aks74uk.github.io';
-const TOKEN_STORAGE_KEY = 'overseas_dashboard_github_token';
+const PUBLIC_BASE_URL = 'https://aks74uk.github.io';
+const PAGE_CONFIG = window.{"mode": "boss", "pageId": "boss", "groupKey": "boss", "groupLabel": "老板综合看板", "publicUrl": "https://aks74uk.github.io/", "storageKey": "overseas_dashboard_github_token_boss", "heroTitle": "老板综合看板", "heroText": "综合链接会自动汇总 A组（北京） 和 B组（广州） 的线上数据。老板打开这个链接即可直接看两组汇总结果。", "actionTitle": "综合数据预览", "sources": [{"groupKey": "a", "groupLabel": "A组（北京）", "dataPath": "data/group-a.json", "publicUrl": "https://aks74uk.github.io/a.html", "storageKey": "overseas_dashboard_github_token_a", "heroTitle": "A组（北京）投放看板", "heroText": "A组专用链接。只看 A 组、只上传 A 组、只发布 A 组。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "A组上传与发布"}, {"groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组、只上传 B 组、只发布 B 组。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传与发布"}]} || {};
+const TOKEN_STORAGE_KEY = PAGE_CONFIG.storageKey || 'overseas_dashboard_github_token';
 
 const state = {
-  rows: window.__INITIAL_ROWS__ || [],
+  rows: Array.isArray(window.__INITIAL_ROWS__) ? window.__INITIAL_ROWS__ : [],
   sourceLabel: window.__INITIAL_SOURCE__ || '内置数据',
   filters: {
     summaryDate: 'recent5',
@@ -817,29 +875,9 @@ const money = (value) =>
     maximumFractionDigits: 2,
   }).format(Number(value || 0));
 
-const ratio = (value) => Number(value || 0).toFixed(2);
 const pct = (value) => `${(Number(value || 0) * 100).toFixed(2)}%`;
 const signedPct = (value) => `${Number(value || 0) >= 0 ? '+' : ''}${(Number(value || 0) * 100).toFixed(2)}%`;
 const safeDiv = (a, b) => (b ? a / b : 0);
-const escapeBootJson = (value) => JSON.stringify(value).replace(/</g, '\\u003c');
-
-function getRevenue0Raw(row) {
-  if (Number.isFinite(row.revenue0_raw)) return row.revenue0_raw;
-  return parseNumber(row.revenues_raw?.[0]);
-}
-
-function getOverallRevenueRaw(row) {
-  if (Number.isFinite(row.overall_revenue_raw)) return row.overall_revenue_raw;
-  if (Number.isFinite(row.overall_roas_raw)) return row.spend * row.overall_roas_raw;
-  return 0;
-}
-
-function getOverallRevenuePost(row) {
-  if (Number.isFinite(row.overall_revenue_post)) return row.overall_revenue_post;
-  if (Number.isFinite(row.overall_roas_post)) return row.spend * row.overall_roas_post;
-  if (row.account === SUBSIDY_ACCOUNT) return row.spend * Math.max(1.05, safeDiv(getOverallRevenueRaw(row), row.spend));
-  return getOverallRevenueRaw(row);
-}
 
 function parseNumber(value) {
   if (value === null || value === undefined) return 0;
@@ -873,28 +911,39 @@ function extractDramaTitle(seriesName) {
   return text.split(/\s+-\s+mini series ads/i)[0].trim().replace(/[-\s]+$/, '') || '未识别剧目';
 }
 
-function normalizeWorkbookRow(row) {
-  const account = String(row['账户名称'] || '').trim();
-  const date = parseDate(row['按天']);
-  const spend = parseNumber(row['消耗']);
-  if (!account || account.startsWith('总计') || !date || spend <= 0) return null;
-
-  const overallRoasRaw = parseNumber(row['广告收入 ROAS (TikTok)']);
-  const overallRevenueRaw = spend * overallRoasRaw;
-  const overallRoasPost = account === SUBSIDY_ACCOUNT ? Math.max(1.05, overallRoasRaw) : overallRoasRaw;
-  const overallRevenuePost = spend * overallRoasPost;
+function normalizeExistingRow(row, fallbackGroup = null) {
+  const groupMeta = fallbackGroup || PAGE_CONFIG;
+  const spend = parseNumber(row.spend);
+  const overallRoasRaw = Number.isFinite(row.overall_roas_raw)
+    ? row.overall_roas_raw
+    : safeDiv(parseNumber(row.overall_revenue_raw), spend);
+  const overallRevenueRaw = Number.isFinite(row.overall_revenue_raw)
+    ? row.overall_revenue_raw
+    : spend * overallRoasRaw;
+  const overallRoasPost = Number.isFinite(row.overall_roas_post)
+    ? row.overall_roas_post
+    : row.account === SUBSIDY_ACCOUNT
+    ? Math.max(1.05, overallRoasRaw)
+    : overallRoasRaw;
+  const overallRevenuePost = Number.isFinite(row.overall_revenue_post)
+    ? row.overall_revenue_post
+    : spend * overallRoasPost;
+  const revenuesRaw = Object.fromEntries(
+    ROI_DAYS.map((day) => [day, parseNumber(row.revenues_raw?.[day] ?? row.revenues_raw?.[String(day)] ?? row[`roi_${day}`])])
+  );
 
   return {
-    account,
-    series_name: String(row['系列名称'] || '').trim(),
-    drama_title: extractDramaTitle(row['系列名称']),
-    country: String(row['国家/地区'] || '').trim() || '未标注',
-    date,
+    ...row,
+    group_key: row.group_key || row.groupKey || groupMeta.groupKey || 'unknown',
+    group_label: row.group_label || row.groupLabel || groupMeta.groupLabel || '未分组',
+    date: parseDate(row.date),
     spend,
-    revenue0_raw: parseNumber(row['第 0 天广告收入']),
-    revenues_raw: Object.fromEntries(
-      ROI_DAYS.map((day) => [day, parseNumber(row[`第 ${day} 天广告收入`])])
-    ),
+    account: row.account || '-',
+    country: row.country || '未标注',
+    series_name: row.series_name || '',
+    drama_title: row.drama_title || extractDramaTitle(row.series_name || ''),
+    revenue0_raw: Number.isFinite(row.revenue0_raw) ? row.revenue0_raw : revenuesRaw[0],
+    revenues_raw: revenuesRaw,
     overall_roas_raw: overallRoasRaw,
     overall_revenue_raw: overallRevenueRaw,
     overall_roas_post: overallRoasPost,
@@ -902,56 +951,56 @@ function normalizeWorkbookRow(row) {
   };
 }
 
-function rowsFromWorkbook(workbook) {
-  const sheetName = workbook.SheetNames[0];
-  const sheet = workbook.Sheets[sheetName];
-  return XLSX.utils.sheet_to_json(sheet, { defval: '' }).map(normalizeWorkbookRow).filter(Boolean);
+function normalizeWorkbookRow(row, groupMeta = PAGE_CONFIG) {
+  const account = String(row['账户名称'] || '').trim();
+  const date = parseDate(row['按天']);
+  const spend = parseNumber(row['消耗']);
+  if (!account || account.startsWith('总计') || !date || spend <= 0) return null;
+
+  const overallRoasRaw = parseNumber(row['广告收入 ROAS (TikTok)']);
+  const overallRoasPost = account === SUBSIDY_ACCOUNT ? Math.max(1.05, overallRoasRaw) : overallRoasRaw;
+  const revenuesRaw = Object.fromEntries(ROI_DAYS.map((day) => [day, parseNumber(row[`第 ${day} 天广告收入`])]));
+
+  return {
+    group_key: groupMeta.groupKey,
+    group_label: groupMeta.groupLabel,
+    account,
+    series_name: String(row['系列名称'] || '').trim(),
+    drama_title: extractDramaTitle(row['系列名称']),
+    country: String(row['国家/地区'] || '').trim() || '未标注',
+    date,
+    spend,
+    revenue0_raw: revenuesRaw[0],
+    revenues_raw: revenuesRaw,
+    overall_roas_raw: overallRoasRaw,
+    overall_revenue_raw: spend * overallRoasRaw,
+    overall_roas_post: overallRoasPost,
+    overall_revenue_post: spend * overallRoasPost,
+  };
 }
 
-function groupRows(rows, keyName) {
-  const grouped = new Map();
-  rows.forEach((row) => {
-    const key = row[keyName];
-    if (!grouped.has(key)) {
-      grouped.set(key, {
-        name: key,
-        spend: 0,
-        ads: 0,
-        countries: new Set(),
-        accounts: new Set(),
-        revenue0_raw: 0,
-        overall_revenue_raw: 0,
-        overall_revenue_post: 0,
-      });
-    }
-    const bucket = grouped.get(key);
-    bucket.spend += row.spend;
-    bucket.ads += 1;
-    bucket.countries.add(row.country);
-    bucket.accounts.add(row.account);
-    bucket.revenue0_raw += getRevenue0Raw(row);
-    bucket.overall_revenue_raw += getOverallRevenueRaw(row);
-    bucket.overall_revenue_post += getOverallRevenuePost(row);
-  });
+function rowsFromWorkbook(workbook, groupMeta = PAGE_CONFIG) {
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  return XLSX.utils.sheet_to_json(sheet, { defval: '' }).map((row) => normalizeWorkbookRow(row, groupMeta)).filter(Boolean);
+}
 
-  return Array.from(grouped.values())
-    .map((item) => ({
-      name: item.name,
-      spend: item.spend,
-      spend_display: money(item.spend),
-      ads: item.ads,
-      revenue0_raw: item.revenue0_raw,
-      revenue0_raw_display: money(item.revenue0_raw),
-      overall_revenue_raw: item.overall_revenue_raw,
-      overall_roas_raw: safeDiv(item.overall_revenue_raw, item.spend),
-      overall_roas_raw_display: pct(safeDiv(item.overall_revenue_raw, item.spend)),
-      overall_revenue_post: item.overall_revenue_post,
-      overall_roas_post: safeDiv(item.overall_revenue_post, item.spend),
-      overall_roas_post_display: pct(safeDiv(item.overall_revenue_post, item.spend)),
-      account_count: item.accounts.size,
-      country_count: item.countries.size,
-    }))
-    .sort((a, b) => b.spend - a.spend);
+function getRevenue0Raw(row) {
+  if (Number.isFinite(row.revenue0_raw)) return row.revenue0_raw;
+  return parseNumber(row.revenues_raw?.[0] ?? row.revenues_raw?.['0']);
+}
+
+function getOverallRevenueRaw(row) {
+  if (Number.isFinite(row.overall_revenue_raw)) return row.overall_revenue_raw;
+  if (Number.isFinite(row.overall_roas_raw)) return row.spend * row.overall_roas_raw;
+  return 0;
+}
+
+function getOverallRevenuePost(row) {
+  if (Number.isFinite(row.overall_revenue_post)) return row.overall_revenue_post;
+  if (Number.isFinite(row.overall_roas_post)) return row.spend * row.overall_roas_post;
+  if (row.account === SUBSIDY_ACCOUNT) return row.spend * Math.max(1.05, safeDiv(getOverallRevenueRaw(row), row.spend));
+  return getOverallRevenueRaw(row);
 }
 
 function listRecentDates(dates, limit = 5) {
@@ -963,17 +1012,67 @@ function normalizeSelectedDates(availableDates, selectedDates) {
   return normalized.length ? normalized : [availableDates.at(-1)].filter(Boolean);
 }
 
+function makeGroupedRows(rows, keyName, splitByGroup = false) {
+  const grouped = new Map();
+
+  rows.forEach((row) => {
+    const itemName = row[keyName];
+    const groupLabel = row.group_label || '未分组';
+    const compositeKey = splitByGroup ? `${groupLabel}||${itemName}` : itemName;
+
+    if (!grouped.has(compositeKey)) {
+      grouped.set(compositeKey, {
+        group_label: groupLabel,
+        name: itemName,
+        spend: 0,
+        ads: 0,
+        accounts: new Set(),
+        dramas: new Set(),
+        revenue0_raw: 0,
+        overall_revenue_raw: 0,
+        overall_revenue_post: 0,
+      });
+    }
+
+    const bucket = grouped.get(compositeKey);
+    bucket.spend += row.spend;
+    bucket.ads += 1;
+    bucket.accounts.add(row.account);
+    bucket.dramas.add(row.drama_title);
+    bucket.revenue0_raw += getRevenue0Raw(row);
+    bucket.overall_revenue_raw += getOverallRevenueRaw(row);
+    bucket.overall_revenue_post += getOverallRevenuePost(row);
+  });
+
+  return Array.from(grouped.values())
+    .map((item) => ({
+      group_label: item.group_label,
+      name: item.name,
+      spend: item.spend,
+      spend_display: money(item.spend),
+      ads: item.ads,
+      account_count: item.accounts.size,
+      drama_count: item.dramas.size,
+      revenue0_raw: item.revenue0_raw,
+      overall_revenue_raw: item.overall_revenue_raw,
+      overall_revenue_post: item.overall_revenue_post,
+      overall_roas_raw: safeDiv(item.overall_revenue_raw, item.spend),
+      overall_roas_post: safeDiv(item.overall_revenue_post, item.spend),
+      overall_roas_raw_display: pct(safeDiv(item.overall_revenue_raw, item.spend)),
+      overall_roas_post_display: pct(safeDiv(item.overall_revenue_post, item.spend)),
+    }))
+    .sort((a, b) => b.spend - a.spend);
+}
+
 function buildData(rows, filters) {
-  const allDates = [...new Set(rows.map((row) => row.date))].sort();
+  const usableRows = rows.filter((row) => row.date);
+  const allDates = [...new Set(usableRows.map((row) => row.date))].sort();
   const availableDates = allDates;
   const recentFiveDates = listRecentDates(availableDates, 5);
   const module2Dates = normalizeSelectedDates(availableDates, filters.module2Dates);
   const module3Dates = normalizeSelectedDates(availableDates, filters.module3Dates);
   const module4Dates = normalizeSelectedDates(availableDates, filters.module4Dates);
-  const usableRows = rows;
-  const module2Rows = usableRows.filter((row) => module2Dates.includes(row.date));
-  const module3Rows = usableRows.filter((row) => module3Dates.includes(row.date));
-  const module4Rows = usableRows.filter((row) => module4Dates.includes(row.date));
+  const summaryMode = filters.summaryDate;
 
   const dailySummaryAll = availableDates
     .map((date) => {
@@ -981,29 +1080,33 @@ function buildData(rows, filters) {
       const spend = dayRows.reduce((sum, item) => sum + item.spend, 0);
       if (spend < 50) return null;
       const revenue0Raw = dayRows.reduce((sum, item) => sum + getRevenue0Raw(item), 0);
-      const overallRevenueRawSum = dayRows.reduce((sum, item) => sum + getOverallRevenueRaw(item), 0);
-      const overallRevenuePostSum = dayRows.reduce((sum, item) => sum + getOverallRevenuePost(item), 0);
+      const overallRevenueRaw = dayRows.reduce((sum, item) => sum + getOverallRevenueRaw(item), 0);
+      const overallRevenuePost = dayRows.reduce((sum, item) => sum + getOverallRevenuePost(item), 0);
       return {
         date,
+        spend,
         spend_display: money(spend),
         roi0_raw_display: pct(safeDiv(revenue0Raw, spend)),
-        overall_roas_raw_display: pct(safeDiv(overallRevenueRawSum, spend)),
-        overall_roas_post_display: pct(safeDiv(overallRevenuePostSum, spend)),
+        overall_roas_raw_display: pct(safeDiv(overallRevenueRaw, spend)),
+        overall_roas_post_display: pct(safeDiv(overallRevenuePost, spend)),
       };
     })
     .filter(Boolean);
 
-  const recentSummaryRows = dailySummaryAll.filter((row) => recentFiveDates.includes(row.date));
-  const summaryRows =
-    filters.summaryDate === 'all'
-      ? dailySummaryAll
-      : filters.summaryDate === 'recent5'
-      ? recentSummaryRows
-      : recentSummaryRows.filter((row) => row.date === filters.summaryDate);
+  let summaryRows = dailySummaryAll;
+  if (summaryMode === 'recent5') summaryRows = dailySummaryAll.filter((row) => recentFiveDates.includes(row.date));
+  if (summaryMode && summaryMode !== 'all' && summaryMode !== 'recent5') summaryRows = dailySummaryAll.filter((row) => row.date === summaryMode);
 
-  const countryRows = groupRows(module2Rows, 'country');
-  const accountRows = groupRows(module3Rows, 'account');
-  const dramaRows = groupRows(module4Rows, 'drama_title');
+  const splitByGroup = PAGE_CONFIG.mode === 'boss';
+  const module2Rows = usableRows.filter((row) => module2Dates.includes(row.date));
+  const module3Rows = usableRows.filter((row) => module3Dates.includes(row.date));
+  const module4Rows = usableRows.filter((row) => module4Dates.includes(row.date));
+  const overviewRows = module3Rows;
+
+  const countryRows = makeGroupedRows(module2Rows, 'country', splitByGroup);
+  const accountRows = makeGroupedRows(module3Rows, 'account', splitByGroup);
+  const dramaRows = makeGroupedRows(module4Rows, 'drama_title', splitByGroup);
+  const groupOverviewRows = makeGroupedRows(overviewRows, 'group_label', false);
 
   const roiGrowth = dailySummaryAll
     .filter((row) => recentFiveDates.includes(row.date))
@@ -1012,10 +1115,11 @@ function buildData(rows, filters) {
       const spend = dayRows.reduce((sum, item) => sum + item.spend, 0);
       const rawRoi = Object.fromEntries(
         ROI_DAYS.map((day) => {
-          const revenue = dayRows.reduce((sum, item) => sum + item.revenues_raw[day], 0);
+          const revenue = dayRows.reduce((sum, item) => sum + parseNumber(item.revenues_raw?.[day] ?? item.revenues_raw?.[String(day)]), 0);
           return [String(day), safeDiv(revenue, spend)];
         })
       );
+
       return {
         date: summaryRow.date,
         spend_display: money(spend),
@@ -1031,10 +1135,9 @@ function buildData(rows, filters) {
       };
     });
 
-  const overviewRows = usableRows.filter((row) => module3Dates.includes(row.date));
-  const spendTotal = overviewRows.reduce((sum, item) => sum + item.spend, 0);
-  const overallRevenueRawTotal = overviewRows.reduce((sum, item) => sum + getOverallRevenueRaw(item), 0);
-  const overallRevenuePostTotal = overviewRows.reduce((sum, item) => sum + getOverallRevenuePost(item), 0);
+  const totalSpend = overviewRows.reduce((sum, item) => sum + item.spend, 0);
+  const totalRaw = overviewRows.reduce((sum, item) => sum + getOverallRevenueRaw(item), 0);
+  const totalPost = overviewRows.reduce((sum, item) => sum + getOverallRevenuePost(item), 0);
 
   return {
     availableDates,
@@ -1046,21 +1149,26 @@ function buildData(rows, filters) {
     countryRows,
     accountRows,
     dramaRows,
+    groupOverviewRows,
     roiGrowth,
     latestSummary: {
       dateLabel: module3Dates.length ? module3Dates.join('、') : '-',
-      spend: money(spendTotal),
-      overallRoasRaw: pct(safeDiv(overallRevenueRawTotal, spendTotal)),
-      overallRoasPost: pct(safeDiv(overallRevenuePostTotal, spendTotal)),
+      spend: money(totalSpend),
+      overallRoasRaw: pct(safeDiv(totalRaw, totalSpend)),
+      overallRoasPost: pct(safeDiv(totalPost, totalSpend)),
       accountCount: new Set(overviewRows.map((row) => row.account)).size,
       countryCount: new Set(overviewRows.map((row) => row.country)).size,
       dramaCount: new Set(overviewRows.map((row) => row.drama_title)).size,
+      groupCount: new Set(overviewRows.map((row) => row.group_label)).size,
     },
     notes: [
+      PAGE_CONFIG.mode === 'boss'
+        ? '综合页会自动合并 A组（北京） 和 B组（广州） 两个链接发布过的线上数据。'
+        : `${PAGE_CONFIG.groupLabel} 页面只展示、上传并发布本组数据。`,
       '当前版本不排除任何一天，上传几天就展示几天。',
-      '模块 1 默认仅保留最近五天数据，并支持切换查看其中单日。',
-      '整体 ROI 按表中“广告收入 ROAS (TikTok)”计算；补贴账户 Reelife-zl-260407-01-SINO-TT 的补贴后 ROI 按 max(真实ROI, 1.05) 计算。',
-      '模块 2 - 4 支持多选日期并做汇总展示。',
+      '模块 1 支持全部日期、最近五天和单日切换；模块 2 - 4 支持最近五天、全选和逐个多选。',
+      '补贴账户 Reelife-zl-260407-01-SINO-TT 按单条广告逐条计算：小于 105% 按 105%，高于等于 105% 按真实 ROI。',
+      '综合页的模块 2 - 4 会把 A组 / B组分别拆开显示。',
       '源表只有 ROI0-ROI6 和 ROI13，没有 ROI7；模块 5 已按要求保留两位小数。',
     ],
   };
@@ -1076,13 +1184,42 @@ function heatClass(value) {
   return 'heat';
 }
 
+function getPageLinks() {
+  return [
+    { href: `${PUBLIC_BASE_URL}/a.html`, label: 'A组（北京）', active: PAGE_CONFIG.pageId === 'a' || PAGE_CONFIG.pageId === 'default' },
+    { href: `${PUBLIC_BASE_URL}/b.html`, label: 'B组（广州）', active: PAGE_CONFIG.pageId === 'b' },
+    { href: `${PUBLIC_BASE_URL}/`, label: '老板综合', active: PAGE_CONFIG.pageId === 'boss' },
+  ];
+}
+
+function renderPageMeta(data) {
+  document.title = PAGE_CONFIG.heroTitle || '海外投放数据看板';
+  document.getElementById('hero-title').textContent = PAGE_CONFIG.heroTitle || '海外投放数据看板';
+  document.getElementById('hero-text').textContent = PAGE_CONFIG.heroText || '';
+  document.getElementById('hero-action-title').textContent = PAGE_CONFIG.actionTitle || '上传与切换';
+  document.getElementById('group-overview-caption').textContent = `已选日期：${data.module3Dates.join('、') || '-'}`;
+
+  const nav = document.getElementById('page-nav');
+  if (nav) {
+    nav.innerHTML = getPageLinks()
+      .map((item) => `<a class="page-nav-link${item.active ? ' active' : ''}" href="${item.href}">${item.label}</a>`)
+      .join('');
+  }
+
+  if (PAGE_CONFIG.mode === 'boss') {
+    document.getElementById('upload-form').hidden = true;
+    document.querySelector('.publish-box').hidden = true;
+    document.getElementById('publish-status').textContent = '综合链接会自动读取 A组 和 B组 发布后的线上数据。';
+  }
+}
+
 function renderSummaryCards(data) {
   const summary = data.latestSummary;
   const cards = [
-    { label: '当前多选日期', value: summary.dateLabel, sub: `国家 ${summary.countryCount} 个 / 账户 ${summary.accountCount} 个 / 剧目 ${summary.dramaCount} 个` },
+    { label: '当前多选日期', value: summary.dateLabel, sub: `组别 ${summary.groupCount} 个 / 国家 ${summary.countryCount} 个 / 账户 ${summary.accountCount} 个 / 剧目 ${summary.dramaCount} 个` },
     { label: '总消耗', value: summary.spend, sub: `数据源：${state.sourceLabel}` },
     { label: '整体 ROI（补贴前）', value: summary.overallRoasRaw, sub: '仅展示百分比，不展示收入绝对值' },
-    { label: '整体 ROI（补贴后）', value: summary.overallRoasPost, sub: '补贴账户按 max(真实ROI, 1.05) 口径计算' },
+    { label: '整体 ROI（补贴后）', value: summary.overallRoasPost, sub: '补贴账户按逐条广告 max(真实ROI, 1.05) 口径计算' },
   ];
 
   document.getElementById('summary-grid').innerHTML = cards
@@ -1105,8 +1242,8 @@ function renderNotes(data) {
 
 function renderSummaryFilter(data) {
   const select = document.getElementById('summary-date-filter');
-  select.innerHTML = [`<option value="all">全部日期</option>`, `<option value="recent5">最近五天</option>`]
-    .concat(data.recentFiveDates.map((date) => `<option value="${date}">${date}</option>`))
+  select.innerHTML = ['<option value="all">全部日期</option>', '<option value="recent5">最近五天</option>']
+    .concat(data.availableDates.map((date) => `<option value="${date}">${date}</option>`))
     .join('');
   select.value = state.filters.summaryDate;
 }
@@ -1115,7 +1252,6 @@ function renderModuleFilter(buttonId, optionsId, statusId, availableDates, selec
   const button = document.getElementById(buttonId);
   const label = button.querySelector('.enum-filter-label');
   const options = document.getElementById(optionsId);
-  const recentFiveDates = listRecentDates(availableDates, 5);
 
   label.innerHTML = selectedDates.length
     ? selectedDates.map((date) => `<span class="enum-filter-pill">${date}</span>`).join('')
@@ -1138,18 +1274,48 @@ function renderModuleFilter(buttonId, optionsId, statusId, availableDates, selec
       .join('')}
   `;
 
-  document.getElementById(statusId).textContent =
-    selectedDates.length === availableDates.length
-      ? `当前已全选 ${availableDates.length} 个日期。`
-      : selectedDates.length > 1
-      ? `当前已选 ${selectedDates.length} 个日期：${selectedDates.join('、')}`
-      : `当前日期：${selectedDates[0] || '-'}；可选“最近五天”或“全选”。`;
+  const status = document.getElementById(statusId);
+  if (!availableDates.length) {
+    status.textContent = '当前没有可选日期。';
+    return;
+  }
+  if (selectedDates.length === availableDates.length) {
+    status.textContent = `当前已全选 ${availableDates.length} 个日期。`;
+    return;
+  }
+  if (selectedDates.length > 1) {
+    status.textContent = `当前已选 ${selectedDates.length} 个日期：${selectedDates.join('、')}`;
+    return;
+  }
+  status.textContent = `当前日期：${selectedDates[0] || '-'}；可选“最近五天”或“全选”。`;
+}
+
+function renderGroupOverview(data) {
+  const body = document.getElementById('group-overview-body');
+  if (!data.groupOverviewRows.length) {
+    body.innerHTML = '<tr><td colspan="6" class="empty-state">当前日期组合暂无组别数据</td></tr>';
+    return;
+  }
+  body.innerHTML = data.groupOverviewRows
+    .map(
+      (row) => `
+        <tr>
+          <td>${row.name}</td>
+          <td>${row.spend_display}</td>
+          <td>${row.overall_roas_raw_display}</td>
+          <td>${row.overall_roas_post_display}</td>
+          <td>${row.account_count}</td>
+          <td>${row.drama_count}</td>
+        </tr>
+      `
+    )
+    .join('');
 }
 
 function renderModule1(data) {
   const body = document.getElementById('daily-summary-body');
   if (!data.summaryRows.length) {
-    body.innerHTML = '<tr><td colspan="8" class="empty-state">暂无符合条件的分日数据</td></tr>';
+    body.innerHTML = '<tr><td colspan="5" class="empty-state">暂无符合条件的分日数据</td></tr>';
     return;
   }
   body.innerHTML = data.summaryRows
@@ -1171,13 +1337,14 @@ function renderCountryTable(data) {
   const body = document.getElementById('country-body');
   document.getElementById('module2-caption').textContent = `已选日期：${data.module2Dates.join('、') || '-'}`;
   if (!data.countryRows.length) {
-    body.innerHTML = '<tr><td colspan="4" class="empty-state">当前日期组合暂无国家数据</td></tr>';
+    body.innerHTML = '<tr><td colspan="5" class="empty-state">当前日期组合暂无国家数据</td></tr>';
     return;
   }
   body.innerHTML = data.countryRows
     .map(
       (row) => `
         <tr>
+          <td>${row.group_label}</td>
           <td>${row.name}</td>
           <td>${row.spend_display}</td>
           <td>${row.overall_roas_raw_display}</td>
@@ -1193,7 +1360,7 @@ function renderAccountTable(data) {
   const foot = document.getElementById('account-foot');
   document.getElementById('module3-caption').textContent = `已选日期：${data.module3Dates.join('、') || '-'}；含汇总 ROI 列与总计行`;
   if (!data.accountRows.length) {
-    body.innerHTML = '<tr><td colspan="6" class="empty-state">当前日期组合暂无账户数据</td></tr>';
+    body.innerHTML = '<tr><td colspan="7" class="empty-state">当前日期组合暂无账户数据</td></tr>';
     foot.innerHTML = '';
     return;
   }
@@ -1201,6 +1368,7 @@ function renderAccountTable(data) {
     .map(
       (row) => `
         <tr>
+          <td>${row.group_label}</td>
           <td>${row.name}</td>
           <td>${row.spend_display}</td>
           <td>${row.overall_roas_raw_display}</td>
@@ -1218,7 +1386,7 @@ function renderAccountTable(data) {
   const totalAds = data.accountRows.reduce((sum, row) => sum + row.ads, 0);
   foot.innerHTML = `
     <tr>
-      <td>总计</td>
+      <td colspan="2">总计</td>
       <td>${money(totalSpend)}</td>
       <td>${pct(safeDiv(totalRaw, totalSpend))}</td>
       <td>${pct(safeDiv(totalPost, totalSpend))}</td>
@@ -1232,13 +1400,14 @@ function renderDramaTable(data) {
   const body = document.getElementById('drama-body');
   document.getElementById('module4-caption').textContent = `已选日期：${data.module4Dates.join('、') || '-'}；剧名从广告名称中抓取`;
   if (!data.dramaRows.length) {
-    body.innerHTML = '<tr><td colspan="6" class="empty-state">当前日期组合暂无剧目数据</td></tr>';
+    body.innerHTML = '<tr><td colspan="7" class="empty-state">当前日期组合暂无剧目数据</td></tr>';
     return;
   }
   body.innerHTML = data.dramaRows
     .map(
       (row) => `
         <tr>
+          <td>${row.group_label}</td>
           <td>${row.name}</td>
           <td>${row.spend_display}</td>
           <td>${pct(safeDiv(row.revenue0_raw, row.spend))}</td>
@@ -1299,7 +1468,9 @@ function renderRoiTables(data) {
 
 function renderAll() {
   const data = buildData(state.rows, state.filters);
+  renderPageMeta(data);
   renderSummaryCards(data);
+  renderGroupOverview(data);
   renderNotes(data);
   renderSummaryFilter(data);
   renderModuleFilter('module2-filter-button', 'module2-filter-options', 'module2-filter-status', data.availableDates, data.module2Dates);
@@ -1313,7 +1484,7 @@ function renderAll() {
 }
 
 function getCheckedValues(container) {
-  return Array.from(container.querySelectorAll('input:checked')).map((input) => input.value);
+  return Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map((input) => input.value);
 }
 
 function closeAllEnumFilters() {
@@ -1352,55 +1523,78 @@ async function githubRequest(url, token, options = {}) {
       ...(options.headers || {}),
     },
   });
+
+  if (response.status === 404) {
+    const error = new Error('404');
+    error.status = 404;
+    throw error;
+  }
+
   if (!response.ok) {
     const text = await response.text();
     throw new Error(text || `GitHub API 请求失败：${response.status}`);
   }
+
   return response.json();
 }
 
-function buildPublishHtml() {
-  const sourceAssignment = `window.__INITIAL_SOURCE__ = ${escapeBootJson(state.sourceLabel)};`;
-  const rowsAssignment = `window.__INITIAL_ROWS__ = ${escapeBootJson(state.rows)};`;
-  let html = document.documentElement.outerHTML;
-  html = html.replace(/window\.__INITIAL_SOURCE__ = .*?;/, sourceAssignment);
-  html = html.replace(/window\.__INITIAL_ROWS__ = [\s\S]*?;/, rowsAssignment);
-  return `<!doctype html>\n${html}`;
+async function loadRowsFromDataPath(dataPath, fallbackRows, groupMeta) {
+  try {
+    const response = await fetch(`${dataPath}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const rows = await response.json();
+    if (!Array.isArray(rows)) throw new Error('JSON 结构无效');
+    return rows.map((row) => normalizeExistingRow(row, groupMeta)).filter((row) => row.date);
+  } catch (error) {
+    return fallbackRows.map((row) => normalizeExistingRow(row, groupMeta)).filter((row) => row.date);
+  }
 }
 
-async function publishCurrentDashboard(token) {
-  const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/index.html`;
+function base64EncodeUnicode(text) {
+  return btoa(unescape(encodeURIComponent(text)));
+}
+
+function serializeRowsForPublish(rows) {
+  return `${JSON.stringify(rows, null, 2)}\n`;
+}
+
+async function publishGroupData(token) {
+  const path = PAGE_CONFIG.dataPath;
+  const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
   let sha = null;
+
   try {
     const current = await githubRequest(apiUrl, token);
     sha = current.sha || null;
   } catch (error) {
-    if (!String(error.message || '').includes('"status":"404"') && !String(error.message || '').includes('Not Found')) {
-      throw error;
-    }
+    if (error.status !== 404 && error.message !== '404') throw error;
   }
 
   const payload = {
-    message: `Publish dashboard from ${state.sourceLabel}`,
-    content: btoa(unescape(encodeURIComponent(buildPublishHtml()))),
+    message: `Publish ${PAGE_CONFIG.groupLabel} data from ${state.sourceLabel}`,
+    content: base64EncodeUnicode(serializeRowsForPublish(state.rows)),
   };
   if (sha) payload.sha = sha;
 
   await githubRequest(apiUrl, token, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
 
-  return `${PUBLIC_URL}/?v=${Date.now()}`;
+  const stamp = Date.now();
+  const selfBase = PAGE_CONFIG.publicUrl || PUBLIC_BASE_URL;
+  const bossBase = (PAGE_CONFIG.bossUrl || PUBLIC_BASE_URL).replace(/\/$/, '');
+  return {
+    selfUrl: `${selfBase}${selfBase.includes('?') ? '&' : '?'}v=${stamp}`,
+    bossUrl: `${bossBase}/?v=${stamp}`,
+  };
 }
 
 async function uploadFile(file) {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
-  state.rows = rowsFromWorkbook(workbook);
+  state.rows = rowsFromWorkbook(workbook, PAGE_CONFIG);
   state.sourceLabel = file.name;
   const dates = [...new Set(state.rows.map((row) => row.date))].sort();
   const latest = [dates.at(-1)].filter(Boolean);
@@ -1411,97 +1605,116 @@ async function uploadFile(file) {
   renderAll();
 }
 
+function bindFilterEvents(filterKey, buttonId, optionsId) {
+  const button = document.getElementById(buttonId);
+  const options = document.getElementById(optionsId);
+  const filter = button.closest('.enum-filter');
+  const menu = filter.querySelector('.enum-filter-menu');
+
+  button.addEventListener('click', () => {
+    const willOpen = !filter.classList.contains('open');
+    closeAllEnumFilters();
+    filter.classList.toggle('open', willOpen);
+    button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    menu.hidden = !willOpen;
+  });
+
+  options.addEventListener('change', () => {
+    const selected = getCheckedValues(options);
+    const fallback = [Array.from(options.querySelectorAll('input[type="checkbox"]')).at(-1)?.value].filter(Boolean);
+    state.filters[filterKey] = selected.length ? selected : fallback;
+    renderAll();
+  });
+
+  options.addEventListener('click', (event) => {
+    const actionButton = event.target.closest('.enum-filter-action');
+    if (!actionButton) return;
+    const allDates = Array.from(options.querySelectorAll('input[type="checkbox"]')).map((input) => input.value);
+    if (actionButton.dataset.action === 'select-all') state.filters[filterKey] = allDates;
+    if (actionButton.dataset.action === 'select-recent5') state.filters[filterKey] = listRecentDates(allDates, 5);
+    renderAll();
+  });
+}
+
 function bindEvents() {
   document.getElementById('summary-date-filter').addEventListener('change', (event) => {
     state.filters.summaryDate = event.target.value;
     renderAll();
   });
 
-  [
-    ['module2Dates', 'module2-filter-button', 'module2-filter-options'],
-    ['module3Dates', 'module3-filter-button', 'module3-filter-options'],
-    ['module4Dates', 'module4-filter-button', 'module4-filter-options'],
-  ].forEach(([filterKey, buttonId, optionsId]) => {
-    const button = document.getElementById(buttonId);
-    const options = document.getElementById(optionsId);
-    const filter = button.closest('.enum-filter');
-    const menu = filter.querySelector('.enum-filter-menu');
-
-    button.addEventListener('click', () => {
-      const willOpen = !filter.classList.contains('open');
-      closeAllEnumFilters();
-      filter.classList.toggle('open', willOpen);
-      button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-      menu.hidden = !willOpen;
-    });
-
-    options.addEventListener('change', () => {
-      const selected = getCheckedValues(options);
-      state.filters[filterKey] = selected.length
-        ? selected
-        : [options.querySelector('input:last-of-type')?.value].filter(Boolean);
-      renderAll();
-    });
-
-    options.addEventListener('click', (event) => {
-      const actionButton = event.target.closest('.enum-filter-action');
-      if (!actionButton) return;
-      const allDates = Array.from(options.querySelectorAll('input[type="checkbox"]')).map((input) => input.value);
-      if (actionButton.dataset.action === 'select-all') {
-        state.filters[filterKey] = allDates;
-      }
-      if (actionButton.dataset.action === 'select-recent5') {
-        state.filters[filterKey] = listRecentDates(allDates, 5);
-      }
-      renderAll();
-    });
-  });
+  bindFilterEvents('module2Dates', 'module2-filter-button', 'module2-filter-options');
+  bindFilterEvents('module3Dates', 'module3-filter-button', 'module3-filter-options');
+  bindFilterEvents('module4Dates', 'module4-filter-button', 'module4-filter-options');
 
   document.addEventListener('click', (event) => {
-    if (!event.target.closest('.enum-filter')) {
-      closeAllEnumFilters();
-    }
+    if (!event.target.closest('.enum-filter')) closeAllEnumFilters();
   });
 
-  document.getElementById('upload-form').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const file = document.getElementById('file-input').files[0];
-    if (!file) {
-      document.getElementById('upload-status').textContent = '请先选择一个 .xlsx 文件';
-      return;
-    }
-    document.getElementById('upload-status').textContent = '正在读取 Excel 并重算看板，请稍等...';
-    try {
-      await uploadFile(file);
-    } catch (error) {
-      document.getElementById('upload-status').textContent = error.message || '上传失败，请确认文件格式';
-    }
-  });
+  const uploadForm = document.getElementById('upload-form');
+  if (uploadForm) {
+    uploadForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const file = document.getElementById('file-input').files[0];
+      if (!file) {
+        document.getElementById('upload-status').textContent = '请先选择一个 .xlsx 文件';
+        return;
+      }
+      document.getElementById('upload-status').textContent = '正在读取 Excel 并重算看板，请稍等...';
+      try {
+        await uploadFile(file);
+      } catch (error) {
+        document.getElementById('upload-status').textContent = error.message || '上传失败，请确认文件格式';
+      }
+    });
+  }
 
-  document.getElementById('publish-button').addEventListener('click', async () => {
-    const token = document.getElementById('github-token-input').value.trim();
-    const publishStatus = document.getElementById('publish-status');
-    if (!token) {
-      publishStatus.textContent = '请先输入 GitHub Token，再发布。';
-      return;
-    }
-    if (!state.rows.length) {
-      publishStatus.textContent = '当前没有可发布的数据，请先上传 Excel。';
-      return;
-    }
-    publishStatus.textContent = '正在发布到固定链接，请稍等...';
-    try {
-      saveToken(token);
-      const url = await publishCurrentDashboard(token);
-      publishStatus.innerHTML = `发布成功：<a href="${url}" target="_blank" rel="noreferrer">${url}</a>`;
-    } catch (error) {
-      publishStatus.textContent = `发布失败：${error.message || error}`;
-    }
-  });
+  const publishButton = document.getElementById('publish-button');
+  if (publishButton) {
+    publishButton.addEventListener('click', async () => {
+      const token = document.getElementById('github-token-input').value.trim();
+      const publishStatus = document.getElementById('publish-status');
+      if (!token) {
+        publishStatus.textContent = '请先输入 GitHub Token，再发布。';
+        return;
+      }
+      if (!state.rows.length) {
+        publishStatus.textContent = '当前没有可发布的数据，请先上传 Excel。';
+        return;
+      }
+      publishStatus.textContent = '正在发布本组数据到固定链接，请稍等...';
+      try {
+        saveToken(token);
+        const urls = await publishGroupData(token);
+        publishStatus.innerHTML = `发布成功：<a href="${urls.selfUrl}" target="_blank" rel="noreferrer">本组链接</a> ｜ <a href="${urls.bossUrl}" target="_blank" rel="noreferrer">老板综合链接</a>`;
+      } catch (error) {
+        publishStatus.textContent = `发布失败：${error.message || error}`;
+      }
+    });
+  }
 }
 
-(function init() {
-  document.getElementById('github-token-input').value = loadSavedToken();
+async function initData() {
+  if (PAGE_CONFIG.mode === 'boss') {
+    const mergedRows = [];
+    for (const source of PAGE_CONFIG.sources || []) {
+      const rows = await loadRowsFromDataPath(source.dataPath, [], source);
+      mergedRows.push(...rows);
+    }
+    state.rows = mergedRows.length
+      ? mergedRows
+      : state.rows.map((row) => normalizeExistingRow(row, PAGE_CONFIG)).filter((row) => row.date);
+    state.sourceLabel = 'A组 + B组线上合并数据';
+    return;
+  }
+
+  state.rows = await loadRowsFromDataPath(PAGE_CONFIG.dataPath, state.rows, PAGE_CONFIG);
+  state.sourceLabel = `${PAGE_CONFIG.groupLabel} 线上数据`;
+}
+
+(async function init() {
+  const tokenInput = document.getElementById('github-token-input');
+  if (tokenInput) tokenInput.value = loadSavedToken();
+  await initData();
   const dates = [...new Set(state.rows.map((row) => row.date))].sort();
   const latest = [dates.at(-1)].filter(Boolean);
   state.filters.module2Dates = latest;
