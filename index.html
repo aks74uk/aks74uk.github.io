@@ -656,16 +656,21 @@ tfoot td {
           <select id="summary-date-filter"></select>
         </div>
       </div>
-      <p class="helper-text">默认仅保留最近五天数据；单日总消耗小于 50 不展示。</p>
+      <p class="helper-text">默认展示最近三天的分日分组数据；单日总消耗小于 50 不展示。</p>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>日期</th>
-              <th>消耗</th>
-              <th>H24 ROI</th>
-              <th>整体 ROI（补贴前）</th>
-              <th>整体 ROI（补贴后）</th>
+              <th>A组消耗</th>
+              <th>A组补贴前 ROI</th>
+              <th>A组补贴后 ROI</th>
+              <th>B组消耗</th>
+              <th>B组补贴前 ROI</th>
+              <th>B组补贴后 ROI</th>
+              <th>总消耗</th>
+              <th>总补贴前 ROI</th>
+              <th>总补贴后 ROI</th>
             </tr>
           </thead>
           <tbody id="daily-summary-body"></tbody>
@@ -694,13 +699,20 @@ tfoot td {
             </div>
           </div>
         </div>
+        <div>
+          <label class="field-label" for="module2-group-filter">组别筛选</label>
+          <select id="module2-group-filter">
+            <option value="all">总数据</option>
+            <option value="a">A组</option>
+            <option value="b">B组</option>
+          </select>
+        </div>
         <div class="status-box subtle-box" id="module2-filter-status">默认选中最新日期，可直接点选多个枚举值。</div>
       </div>
       <div class="table-wrap tall">
         <table>
           <thead>
             <tr>
-              <th>组别</th>
               <th>国家</th>
               <th>消耗</th>
               <th>补贴前 ROI</th>
@@ -733,13 +745,20 @@ tfoot td {
             </div>
           </div>
         </div>
+        <div>
+          <label class="field-label" for="module3-group-filter">组别筛选</label>
+          <select id="module3-group-filter">
+            <option value="all">总数据</option>
+            <option value="a">A组</option>
+            <option value="b">B组</option>
+          </select>
+        </div>
         <div class="status-box subtle-box" id="module3-filter-status">默认选中最新日期，可直接点选多个枚举值。</div>
       </div>
       <div class="table-wrap tall">
         <table>
           <thead>
             <tr>
-              <th>组别</th>
               <th>账户</th>
               <th>消耗</th>
               <th>补贴前 ROI</th>
@@ -775,13 +794,20 @@ tfoot td {
             </div>
           </div>
         </div>
+        <div>
+          <label class="field-label" for="module4-group-filter">组别筛选</label>
+          <select id="module4-group-filter">
+            <option value="all">总数据</option>
+            <option value="a">A组</option>
+            <option value="b">B组</option>
+          </select>
+        </div>
         <div class="status-box subtle-box" id="module4-filter-status">默认选中最新日期，可直接点选多个枚举值。</div>
       </div>
       <div class="table-wrap tall">
         <table>
           <thead>
             <tr>
-              <th>组别</th>
               <th>剧目</th>
               <th>消耗</th>
               <th>H24 ROI</th>
@@ -861,11 +887,15 @@ const TOKEN_STORAGE_KEY = PAGE_CONFIG.storageKey || 'overseas_dashboard_github_t
 const state = {
   rows: Array.isArray(window.__INITIAL_ROWS__) ? window.__INITIAL_ROWS__ : [],
   sourceLabel: window.__INITIAL_SOURCE__ || '内置数据',
+  summaryUsesRecentThreeDefault: true,
   filters: {
     summaryDate: 'recent5',
     module2Dates: [],
+    module2Group: 'all',
     module3Dates: [],
+    module3Group: 'all',
     module4Dates: [],
+    module4Group: 'all',
   },
 };
 
@@ -1007,6 +1037,27 @@ function listRecentDates(dates, limit = 5) {
   return dates.slice(Math.max(0, dates.length - limit));
 }
 
+function filterRowsByGroup(rows, groupKey) {
+  if (!groupKey || groupKey === 'all') return rows;
+  return rows.filter((row) => row.group_key === groupKey);
+}
+
+function summarizeRows(rows) {
+  const spend = rows.reduce((sum, item) => sum + item.spend, 0);
+  const overallRevenueRaw = rows.reduce((sum, item) => sum + getOverallRevenueRaw(item), 0);
+  const overallRevenuePost = rows.reduce((sum, item) => sum + getOverallRevenuePost(item), 0);
+  const revenue0Raw = rows.reduce((sum, item) => sum + getRevenue0Raw(item), 0);
+  return {
+    spend,
+    spend_display: spend ? money(spend) : '-',
+    roi0_display: spend ? pct(safeDiv(revenue0Raw, spend)) : '-',
+    overall_roas_raw_display: spend ? pct(safeDiv(overallRevenueRaw, spend)) : '-',
+    overall_roas_post_display: spend ? pct(safeDiv(overallRevenuePost, spend)) : '-',
+    overall_revenue_raw: overallRevenueRaw,
+    overall_revenue_post: overallRevenuePost,
+  };
+}
+
 function normalizeSelectedDates(availableDates, selectedDates) {
   const normalized = (selectedDates || []).filter((date) => availableDates.includes(date));
   return normalized.length ? normalized : [availableDates.at(-1)].filter(Boolean);
@@ -1068,6 +1119,7 @@ function buildData(rows, filters) {
   const usableRows = rows.filter((row) => row.date);
   const allDates = [...new Set(usableRows.map((row) => row.date))].sort();
   const availableDates = allDates;
+  const recentThreeDates = listRecentDates(availableDates, 3);
   const recentFiveDates = listRecentDates(availableDates, 5);
   const module2Dates = normalizeSelectedDates(availableDates, filters.module2Dates);
   const module3Dates = normalizeSelectedDates(availableDates, filters.module3Dates);
@@ -1077,35 +1129,43 @@ function buildData(rows, filters) {
   const dailySummaryAll = availableDates
     .map((date) => {
       const dayRows = usableRows.filter((row) => row.date === date);
-      const spend = dayRows.reduce((sum, item) => sum + item.spend, 0);
-      if (spend < 50) return null;
-      const revenue0Raw = dayRows.reduce((sum, item) => sum + getRevenue0Raw(item), 0);
-      const overallRevenueRaw = dayRows.reduce((sum, item) => sum + getOverallRevenueRaw(item), 0);
-      const overallRevenuePost = dayRows.reduce((sum, item) => sum + getOverallRevenuePost(item), 0);
+      const totalSummary = summarizeRows(dayRows);
+      if (totalSummary.spend < 50) return null;
+      const aSummary = summarizeRows(filterRowsByGroup(dayRows, 'a'));
+      const bSummary = summarizeRows(filterRowsByGroup(dayRows, 'b'));
       return {
         date,
-        spend,
-        spend_display: money(spend),
-        roi0_raw_display: pct(safeDiv(revenue0Raw, spend)),
-        overall_roas_raw_display: pct(safeDiv(overallRevenueRaw, spend)),
-        overall_roas_post_display: pct(safeDiv(overallRevenuePost, spend)),
+        a: aSummary,
+        b: bSummary,
+        total: totalSummary,
       };
     })
     .filter(Boolean);
 
   let summaryRows = dailySummaryAll;
-  if (summaryMode === 'recent5') summaryRows = dailySummaryAll.filter((row) => recentFiveDates.includes(row.date));
+  if (summaryMode === 'recent5') {
+    const defaultDates = state.summaryUsesRecentThreeDefault ? recentThreeDates : recentFiveDates;
+    summaryRows = dailySummaryAll.filter((row) => defaultDates.includes(row.date));
+  }
   if (summaryMode && summaryMode !== 'all' && summaryMode !== 'recent5') summaryRows = dailySummaryAll.filter((row) => row.date === summaryMode);
 
-  const splitByGroup = PAGE_CONFIG.mode === 'boss';
-  const module2Rows = usableRows.filter((row) => module2Dates.includes(row.date));
-  const module3Rows = usableRows.filter((row) => module3Dates.includes(row.date));
-  const module4Rows = usableRows.filter((row) => module4Dates.includes(row.date));
+  const module2Rows = filterRowsByGroup(
+    usableRows.filter((row) => module2Dates.includes(row.date)),
+    filters.module2Group
+  );
+  const module3Rows = filterRowsByGroup(
+    usableRows.filter((row) => module3Dates.includes(row.date)),
+    filters.module3Group
+  );
+  const module4Rows = filterRowsByGroup(
+    usableRows.filter((row) => module4Dates.includes(row.date)),
+    filters.module4Group
+  );
   const overviewRows = module3Rows;
 
-  const countryRows = makeGroupedRows(module2Rows, 'country', splitByGroup);
-  const accountRows = makeGroupedRows(module3Rows, 'account', splitByGroup);
-  const dramaRows = makeGroupedRows(module4Rows, 'drama_title', splitByGroup);
+  const countryRows = makeGroupedRows(module2Rows, 'country', false);
+  const accountRows = makeGroupedRows(module3Rows, 'account', false);
+  const dramaRows = makeGroupedRows(module4Rows, 'drama_title', false);
   const groupOverviewRows = makeGroupedRows(overviewRows, 'group_label', false);
 
   const roiGrowth = dailySummaryAll
@@ -1141,11 +1201,15 @@ function buildData(rows, filters) {
 
   return {
     availableDates,
+    recentThreeDates,
     recentFiveDates,
     summaryRows,
     module2Dates,
+    module2Group: filters.module2Group,
     module3Dates,
+    module3Group: filters.module3Group,
     module4Dates,
+    module4Group: filters.module4Group,
     countryRows,
     accountRows,
     dramaRows,
@@ -1163,12 +1227,12 @@ function buildData(rows, filters) {
     },
     notes: [
       PAGE_CONFIG.mode === 'boss'
-        ? '综合页会自动合并 A组（北京） 和 B组（广州） 两个链接发布过的线上数据。'
+        ? '总数据页会自动合并 A组（北京） 和 B组（广州） 两个链接发布过的线上数据。'
         : `${PAGE_CONFIG.groupLabel} 页面只展示、上传并发布本组数据。`,
       '当前版本不排除任何一天，上传几天就展示几天。',
-      '模块 1 支持全部日期、最近五天和单日切换；模块 2 - 4 支持最近五天、全选和逐个多选。',
+      '模块 1 默认展示最近三天，并按日期展示 A组、B组和总数据；模块 2 - 4 支持总数据/A组/B组切换。',
       '补贴账户 Reelife-zl-260407-01-SINO-TT 按单条广告逐条计算：小于 105% 按 105%，高于等于 105% 按真实 ROI。',
-      '综合页的模块 2 - 4 会把 A组 / B组分别拆开显示。',
+      '模块 2 - 4 默认展示总数据，也可以用上方筛选器切到 A组 或 B组。',
       '源表只有 ROI0-ROI6 和 ROI13，没有 ROI7；模块 5 已按要求保留两位小数。',
     ],
   };
@@ -1182,6 +1246,29 @@ function heatClass(value) {
   if (num <= -0.15) return 'heat heat-negative-2';
   if (num < 0) return 'heat heat-negative-1';
   return 'heat';
+}
+
+function getGroupFilterLabel(groupKey) {
+  if (groupKey === 'a') return 'A组';
+  if (groupKey === 'b') return 'B组';
+  return '总数据';
+}
+
+function renderGroupFilter(selectId, selectedValue) {
+  const select = document.getElementById(selectId);
+  const wrapper = select.closest('div');
+  if (PAGE_CONFIG.mode !== 'boss') {
+    wrapper.hidden = true;
+    select.value = PAGE_CONFIG.groupKey || 'a';
+    return;
+  }
+  wrapper.hidden = false;
+  select.innerHTML = `
+    <option value="all">总数据</option>
+    <option value="a">A组</option>
+    <option value="b">B组</option>
+  `;
+  select.value = selectedValue || 'all';
 }
 
 function getPageLinks() {
@@ -1315,7 +1402,7 @@ function renderGroupOverview(data) {
 function renderModule1(data) {
   const body = document.getElementById('daily-summary-body');
   if (!data.summaryRows.length) {
-    body.innerHTML = '<tr><td colspan="5" class="empty-state">暂无符合条件的分日数据</td></tr>';
+    body.innerHTML = '<tr><td colspan="10" class="empty-state">暂无符合条件的分日数据</td></tr>';
     return;
   }
   body.innerHTML = data.summaryRows
@@ -1323,10 +1410,15 @@ function renderModule1(data) {
       (row) => `
         <tr>
           <td><span class="badge">${row.date}</span></td>
-          <td>${row.spend_display}</td>
-          <td>${row.roi0_raw_display}</td>
-          <td>${row.overall_roas_raw_display}</td>
-          <td>${row.overall_roas_post_display}</td>
+          <td>${row.a.spend_display}</td>
+          <td>${row.a.overall_roas_raw_display}</td>
+          <td>${row.a.overall_roas_post_display}</td>
+          <td>${row.b.spend_display}</td>
+          <td>${row.b.overall_roas_raw_display}</td>
+          <td>${row.b.overall_roas_post_display}</td>
+          <td>${row.total.spend_display}</td>
+          <td>${row.total.overall_roas_raw_display}</td>
+          <td>${row.total.overall_roas_post_display}</td>
         </tr>
       `
     )
@@ -1335,16 +1427,15 @@ function renderModule1(data) {
 
 function renderCountryTable(data) {
   const body = document.getElementById('country-body');
-  document.getElementById('module2-caption').textContent = `已选日期：${data.module2Dates.join('、') || '-'}`;
+  document.getElementById('module2-caption').textContent = `已选日期：${data.module2Dates.join('、') || '-'}；当前视角：${getGroupFilterLabel(data.module2Group)}`;
   if (!data.countryRows.length) {
-    body.innerHTML = '<tr><td colspan="5" class="empty-state">当前日期组合暂无国家数据</td></tr>';
+    body.innerHTML = '<tr><td colspan="4" class="empty-state">当前日期组合暂无国家数据</td></tr>';
     return;
   }
   body.innerHTML = data.countryRows
     .map(
       (row) => `
         <tr>
-          <td>${row.group_label}</td>
           <td>${row.name}</td>
           <td>${row.spend_display}</td>
           <td>${row.overall_roas_raw_display}</td>
@@ -1358,9 +1449,9 @@ function renderCountryTable(data) {
 function renderAccountTable(data) {
   const body = document.getElementById('account-body');
   const foot = document.getElementById('account-foot');
-  document.getElementById('module3-caption').textContent = `已选日期：${data.module3Dates.join('、') || '-'}；含汇总 ROI 列与总计行`;
+  document.getElementById('module3-caption').textContent = `已选日期：${data.module3Dates.join('、') || '-'}；当前视角：${getGroupFilterLabel(data.module3Group)}；含汇总 ROI 列与总计行`;
   if (!data.accountRows.length) {
-    body.innerHTML = '<tr><td colspan="7" class="empty-state">当前日期组合暂无账户数据</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" class="empty-state">当前日期组合暂无账户数据</td></tr>';
     foot.innerHTML = '';
     return;
   }
@@ -1368,7 +1459,6 @@ function renderAccountTable(data) {
     .map(
       (row) => `
         <tr>
-          <td>${row.group_label}</td>
           <td>${row.name}</td>
           <td>${row.spend_display}</td>
           <td>${row.overall_roas_raw_display}</td>
@@ -1386,7 +1476,7 @@ function renderAccountTable(data) {
   const totalAds = data.accountRows.reduce((sum, row) => sum + row.ads, 0);
   foot.innerHTML = `
     <tr>
-      <td colspan="2">总计</td>
+      <td>总计</td>
       <td>${money(totalSpend)}</td>
       <td>${pct(safeDiv(totalRaw, totalSpend))}</td>
       <td>${pct(safeDiv(totalPost, totalSpend))}</td>
@@ -1398,16 +1488,15 @@ function renderAccountTable(data) {
 
 function renderDramaTable(data) {
   const body = document.getElementById('drama-body');
-  document.getElementById('module4-caption').textContent = `已选日期：${data.module4Dates.join('、') || '-'}；剧名从广告名称中抓取`;
+  document.getElementById('module4-caption').textContent = `已选日期：${data.module4Dates.join('、') || '-'}；当前视角：${getGroupFilterLabel(data.module4Group)}；剧名从广告名称中抓取`;
   if (!data.dramaRows.length) {
-    body.innerHTML = '<tr><td colspan="7" class="empty-state">当前日期组合暂无剧目数据</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" class="empty-state">当前日期组合暂无剧目数据</td></tr>';
     return;
   }
   body.innerHTML = data.dramaRows
     .map(
       (row) => `
         <tr>
-          <td>${row.group_label}</td>
           <td>${row.name}</td>
           <td>${row.spend_display}</td>
           <td>${pct(safeDiv(row.revenue0_raw, row.spend))}</td>
@@ -1473,6 +1562,9 @@ function renderAll() {
   renderGroupOverview(data);
   renderNotes(data);
   renderSummaryFilter(data);
+  renderGroupFilter('module2-group-filter', data.module2Group);
+  renderGroupFilter('module3-group-filter', data.module3Group);
+  renderGroupFilter('module4-group-filter', data.module4Group);
   renderModuleFilter('module2-filter-button', 'module2-filter-options', 'module2-filter-status', data.availableDates, data.module2Dates);
   renderModuleFilter('module3-filter-button', 'module3-filter-options', 'module3-filter-status', data.availableDates, data.module3Dates);
   renderModuleFilter('module4-filter-button', 'module4-filter-options', 'module4-filter-status', data.availableDates, data.module4Dates);
@@ -1639,12 +1731,24 @@ function bindFilterEvents(filterKey, buttonId, optionsId) {
 function bindEvents() {
   document.getElementById('summary-date-filter').addEventListener('change', (event) => {
     state.filters.summaryDate = event.target.value;
+    state.summaryUsesRecentThreeDefault = false;
     renderAll();
   });
 
   bindFilterEvents('module2Dates', 'module2-filter-button', 'module2-filter-options');
   bindFilterEvents('module3Dates', 'module3-filter-button', 'module3-filter-options');
   bindFilterEvents('module4Dates', 'module4-filter-button', 'module4-filter-options');
+
+  [
+    ['module2Group', 'module2-group-filter'],
+    ['module3Group', 'module3-group-filter'],
+    ['module4Group', 'module4-group-filter'],
+  ].forEach(([filterKey, selectId]) => {
+    document.getElementById(selectId).addEventListener('change', (event) => {
+      state.filters[filterKey] = event.target.value;
+      renderAll();
+    });
+  });
 
   document.addEventListener('click', (event) => {
     if (!event.target.closest('.enum-filter')) closeAllEnumFilters();
@@ -1717,6 +1821,11 @@ async function initData() {
   await initData();
   const dates = [...new Set(state.rows.map((row) => row.date))].sort();
   const latest = [dates.at(-1)].filter(Boolean);
+  if (PAGE_CONFIG.mode !== 'boss') {
+    state.filters.module2Group = PAGE_CONFIG.groupKey || 'a';
+    state.filters.module3Group = PAGE_CONFIG.groupKey || 'a';
+    state.filters.module4Group = PAGE_CONFIG.groupKey || 'a';
+  }
   state.filters.module2Dates = latest;
   state.filters.module3Dates = latest;
   state.filters.module4Dates = latest;
