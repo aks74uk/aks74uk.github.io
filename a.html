@@ -317,6 +317,16 @@ select:focus {
   align-items: end;
 }
 
+.module-filter-grid {
+  grid-template-columns: minmax(240px, 320px) minmax(180px, 220px);
+  align-items: end;
+}
+
+.module-filter-grid > .status-box {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+
 .filter-inline {
   min-width: 220px;
 }
@@ -883,6 +893,8 @@ const GITHUB_REPO = 'aks74uk.github.io';
 const PUBLIC_BASE_URL = 'https://aks74uk.github.io';
 const PAGE_CONFIG = window.__PAGE_CONFIG__ || {};
 const TOKEN_STORAGE_KEY = PAGE_CONFIG.storageKey || 'overseas_dashboard_github_token';
+const LOCAL_ROWS_STORAGE_KEY = `overseas_dashboard_rows_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
+const LOCAL_SOURCE_STORAGE_KEY = `overseas_dashboard_source_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
 
 const state = {
   rows: Array.isArray(window.__INITIAL_ROWS__) ? window.__INITIAL_ROWS__ : [],
@@ -1597,6 +1609,34 @@ function loadSavedToken() {
   }
 }
 
+function loadLocalRows() {
+  try {
+    const raw = localStorage.getItem(LOCAL_ROWS_STORAGE_KEY);
+    if (!raw) return [];
+    const rows = JSON.parse(raw);
+    return Array.isArray(rows) ? rows : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function loadLocalSourceLabel() {
+  try {
+    return localStorage.getItem(LOCAL_SOURCE_STORAGE_KEY) || '';
+  } catch (error) {
+    return '';
+  }
+}
+
+function saveLocalRows(rows, sourceLabel) {
+  try {
+    localStorage.setItem(LOCAL_ROWS_STORAGE_KEY, JSON.stringify(rows));
+    localStorage.setItem(LOCAL_SOURCE_STORAGE_KEY, sourceLabel || '');
+  } catch (error) {
+    // ignore storage failures
+  }
+}
+
 function saveToken(token) {
   try {
     localStorage.setItem(TOKEN_STORAGE_KEY, token);
@@ -1688,9 +1728,11 @@ async function uploadFile(file) {
   const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
   state.rows = rowsFromWorkbook(workbook, PAGE_CONFIG);
   state.sourceLabel = file.name;
+  saveLocalRows(state.rows, state.sourceLabel);
   const dates = [...new Set(state.rows.map((row) => row.date))].sort();
   const latest = [dates.at(-1)].filter(Boolean);
   state.filters.summaryDate = 'recent5';
+  state.summaryUsesRecentThreeDefault = true;
   state.filters.module2Dates = latest;
   state.filters.module3Dates = latest;
   state.filters.module4Dates = latest;
@@ -1808,6 +1850,14 @@ async function initData() {
       ? mergedRows
       : state.rows.map((row) => normalizeExistingRow(row, PAGE_CONFIG)).filter((row) => row.date);
     state.sourceLabel = 'A组 + B组线上合并数据';
+    return;
+  }
+
+  const localRows = loadLocalRows().map((row) => normalizeExistingRow(row, PAGE_CONFIG)).filter((row) => row.date);
+  const localSourceLabel = loadLocalSourceLabel();
+  if (localRows.length) {
+    state.rows = localRows;
+    state.sourceLabel = localSourceLabel || `${PAGE_CONFIG.groupLabel} 本地草稿`;
     return;
   }
 
