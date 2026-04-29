@@ -1807,6 +1807,8 @@ function bindEvents() {
   if (uploadForm) {
     uploadForm.addEventListener('submit', async (event) => {
       event.preventDefault();
+      const tokenInput = document.getElementById('token-input');
+      const typedToken = (tokenInput?.value || '').trim();
       const file = document.getElementById('file-input').files[0];
       if (!file) {
         document.getElementById('upload-status').textContent = '请先选择一个 .xlsx 文件';
@@ -1817,8 +1819,6 @@ function bindEvents() {
         await uploadFile(file);
         if (PAGE_CONFIG.autoPublish) {
           const publishStatus = document.getElementById('publish-status');
-          const tokenInput = document.getElementById('token-input');
-          const typedToken = (tokenInput?.value || '').trim();
           const publishToken = typedToken || loadStoredToken();
           if (!publishToken) throw new Error('请先输入 GitHub token；本机浏览器会自动记住，下次无需再输');
           if (typedToken) saveStoredToken(typedToken);
