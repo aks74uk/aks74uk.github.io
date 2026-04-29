@@ -680,6 +680,7 @@ tfoot td {
             </tr>
           </thead>
           <tbody id="daily-summary-body"></tbody>
+          <tfoot id="daily-summary-foot"></tfoot>
         </table>
       </div>
     </section>
@@ -1428,8 +1429,10 @@ function renderGroupOverview(data) {
 
 function renderModule1(data) {
   const body = document.getElementById('daily-summary-body');
+  const foot = document.getElementById('daily-summary-foot');
   if (!data.summaryRows.length) {
     body.innerHTML = '<tr><td colspan="10" class="empty-state">暂无符合条件的分日数据</td></tr>';
+    foot.innerHTML = '';
     return;
   }
   const totalASpend = data.summaryRows.reduce((sum, row) => sum + row.a.spend, 0);
@@ -1459,20 +1462,22 @@ function renderModule1(data) {
         </tr>
       `
     )
-    .join('') + `
-      <tr>
-        <td>汇总</td>
-        <td>${money(totalASpend)}</td>
-        <td>${pct(safeDiv(totalARaw, totalASpend))}</td>
-        <td>${pct(safeDiv(totalAPost, totalASpend))}</td>
-        <td>${money(totalBSpend)}</td>
-        <td>${pct(safeDiv(totalBRaw, totalBSpend))}</td>
-        <td>${pct(safeDiv(totalBPost, totalBSpend))}</td>
-        <td>${money(totalSpend)}</td>
-        <td>${pct(safeDiv(totalRaw, totalSpend))}</td>
-        <td>${pct(safeDiv(totalPost, totalSpend))}</td>
-      </tr>
-    `;
+    .join('');
+
+  foot.innerHTML = `
+    <tr>
+      <td>汇总</td>
+      <td>${money(totalASpend)}</td>
+      <td>${pct(safeDiv(totalARaw, totalASpend))}</td>
+      <td>${pct(safeDiv(totalAPost, totalASpend))}</td>
+      <td>${money(totalBSpend)}</td>
+      <td>${pct(safeDiv(totalBRaw, totalBSpend))}</td>
+      <td>${pct(safeDiv(totalBPost, totalBSpend))}</td>
+      <td>${money(totalSpend)}</td>
+      <td>${pct(safeDiv(totalRaw, totalSpend))}</td>
+      <td>${pct(safeDiv(totalPost, totalSpend))}</td>
+    </tr>
+  `;
 }
 
 function renderCountryTable(data) {
