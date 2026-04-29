@@ -1236,7 +1236,7 @@ function buildData(rows, filters) {
     groupOverviewRows,
     roiGrowth,
     latestSummary: {
-      dateLabel: module3Dates.length ? module3Dates.join('、') : '-',
+      dateLabel: formatSelectedDatesLabel(availableDates, module3Dates),
       spend: money(totalSpend),
       overallRoasRaw: pct(safeDiv(totalRaw, totalSpend)),
       overallRoasPost: pct(safeDiv(totalPost, totalSpend)),
@@ -1274,6 +1274,12 @@ function getGroupFilterLabel(groupKey) {
   return '总数据';
 }
 
+function formatSelectedDatesLabel(availableDates, selectedDates) {
+  if (!availableDates.length || !selectedDates.length) return '-';
+  if (selectedDates.length === availableDates.length) return '全部日期';
+  return selectedDates.join('、');
+}
+
 function renderGroupFilter(selectId, selectedValue) {
   const select = document.getElementById(selectId);
   const wrapper = select.closest('div');
@@ -1296,7 +1302,7 @@ function renderPageMeta(data) {
   document.getElementById('hero-title').textContent = PAGE_CONFIG.heroTitle || '海外投放数据看板';
   document.getElementById('hero-text').textContent = PAGE_CONFIG.heroText || '';
   document.getElementById('hero-action-title').textContent = PAGE_CONFIG.actionTitle || '上传与切换';
-  document.getElementById('group-overview-caption').textContent = `已选日期：${data.module3Dates.join('、') || '-'}`;
+  document.getElementById('group-overview-caption').textContent = `已选日期：${formatSelectedDatesLabel(data.availableDates, data.module3Dates)}`;
   const submitButton = document.querySelector('#upload-form .primary-btn');
   const tokenField = document.getElementById('token-field');
   const tokenInput = document.getElementById('token-input');
@@ -1360,7 +1366,9 @@ function renderModuleFilter(buttonId, optionsId, statusId, availableDates, selec
   const options = document.getElementById(optionsId);
 
   label.innerHTML = selectedDates.length
-    ? selectedDates.map((date) => `<span class="enum-filter-pill">${date}</span>`).join('')
+    ? selectedDates.length === availableDates.length
+      ? '<span class="enum-filter-pill">全部日期</span>'
+      : selectedDates.map((date) => `<span class="enum-filter-pill">${date}</span>`).join('')
     : '<span class="enum-filter-placeholder">请选择日期</span>';
 
   options.innerHTML = `
@@ -1424,6 +1432,16 @@ function renderModule1(data) {
     body.innerHTML = '<tr><td colspan="10" class="empty-state">暂无符合条件的分日数据</td></tr>';
     return;
   }
+  const totalASpend = data.summaryRows.reduce((sum, row) => sum + row.a.spend, 0);
+  const totalBSpend = data.summaryRows.reduce((sum, row) => sum + row.b.spend, 0);
+  const totalSpend = data.summaryRows.reduce((sum, row) => sum + row.total.spend, 0);
+  const totalARaw = data.summaryRows.reduce((sum, row) => sum + row.a.overall_revenue_raw, 0);
+  const totalAPost = data.summaryRows.reduce((sum, row) => sum + row.a.overall_revenue_post, 0);
+  const totalBRaw = data.summaryRows.reduce((sum, row) => sum + row.b.overall_revenue_raw, 0);
+  const totalBPost = data.summaryRows.reduce((sum, row) => sum + row.b.overall_revenue_post, 0);
+  const totalRaw = data.summaryRows.reduce((sum, row) => sum + row.total.overall_revenue_raw, 0);
+  const totalPost = data.summaryRows.reduce((sum, row) => sum + row.total.overall_revenue_post, 0);
+
   body.innerHTML = data.summaryRows
     .map(
       (row) => `
@@ -1441,12 +1459,25 @@ function renderModule1(data) {
         </tr>
       `
     )
-    .join('');
+    .join('') + `
+      <tr>
+        <td>汇总</td>
+        <td>${money(totalASpend)}</td>
+        <td>${pct(safeDiv(totalARaw, totalASpend))}</td>
+        <td>${pct(safeDiv(totalAPost, totalASpend))}</td>
+        <td>${money(totalBSpend)}</td>
+        <td>${pct(safeDiv(totalBRaw, totalBSpend))}</td>
+        <td>${pct(safeDiv(totalBPost, totalBSpend))}</td>
+        <td>${money(totalSpend)}</td>
+        <td>${pct(safeDiv(totalRaw, totalSpend))}</td>
+        <td>${pct(safeDiv(totalPost, totalSpend))}</td>
+      </tr>
+    `;
 }
 
 function renderCountryTable(data) {
   const body = document.getElementById('country-body');
-  document.getElementById('module2-caption').textContent = `已选日期：${data.module2Dates.join('、') || '-'}；当前视角：${getGroupFilterLabel(data.module2Group)}`;
+  document.getElementById('module2-caption').textContent = `已选日期：${formatSelectedDatesLabel(data.availableDates, data.module2Dates)}；当前视角：${getGroupFilterLabel(data.module2Group)}`;
   if (!data.countryRows.length) {
     body.innerHTML = '<tr><td colspan="4" class="empty-state">当前日期组合暂无国家数据</td></tr>';
     return;
@@ -1468,7 +1499,7 @@ function renderCountryTable(data) {
 function renderAccountTable(data) {
   const body = document.getElementById('account-body');
   const foot = document.getElementById('account-foot');
-  document.getElementById('module3-caption').textContent = `已选日期：${data.module3Dates.join('、') || '-'}；当前视角：${getGroupFilterLabel(data.module3Group)}；含汇总 ROI 列与总计行`;
+  document.getElementById('module3-caption').textContent = `已选日期：${formatSelectedDatesLabel(data.availableDates, data.module3Dates)}；当前视角：${getGroupFilterLabel(data.module3Group)}；含汇总 ROI 列与总计行`;
   if (!data.accountRows.length) {
     body.innerHTML = '<tr><td colspan="6" class="empty-state">当前日期组合暂无账户数据</td></tr>';
     foot.innerHTML = '';
@@ -1507,7 +1538,7 @@ function renderAccountTable(data) {
 
 function renderDramaTable(data) {
   const body = document.getElementById('drama-body');
-  document.getElementById('module4-caption').textContent = `已选日期：${data.module4Dates.join('、') || '-'}；当前视角：${getGroupFilterLabel(data.module4Group)}；剧名从广告名称中抓取`;
+  document.getElementById('module4-caption').textContent = `已选日期：${formatSelectedDatesLabel(data.availableDates, data.module4Dates)}；当前视角：${getGroupFilterLabel(data.module4Group)}；剧名从广告名称中抓取`;
   if (!data.dramaRows.length) {
     body.innerHTML = '<tr><td colspan="6" class="empty-state">当前日期组合暂无剧目数据</td></tr>';
     return;
