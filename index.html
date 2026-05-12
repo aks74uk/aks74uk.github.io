@@ -735,6 +735,30 @@ tfoot td {
       <div class="panel-header">
         <div>
           <p class="panel-kicker">模块 3</p>
+          <h2>负责人数据</h2>
+        </div>
+        <div class="panel-caption" id="module-owner-caption"></div>
+      </div>
+      <div class="table-wrap tall">
+        <table>
+          <thead>
+            <tr>
+              <th>负责人</th>
+              <th>消耗</th>
+              <th>补贴前 ROI</th>
+              <th>补贴后 ROI</th>
+              <th>账户数</th>
+            </tr>
+          </thead>
+          <tbody id="owner-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel-card soft-panel">
+      <div class="panel-header">
+        <div>
+          <p class="panel-kicker">模块 4</p>
           <h2>分账户数据</h2>
         </div>
         <div class="panel-caption" id="module3-caption"></div>
@@ -783,7 +807,7 @@ tfoot td {
     <section class="panel-card soft-panel">
       <div class="panel-header">
         <div>
-          <p class="panel-kicker">模块 4</p>
+          <p class="panel-kicker">模块 5</p>
           <h2>分剧目数据</h2>
         </div>
         <div class="panel-caption" id="module4-caption"></div>
@@ -831,7 +855,7 @@ tfoot td {
     <section class="panel-card soft-panel">
       <div class="panel-header">
         <div>
-          <p class="panel-kicker">模块 5</p>
+          <p class="panel-kicker">模块 6</p>
           <h2>ROI 增速观察</h2>
         </div>
         <div class="panel-caption">保留两位小数；源表无 ROI7，额外展示 ROI13</div>
@@ -883,6 +907,16 @@ tfoot td {
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
 const SUBSIDY_ACCOUNT = 'Reelife-zl-260407-01-SINO-TT';
+const OWNER_RULES_BY_GROUP = {
+  a: [
+    { key: 'zl', label: '张丽' },
+    { key: 'zwr', label: '钟为润' },
+  ],
+  b: [
+    { key: 'lix', label: '李洵' },
+    { key: 'zcc', label: '周重丞' },
+  ],
+};
 const SUBSIDY_SERIES_BY_GROUP = {
   b: new Set([
     'Reelife-zzc-gz-0421-01-iaa小程序-tecdo-TT',
@@ -961,6 +995,12 @@ function isSubsidizedRow(groupKey, account, seriesName) {
   return SUBSIDY_SERIES_BY_GROUP[groupKey]?.has(String(seriesName || '').trim()) || false;
 }
 
+function getOwnerName(groupKey, account) {
+  const accountText = String(account || '').toLowerCase();
+  const matched = (OWNER_RULES_BY_GROUP[groupKey] || []).find((rule) => accountText.includes(rule.key));
+  return matched?.label || '未匹配负责人';
+}
+
 function normalizeExistingRow(row, fallbackGroup = null) {
   const groupMeta = fallbackGroup || PAGE_CONFIG;
   const spend = parseNumber(row.spend);
@@ -990,6 +1030,7 @@ function normalizeExistingRow(row, fallbackGroup = null) {
     spend,
     account: row.account || '-',
     country: row.country || '未标注',
+    owner_name: row.owner_name || getOwnerName(row.group_key || row.groupKey || groupMeta.groupKey, row.account),
     series_name: row.series_name || '',
     drama_title: row.drama_title || extractDramaTitle(row.series_name || ''),
     revenue0_raw: Number.isFinite(row.revenue0_raw) ? row.revenue0_raw : revenuesRaw[0],
@@ -1016,6 +1057,7 @@ function normalizeWorkbookRow(row, groupMeta = PAGE_CONFIG) {
     group_key: groupMeta.groupKey,
     group_label: groupMeta.groupLabel,
     account,
+    owner_name: getOwnerName(groupMeta.groupKey, account),
     series_name: seriesName,
     drama_title: extractDramaTitle(seriesName),
     country: String(row['国家/地区'] || '').trim() || '未标注',
@@ -1185,6 +1227,7 @@ function buildData(rows, filters) {
   const overviewRows = module3Rows;
 
   const countryRows = makeGroupedRows(module2Rows, 'country', false);
+  const ownerRows = makeGroupedRows(module2Rows, 'owner_name', false);
   const accountRows = makeGroupedRows(module3Rows, 'account', false);
   const dramaRows = makeGroupedRows(module4Rows, 'drama_title', false);
   const groupOverviewRows = makeGroupedRows(overviewRows, 'group_label', false);
@@ -1232,6 +1275,7 @@ function buildData(rows, filters) {
     module4Dates,
     module4Group: filters.module4Group,
     countryRows,
+    ownerRows,
     accountRows,
     dramaRows,
     groupOverviewRows,
@@ -1251,9 +1295,9 @@ function buildData(rows, filters) {
         ? '总数据页会自动合并 A组（北京） 和 B组（广州） 两个链接发布过的线上数据。'
         : `${PAGE_CONFIG.groupLabel} 页面只展示、上传并发布本组数据。`,
       '当前版本不排除任何一天，上传几天就展示几天。',
-      '模块 1 默认展示最近三天，并按日期展示 A组、B组和总数据；模块 2 - 4 支持总数据/A组/B组切换。',
+      '模块 1 默认展示最近三天，并按日期展示 A组、B组和总数据；模块 2 - 5 支持总数据/A组/B组切换。',
       '补贴账户 Reelife-zl-260407-01-SINO-TT 按单条广告逐条计算：小于 105% 按 105%，高于等于 105% 按真实 ROI。',
-      '模块 2 - 4 默认展示总数据，也可以用上方筛选器切到 A组 或 B组。',
+      '模块 2 - 5 默认展示总数据，也可以用上方筛选器切到 A组 或 B组。',
       '源表只有 ROI0-ROI6 和 ROI13，没有 ROI7；模块 5 已按要求保留两位小数。',
     ],
   };
@@ -1501,6 +1545,28 @@ function renderCountryTable(data) {
     .join('');
 }
 
+function renderOwnerTable(data) {
+  const body = document.getElementById('owner-body');
+  document.getElementById('module-owner-caption').textContent = `已选日期：${formatSelectedDatesLabel(data.availableDates, data.module2Dates)}；当前视角：${getGroupFilterLabel(data.module2Group)}；负责人按账户名称命名识别`;
+  if (!data.ownerRows.length) {
+    body.innerHTML = '<tr><td colspan="5" class="empty-state">当前日期组合暂无负责人数据</td></tr>';
+    return;
+  }
+  body.innerHTML = data.ownerRows
+    .map(
+      (row) => `
+        <tr>
+          <td>${row.name}</td>
+          <td>${row.spend_display}</td>
+          <td>${row.overall_roas_raw_display}</td>
+          <td>${row.overall_roas_post_display}</td>
+          <td>${row.account_count}</td>
+        </tr>
+      `
+    )
+    .join('');
+}
+
 function renderAccountTable(data) {
   const body = document.getElementById('account-body');
   const foot = document.getElementById('account-foot');
@@ -1625,6 +1691,7 @@ function renderAll() {
   renderModuleFilter('module4-filter-button', 'module4-filter-options', 'module4-filter-status', data.availableDates, data.module4Dates);
   renderModule1(data);
   renderCountryTable(data);
+  renderOwnerTable(data);
   renderAccountTable(data);
   renderDramaTable(data);
   renderRoiTables(data);
