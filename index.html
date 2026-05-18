@@ -528,6 +528,45 @@ tbody tr:hover {
   font-weight: 700;
 }
 
+.us-split-table th,
+.us-split-table td {
+  border-right: 1px solid rgba(93, 174, 160, 0.12);
+}
+
+.us-split-table th:last-child,
+.us-split-table td:last-child {
+  border-right: none;
+}
+
+.us-split-table tbody tr.split-group-beijing td:first-child {
+  border-left: 4px solid #5daea0;
+}
+
+.us-split-table tbody tr.split-group-guangzhou td:first-child {
+  border-left: 4px solid #7aa7d8;
+}
+
+.us-split-table tbody tr.split-group-total td:first-child {
+  border-left: 4px solid #d3a45f;
+}
+
+.us-split-table tbody tr.split-group-beijing.split-summary-row {
+  background: linear-gradient(180deg, rgba(93, 174, 160, 0.12), rgba(93, 174, 160, 0.04));
+}
+
+.us-split-table tbody tr.split-group-guangzhou.split-summary-row {
+  background: linear-gradient(180deg, rgba(122, 167, 216, 0.14), rgba(122, 167, 216, 0.05));
+}
+
+.us-split-table tbody tr.split-group-total.split-summary-row {
+  background: linear-gradient(180deg, rgba(211, 164, 95, 0.16), rgba(211, 164, 95, 0.06));
+}
+
+.us-split-table tbody tr.split-group-beijing + tr.split-group-guangzhou td,
+.us-split-table tbody tr.split-group-guangzhou + tr.split-group-total td {
+  border-top: 2px solid rgba(93, 174, 160, 0.18);
+}
+
 tfoot td {
   position: sticky;
   bottom: 0;
@@ -643,7 +682,7 @@ tfoot td {
         <div class="panel-caption" id="group-overview-caption"></div>
       </div>
       <div class="table-wrap">
-        <table>
+        <table class="us-split-table">
           <thead>
             <tr>
               <th>组别</th>
@@ -1599,8 +1638,14 @@ function renderBeijingUsSplit(data) {
 
   body.innerHTML = data.usSplitSummaryRows
     .map(
-      (row) => `
-        <tr class="${row.label.includes('汇总') ? 'split-summary-row' : ''}">
+      (row) => {
+        const rowClasses = [];
+        if (row.label.includes('北京-')) rowClasses.push('split-group-beijing');
+        if (row.label.includes('广州-')) rowClasses.push('split-group-guangzhou');
+        if (row.label.includes('总数据-')) rowClasses.push('split-group-total');
+        if (row.label.includes('汇总')) rowClasses.push('split-summary-row');
+        return `
+        <tr class="${rowClasses.join(' ')}">
           <td><span class="split-label">${row.label}</span></td>
           <td>${row.spend_display}</td>
           <td>${row.overall_roas_raw_display}</td>
@@ -1608,7 +1653,8 @@ function renderBeijingUsSplit(data) {
           <td>${row.country_count}</td>
           <td>${row.account_count}</td>
         </tr>
-      `
+      `;
+      }
     )
     .join('');
 }
