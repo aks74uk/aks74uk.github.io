@@ -641,6 +641,31 @@ tfoot td {
       </div>
     </section>
 
+    <section class="panel-card soft-panel" id="us-split-panel" hidden>
+      <div class="panel-header">
+        <div>
+          <p class="panel-kicker">北京新增模块</p>
+          <h2>美国 / 非美国 / 汇总</h2>
+        </div>
+        <div class="panel-caption" id="us-split-caption"></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>分类</th>
+              <th>消耗</th>
+              <th>补贴前 ROI</th>
+              <th>补贴后 ROI</th>
+              <th>国家数</th>
+              <th>账户数</th>
+            </tr>
+          </thead>
+          <tbody id="us-split-body"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="notes-panel panel-card">
       <div class="panel-header compact">
         <div>
@@ -1122,6 +1147,16 @@ function summarizeRows(rows) {
   };
 }
 
+function summarizeRowsDetailed(rows, label) {
+  const summary = summarizeRows(rows);
+  return {
+    label,
+    ...summary,
+    country_count: new Set(rows.map((row) => row.country).filter(Boolean)).size,
+    account_count: new Set(rows.map((row) => row.account).filter(Boolean)).size,
+  };
+}
+
 function normalizeSelectedDates(availableDates, selectedDates) {
   const normalized = (selectedDates || []).filter((date) => availableDates.includes(date));
   return normalized.length ? normalized : [availableDates.at(-1)].filter(Boolean);
@@ -1226,6 +1261,14 @@ function buildData(rows, filters) {
     filters.module4Group
   );
   const overviewRows = module3Rows;
+  const beijingUsSplitRows =
+    PAGE_CONFIG.mode === 'group' && PAGE_CONFIG.groupKey === 'a'
+      ? [
+          summarizeRowsDetailed(module2Rows.filter((row) => row.country === '美国'), '美国数据'),
+          summarizeRowsDetailed(module2Rows.filter((row) => row.country !== '美国'), '非美国数据'),
+          summarizeRowsDetailed(module2Rows, '汇总数据'),
+        ]
+      : [];
 
   const countryRows = makeGroupedRows(module2Rows, 'country', false);
   const ownerRows = makeGroupedRows(module2Rows, 'owner_name', false);
@@ -1275,6 +1318,7 @@ function buildData(rows, filters) {
     module3Group: filters.module3Group,
     module4Dates,
     module4Group: filters.module4Group,
+    beijingUsSplitRows,
     countryRows,
     ownerRows,
     accountRows,
@@ -1297,10 +1341,11 @@ function buildData(rows, filters) {
         : `${PAGE_CONFIG.groupLabel} 页面只展示、上传并发布本组数据。`,
       '当前版本不排除任何一天，上传几天就展示几天。',
       '模块 1 默认展示最近三天，并按日期展示 A组、B组和总数据；模块 2 - 5 支持总数据/A组/B组切换。',
+      PAGE_CONFIG.mode === 'group' && PAGE_CONFIG.groupKey === 'a' ? '北京页新增了美国 / 非美国 / 汇总模块，按已选日期统计。' : null,
       '补贴账户 Reelife-zl-260407-01-SINO-TT 按单条广告逐条计算：小于 105% 按 105%，高于等于 105% 按真实 ROI。',
       '模块 2 - 5 默认展示总数据，也可以用上方筛选器切到 A组 或 B组。',
       '源表只有 ROI0-ROI6 和 ROI13，没有 ROI7；模块 5 已按要求保留两位小数。',
-    ],
+    ].filter(Boolean),
   };
 }
 
@@ -1466,6 +1511,41 @@ function renderGroupOverview(data) {
           <td>${row.overall_roas_post_display}</td>
           <td>${row.account_count}</td>
           <td>${row.drama_count}</td>
+        </tr>
+      `
+    )
+    .join('');
+}
+
+function renderBeijingUsSplit(data) {
+  const panel = document.getElementById('us-split-panel');
+  const body = document.getElementById('us-split-body');
+  const caption = document.getElementById('us-split-caption');
+  if (!panel || !body || !caption) return;
+
+  if (!(PAGE_CONFIG.mode === 'group' && PAGE_CONFIG.groupKey === 'a')) {
+    panel.hidden = true;
+    return;
+  }
+
+  panel.hidden = false;
+  caption.textContent = `已选日期：${formatSelectedDatesLabel(data.availableDates, data.module2Dates)}；按北京数据拆分美国 / 非美国`;
+
+  if (!data.beijingUsSplitRows.length) {
+    body.innerHTML = '<tr><td colspan="6" class="empty-state">当前日期组合暂无美国 / 非美国拆分数据</td></tr>';
+    return;
+  }
+
+  body.innerHTML = data.beijingUsSplitRows
+    .map(
+      (row) => `
+        <tr>
+          <td>${row.label}</td>
+          <td>${row.spend_display}</td>
+          <td>${row.overall_roas_raw_display}</td>
+          <td>${row.overall_roas_post_display}</td>
+          <td>${row.country_count}</td>
+          <td>${row.account_count}</td>
         </tr>
       `
     )
@@ -1682,6 +1762,7 @@ function renderAll() {
   renderPageMeta(data);
   renderSummaryCards(data);
   renderGroupOverview(data);
+  renderBeijingUsSplit(data);
   renderNotes(data);
   renderSummaryFilter(data);
   renderGroupFilter('module2-group-filter', data.module2Group);
