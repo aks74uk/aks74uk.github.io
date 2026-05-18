@@ -649,6 +649,21 @@ tfoot td {
         </div>
         <div class="panel-caption" id="us-split-caption"></div>
       </div>
+      <div class="filter-grid module-filter-grid">
+        <div>
+          <label class="field-label" for="us-split-filter-button">日期筛选</label>
+          <div class="enum-filter" data-filter-key="usSplitDates">
+            <button id="us-split-filter-button" class="enum-filter-button" type="button" aria-expanded="false">
+              <span class="enum-filter-label">请选择日期</span>
+              <span class="enum-filter-arrow">▾</span>
+            </button>
+            <div class="enum-filter-menu" hidden>
+              <div class="enum-filter-options" id="us-split-filter-options"></div>
+            </div>
+          </div>
+        </div>
+        <div class="status-box subtle-box" id="us-split-filter-status">默认展示昨天数据，可切换为近五天、全选或指定日期。</div>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -965,6 +980,7 @@ const state = {
   summaryUsesRecentThreeDefault: true,
   filters: {
     summaryDate: 'recent5',
+    usSplitDates: [],
     module2Dates: [],
     module2Group: 'all',
     module3Dates: [],
@@ -1162,6 +1178,11 @@ function normalizeSelectedDates(availableDates, selectedDates) {
   return normalized.length ? normalized : [availableDates.at(-1)].filter(Boolean);
 }
 
+function getYesterdayLikeDates(availableDates) {
+  if (!availableDates.length) return [];
+  return [availableDates.length >= 2 ? availableDates.at(-2) : availableDates.at(-1)].filter(Boolean);
+}
+
 function makeGroupedRows(rows, keyName, splitByGroup = false) {
   const grouped = new Map();
 
@@ -1220,6 +1241,7 @@ function buildData(rows, filters) {
   const availableDates = allDates;
   const recentThreeDates = listRecentDates(availableDates, 3);
   const recentFiveDates = listRecentDates(availableDates, 5);
+  const usSplitDates = normalizeSelectedDates(availableDates, filters.usSplitDates);
   const module2Dates = normalizeSelectedDates(availableDates, filters.module2Dates);
   const module3Dates = normalizeSelectedDates(availableDates, filters.module3Dates);
   const module4Dates = normalizeSelectedDates(availableDates, filters.module4Dates);
@@ -1248,6 +1270,7 @@ function buildData(rows, filters) {
   }
   if (summaryMode && summaryMode !== 'all' && summaryMode !== 'recent5') summaryRows = dailySummaryAll.filter((row) => row.date === summaryMode);
 
+  const usSplitRows = usableRows.filter((row) => usSplitDates.includes(row.date));
   const module2Rows = filterRowsByGroup(
     usableRows.filter((row) => module2Dates.includes(row.date)),
     filters.module2Group
@@ -1264,9 +1287,9 @@ function buildData(rows, filters) {
   const beijingUsSplitRows =
     PAGE_CONFIG.mode === 'group' && PAGE_CONFIG.groupKey === 'a'
       ? [
-          summarizeRowsDetailed(module2Rows.filter((row) => row.country === '美国'), '美国数据'),
-          summarizeRowsDetailed(module2Rows.filter((row) => row.country !== '美国'), '非美国数据'),
-          summarizeRowsDetailed(module2Rows, '汇总数据'),
+          summarizeRowsDetailed(usSplitRows.filter((row) => row.country === '美国'), '美国数据'),
+          summarizeRowsDetailed(usSplitRows.filter((row) => row.country !== '美国'), '非美国数据'),
+          summarizeRowsDetailed(usSplitRows, '汇总数据'),
         ]
       : [];
 
@@ -1312,6 +1335,7 @@ function buildData(rows, filters) {
     recentThreeDates,
     recentFiveDates,
     summaryRows,
+    usSplitDates,
     module2Dates,
     module2Group: filters.module2Group,
     module3Dates,
@@ -1529,7 +1553,7 @@ function renderBeijingUsSplit(data) {
   }
 
   panel.hidden = false;
-  caption.textContent = `已选日期：${formatSelectedDatesLabel(data.availableDates, data.module2Dates)}；按北京数据拆分美国 / 非美国`;
+  caption.textContent = `已选日期：${formatSelectedDatesLabel(data.availableDates, data.usSplitDates)}；按北京数据拆分美国 / 非美国`;
 
   if (!data.beijingUsSplitRows.length) {
     body.innerHTML = '<tr><td colspan="6" class="empty-state">当前日期组合暂无美国 / 非美国拆分数据</td></tr>';
@@ -1765,6 +1789,7 @@ function renderAll() {
   renderBeijingUsSplit(data);
   renderNotes(data);
   renderSummaryFilter(data);
+  renderModuleFilter('us-split-filter-button', 'us-split-filter-options', 'us-split-filter-status', data.availableDates, data.usSplitDates);
   renderGroupFilter('module2-group-filter', data.module2Group);
   renderGroupFilter('module3-group-filter', data.module3Group);
   renderGroupFilter('module4-group-filter', data.module4Group);
@@ -1923,8 +1948,10 @@ async function uploadFile(file) {
   saveLocalRows(state.rows, state.sourceLabel);
   const dates = [...new Set(state.rows.map((row) => row.date))].sort();
   const latest = [dates.at(-1)].filter(Boolean);
+  const yesterdayLike = getYesterdayLikeDates(dates);
   state.filters.summaryDate = 'recent5';
   state.summaryUsesRecentThreeDefault = true;
+  state.filters.usSplitDates = yesterdayLike;
   state.filters.module2Dates = latest;
   state.filters.module3Dates = latest;
   state.filters.module4Dates = latest;
@@ -1970,6 +1997,7 @@ function bindEvents() {
   });
 
   bindFilterEvents('module2Dates', 'module2-filter-button', 'module2-filter-options');
+  bindFilterEvents('usSplitDates', 'us-split-filter-button', 'us-split-filter-options');
   bindFilterEvents('module3Dates', 'module3-filter-button', 'module3-filter-options');
   bindFilterEvents('module4Dates', 'module4-filter-button', 'module4-filter-options');
 
@@ -2049,11 +2077,13 @@ async function initData() {
   await initData();
   const dates = [...new Set(state.rows.map((row) => row.date))].sort();
   const latest = [dates.at(-1)].filter(Boolean);
+  const yesterdayLike = getYesterdayLikeDates(dates);
   if (PAGE_CONFIG.mode !== 'boss') {
     state.filters.module2Group = PAGE_CONFIG.groupKey || 'a';
     state.filters.module3Group = PAGE_CONFIG.groupKey || 'a';
     state.filters.module4Group = PAGE_CONFIG.groupKey || 'a';
   }
+  state.filters.usSplitDates = yesterdayLike;
   state.filters.module2Dates = latest;
   state.filters.module3Dates = latest;
   state.filters.module4Dates = latest;
