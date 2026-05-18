@@ -510,6 +510,24 @@ tbody tr:hover {
   background: rgba(93, 174, 160, 0.06);
 }
 
+.split-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(93, 174, 160, 0.12);
+  color: var(--accent-deep);
+  font-weight: 800;
+}
+
+.split-summary-row {
+  background: linear-gradient(180deg, rgba(93, 174, 160, 0.07), rgba(93, 174, 160, 0.03));
+}
+
+.split-summary-row td {
+  font-weight: 700;
+}
+
 tfoot td {
   position: sticky;
   bottom: 0;
@@ -1189,7 +1207,14 @@ function normalizeSelectedDates(availableDates, selectedDates) {
 
 function getYesterdayLikeDates(availableDates) {
   if (!availableDates.length) return [];
-  return [availableDates.length >= 2 ? availableDates.at(-2) : availableDates.at(-1)].filter(Boolean);
+  const today = new Date();
+  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  const year = yesterday.getFullYear();
+  const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+  const day = String(yesterday.getDate()).padStart(2, '0');
+  const yesterdayText = `${year}-${month}-${day}`;
+  if (availableDates.includes(yesterdayText)) return [yesterdayText];
+  return [availableDates.at(-1)].filter(Boolean);
 }
 
 function makeGroupedRows(rows, keyName, splitByGroup = false) {
@@ -1575,8 +1600,8 @@ function renderBeijingUsSplit(data) {
   body.innerHTML = data.usSplitSummaryRows
     .map(
       (row) => `
-        <tr>
-          <td>${row.label}</td>
+        <tr class="${row.label.includes('汇总') ? 'split-summary-row' : ''}">
+          <td><span class="split-label">${row.label}</span></td>
           <td>${row.spend_display}</td>
           <td>${row.overall_roas_raw_display}</td>
           <td>${row.overall_roas_post_display}</td>
