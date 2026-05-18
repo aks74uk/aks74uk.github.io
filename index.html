@@ -644,7 +644,7 @@ tfoot td {
     <section class="panel-card soft-panel" id="us-split-panel" hidden>
       <div class="panel-header">
         <div>
-          <p class="panel-kicker">北京新增模块</p>
+          <p class="panel-kicker">新增模块</p>
           <h2>美国 / 非美国 / 汇总</h2>
         </div>
         <div class="panel-caption" id="us-split-caption"></div>
@@ -1173,6 +1173,17 @@ function summarizeRowsDetailed(rows, label) {
   };
 }
 
+function buildUsSplitRows(rows, prefix = '') {
+  const usRows = rows.filter((row) => row.country === '美国');
+  const nonUsRows = rows.filter((row) => row.country !== '美国');
+  const makeLabel = (label) => (prefix ? `${prefix}${label}` : label);
+  return [
+    summarizeRowsDetailed(usRows, makeLabel('美国数据')),
+    summarizeRowsDetailed(nonUsRows, makeLabel('非美国数据')),
+    summarizeRowsDetailed(rows, makeLabel('汇总数据')),
+  ];
+}
+
 function normalizeSelectedDates(availableDates, selectedDates) {
   const normalized = (selectedDates || []).filter((date) => availableDates.includes(date));
   return normalized.length ? normalized : [availableDates.at(-1)].filter(Boolean);
@@ -1284,14 +1295,14 @@ function buildData(rows, filters) {
     filters.module4Group
   );
   const overviewRows = module3Rows;
-  const beijingUsSplitRows =
-    PAGE_CONFIG.mode === 'group' && PAGE_CONFIG.groupKey === 'a'
+  const usSplitSummaryRows =
+    PAGE_CONFIG.mode === 'boss'
       ? [
-          summarizeRowsDetailed(usSplitRows.filter((row) => row.country === '美国'), '美国数据'),
-          summarizeRowsDetailed(usSplitRows.filter((row) => row.country !== '美国'), '非美国数据'),
-          summarizeRowsDetailed(usSplitRows, '汇总数据'),
+          ...buildUsSplitRows(filterRowsByGroup(usSplitRows, 'a'), '北京-'),
+          ...buildUsSplitRows(filterRowsByGroup(usSplitRows, 'b'), '广州-'),
+          ...buildUsSplitRows(usSplitRows, '总数据-'),
         ]
-      : [];
+      : buildUsSplitRows(usSplitRows);
 
   const countryRows = makeGroupedRows(module2Rows, 'country', false);
   const ownerRows = makeGroupedRows(module2Rows, 'owner_name', false);
@@ -1342,7 +1353,7 @@ function buildData(rows, filters) {
     module3Group: filters.module3Group,
     module4Dates,
     module4Group: filters.module4Group,
-    beijingUsSplitRows,
+    usSplitSummaryRows,
     countryRows,
     ownerRows,
     accountRows,
@@ -1365,7 +1376,7 @@ function buildData(rows, filters) {
         : `${PAGE_CONFIG.groupLabel} 页面只展示、上传并发布本组数据。`,
       '当前版本不排除任何一天，上传几天就展示几天。',
       '模块 1 默认展示最近三天，并按日期展示 A组、B组和总数据；模块 2 - 5 支持总数据/A组/B组切换。',
-      PAGE_CONFIG.mode === 'group' && PAGE_CONFIG.groupKey === 'a' ? '北京页新增了美国 / 非美国 / 汇总模块，按已选日期统计。' : null,
+      PAGE_CONFIG.mode === 'boss' ? '总数据页新增了北京/广州分开及总数据美国/非美国汇总模块。' : '当前组页新增了美国 / 非美国 / 汇总模块，按已选日期统计。',
       '补贴账户 Reelife-zl-260407-01-SINO-TT 按单条广告逐条计算：小于 105% 按 105%，高于等于 105% 按真实 ROI。',
       '模块 2 - 5 默认展示总数据，也可以用上方筛选器切到 A组 或 B组。',
       '源表只有 ROI0-ROI6 和 ROI13，没有 ROI7；模块 5 已按要求保留两位小数。',
@@ -1547,20 +1558,23 @@ function renderBeijingUsSplit(data) {
   const caption = document.getElementById('us-split-caption');
   if (!panel || !body || !caption) return;
 
-  if (!(PAGE_CONFIG.mode === 'group' && PAGE_CONFIG.groupKey === 'a')) {
+  if (!(PAGE_CONFIG.mode === 'group' || PAGE_CONFIG.mode === 'boss')) {
     panel.hidden = true;
     return;
   }
 
   panel.hidden = false;
-  caption.textContent = `已选日期：${formatSelectedDatesLabel(data.availableDates, data.usSplitDates)}；按北京数据拆分美国 / 非美国`;
+  caption.textContent =
+    PAGE_CONFIG.mode === 'boss'
+      ? `已选日期：${formatSelectedDatesLabel(data.availableDates, data.usSplitDates)}；按北京、广州分别拆分，并展示总数据美国 / 非美国汇总`
+      : `已选日期：${formatSelectedDatesLabel(data.availableDates, data.usSplitDates)}；按当前组数据拆分美国 / 非美国`;
 
-  if (!data.beijingUsSplitRows.length) {
+  if (!data.usSplitSummaryRows.length) {
     body.innerHTML = '<tr><td colspan="6" class="empty-state">当前日期组合暂无美国 / 非美国拆分数据</td></tr>';
     return;
   }
 
-  body.innerHTML = data.beijingUsSplitRows
+  body.innerHTML = data.usSplitSummaryRows
     .map(
       (row) => `
         <tr>
