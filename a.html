@@ -1027,6 +1027,7 @@ const PUBLIC_BASE_URL = 'https://aks74uk.github.io';
 const PAGE_CONFIG = window.__PAGE_CONFIG__ || {};
 const LOCAL_ROWS_STORAGE_KEY = `overseas_dashboard_rows_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
 const LOCAL_SOURCE_STORAGE_KEY = `overseas_dashboard_source_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
+const LOCAL_DRAFT_FLAG_KEY = `overseas_dashboard_draft_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
 const TOKEN_STORAGE_KEY = PAGE_CONFIG.storageKey || `overseas_dashboard_github_token_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
 
 const state = {
@@ -1924,6 +1925,25 @@ function saveLocalRows(rows, sourceLabel) {
   try {
     localStorage.setItem(LOCAL_ROWS_STORAGE_KEY, JSON.stringify(rows));
     localStorage.setItem(LOCAL_SOURCE_STORAGE_KEY, sourceLabel || '');
+    localStorage.setItem(LOCAL_DRAFT_FLAG_KEY, '1');
+  } catch (error) {
+    // ignore storage failures
+  }
+}
+
+function hasActiveLocalDraft() {
+  try {
+    return localStorage.getItem(LOCAL_DRAFT_FLAG_KEY) === '1';
+  } catch (error) {
+    return false;
+  }
+}
+
+function clearLocalDraft() {
+  try {
+    localStorage.removeItem(LOCAL_ROWS_STORAGE_KEY);
+    localStorage.removeItem(LOCAL_SOURCE_STORAGE_KEY);
+    localStorage.removeItem(LOCAL_DRAFT_FLAG_KEY);
   } catch (error) {
     // ignore storage failures
   }
@@ -2020,6 +2040,7 @@ async function publishGroupData(token) {
   return {
     selfUrl: `${selfBase}${selfBase.includes('?') ? '&' : '?'}v=${stamp}`,
     bossUrl: `${bossBase}/?v=${stamp}`,
+    stamp,
   };
 }
 
@@ -2120,6 +2141,8 @@ function bindEvents() {
           if (typedToken) saveStoredToken(typedToken);
           publishStatus.textContent = '正在自动发布到公网，请稍等...';
           const urls = await publishGroupData(publishToken);
+          clearLocalDraft();
+          state.sourceLabel = `${PAGE_CONFIG.groupLabel} 线上数据`;
           publishStatus.innerHTML = `自动发布成功：<a href="${urls.selfUrl}" target="_blank" rel="noreferrer">当前链接</a>；本机已记住 token`;
         }
       } catch (error) {
@@ -2146,7 +2169,7 @@ async function initData() {
 
   const localRows = loadLocalRows().map((row) => normalizeExistingRow(row, PAGE_CONFIG)).filter((row) => row.date);
   const localSourceLabel = loadLocalSourceLabel();
-  if (localRows.length) {
+  if (hasActiveLocalDraft() && localRows.length) {
     state.rows = localRows;
     state.sourceLabel = localSourceLabel || `${PAGE_CONFIG.groupLabel} 本地草稿`;
     return;
