@@ -2130,6 +2130,7 @@ async function uploadFile(file) {
   state.filters.module3Dates = latest;
   state.filters.module4Dates = latest;
   renderAll();
+  return merged;
 }
 
 function bindFilterEvents(filterKey, buttonId, optionsId) {
@@ -2203,7 +2204,10 @@ function bindEvents() {
       }
       document.getElementById('upload-status').textContent = '正在读取 Excel 并重算看板，请稍等...';
       try {
-        await uploadFile(file);
+        const mergeResult = await uploadFile(file);
+        if (mergeResult?.latestDate) {
+          document.getElementById('upload-status').textContent = `本次仅更新 ${mergeResult.latestDate} 数据`;
+        }
         if (PAGE_CONFIG.autoPublish) {
           const publishStatus = document.getElementById('publish-status');
           const publishToken = typedToken || loadStoredToken();
@@ -2213,7 +2217,7 @@ function bindEvents() {
           const urls = await publishGroupData(publishToken);
           clearLocalDraft();
           state.sourceLabel = `${PAGE_CONFIG.groupLabel} 线上数据`;
-          publishStatus.innerHTML = `自动发布成功：<a href="${urls.selfUrl}" target="_blank" rel="noreferrer">当前链接</a>；本机已记住 token`;
+          publishStatus.innerHTML = `自动发布成功：<a href="${urls.selfUrl}" target="_blank" rel="noreferrer">当前链接</a>；本次仅更新 ${mergeResult?.latestDate || '最新一天'} 数据；本机已记住 token`;
         }
       } catch (error) {
         document.getElementById('upload-status').textContent = error.message || '上传失败，请确认文件格式';
