@@ -2044,6 +2044,39 @@ function serializeRowsForPublish(rows) {
   return JSON.stringify(compactRowsForPublish(rows));
 }
 
+function sortRowsByDate(rows) {
+  return [...rows].sort((a, b) => {
+    const dateCompare = String(a.date || '').localeCompare(String(b.date || ''));
+    if (dateCompare !== 0) return dateCompare;
+    const accountCompare = String(a.account || '').localeCompare(String(b.account || ''));
+    if (accountCompare !== 0) return accountCompare;
+    return String(a.series_name || '').localeCompare(String(b.series_name || ''));
+  });
+}
+
+function mergeLatestDateRows(existingRows, uploadedRows, groupMeta) {
+  const normalizedExisting = (existingRows || []).map((row) => normalizeExistingRow(row, groupMeta)).filter((row) => row.date);
+  const normalizedUploaded = (uploadedRows || []).map((row) => normalizeExistingRow(row, groupMeta)).filter((row) => row.date);
+  const latestUploadedDate = [...new Set(normalizedUploaded.map((row) => row.date))].sort().at(-1);
+  if (!latestUploadedDate) {
+    return {
+      rows: sortRowsByDate(normalizedExisting),
+      latestDate: null,
+      replacedCount: 0,
+      uploadedCount: 0,
+    };
+  }
+
+  const latestUploadedRows = normalizedUploaded.filter((row) => row.date === latestUploadedDate);
+  const keptExistingRows = normalizedExisting.filter((row) => row.date !== latestUploadedDate);
+  return {
+    rows: sortRowsByDate([...keptExistingRows, ...latestUploadedRows]),
+    latestDate: latestUploadedDate,
+    replacedCount: normalizedExisting.filter((row) => row.date === latestUploadedDate).length,
+    uploadedCount: latestUploadedRows.length,
+  };
+}
+
 async function publishGroupData(token) {
   const path = PAGE_CONFIG.dataPath;
   const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
@@ -2081,8 +2114,11 @@ async function publishGroupData(token) {
 async function uploadFile(file) {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
-  state.rows = rowsFromWorkbook(workbook, PAGE_CONFIG);
-  state.sourceLabel = file.name;
+  const uploadedRows = rowsFromWorkbook(workbook, PAGE_CONFIG);
+  const onlineRows = await loadRowsFromDataPath(PAGE_CONFIG.dataPath, state.rows, PAGE_CONFIG);
+  const merged = mergeLatestDateRows(onlineRows, uploadedRows, PAGE_CONFIG);
+  state.rows = merged.rows;
+  state.sourceLabel = merged.latestDate ? `${file.name}（仅更新 ${merged.latestDate}）` : file.name;
   saveLocalRows(state.rows, state.sourceLabel);
   const dates = [...new Set(state.rows.map((row) => row.date))].sort();
   const latest = [dates.at(-1)].filter(Boolean);
