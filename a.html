@@ -1140,6 +1140,24 @@ function normalizeExistingRow(row, fallbackGroup = null) {
   };
 }
 
+function expandPublishedRow(row) {
+  if (!row || typeof row !== 'object') return row;
+  if (!('g' in row || 'a' in row || 'rr' in row || 'or' in row || 'op' in row)) return row;
+  return {
+    group_key: row.g,
+    group_label: row.gl,
+    account: row.a,
+    country: row.c,
+    date: row.d,
+    spend: row.s,
+    series_name: row.sn,
+    revenue0_raw: row.r0,
+    revenues_raw: row.rr,
+    overall_roas_raw: row.or,
+    overall_roas_post: row.op,
+  };
+}
+
 function normalizeWorkbookRow(row, groupMeta = PAGE_CONFIG) {
   const account = String(row['账户名称'] || '').trim();
   const date = parseDate(row['按天']);
@@ -1996,7 +2014,7 @@ async function loadRowsFromDataPath(dataPath, fallbackRows, groupMeta) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const rows = await response.json();
     if (!Array.isArray(rows)) throw new Error('JSON 结构无效');
-    return rows.map((row) => normalizeExistingRow(row, groupMeta)).filter((row) => row.date);
+    return rows.map((row) => normalizeExistingRow(expandPublishedRow(row), groupMeta)).filter((row) => row.date);
   } catch (error) {
     return fallbackRows.map((row) => normalizeExistingRow(row, groupMeta)).filter((row) => row.date);
   }
@@ -2006,8 +2024,24 @@ function base64EncodeUnicode(text) {
   return btoa(unescape(encodeURIComponent(text)));
 }
 
+function compactRowsForPublish(rows) {
+  return rows.map((row) => ({
+    g: row.group_key,
+    gl: row.group_label,
+    a: row.account,
+    c: row.country,
+    d: row.date,
+    s: Number(row.spend || 0),
+    sn: row.series_name || '',
+    r0: Number(row.revenue0_raw || 0),
+    rr: row.revenues_raw || {},
+    or: Number(row.overall_roas_raw || 0),
+    op: Number(row.overall_roas_post || 0),
+  }));
+}
+
 function serializeRowsForPublish(rows) {
-  return `${JSON.stringify(rows, null, 2)}\n`;
+  return JSON.stringify(compactRowsForPublish(rows));
 }
 
 async function publishGroupData(token) {
