@@ -1024,6 +1024,7 @@ const DISPLAY_ROI_DAYS = [0, 1, 2, 3, 4, 5, 6];
 const GITHUB_OWNER = 'aks74uk';
 const GITHUB_REPO = 'aks74uk.github.io';
 const PUBLIC_BASE_URL = 'https://aks74uk.github.io';
+const MAX_PUBLISHED_DATES = 60;
 const PAGE_CONFIG = window.__PAGE_CONFIG__ || {};
 const LOCAL_ROWS_STORAGE_KEY = `overseas_dashboard_rows_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
 const LOCAL_SOURCE_STORAGE_KEY = `overseas_dashboard_source_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
@@ -2054,6 +2055,12 @@ function sortRowsByDate(rows) {
   });
 }
 
+function trimRowsToRecentDates(rows, maxDates = MAX_PUBLISHED_DATES) {
+  const sortedDates = [...new Set(rows.map((row) => row.date).filter(Boolean))].sort();
+  const keptDates = new Set(listRecentDates(sortedDates, maxDates));
+  return rows.filter((row) => keptDates.has(row.date));
+}
+
 function mergeLatestDateRows(existingRows, uploadedRows, groupMeta) {
   const normalizedExisting = (existingRows || []).map((row) => normalizeExistingRow(row, groupMeta)).filter((row) => row.date);
   const normalizedUploaded = (uploadedRows || []).map((row) => normalizeExistingRow(row, groupMeta)).filter((row) => row.date);
@@ -2069,11 +2076,14 @@ function mergeLatestDateRows(existingRows, uploadedRows, groupMeta) {
 
   const latestUploadedRows = normalizedUploaded.filter((row) => row.date === latestUploadedDate);
   const keptExistingRows = normalizedExisting.filter((row) => row.date !== latestUploadedDate);
+  const mergedRows = trimRowsToRecentDates([...keptExistingRows, ...latestUploadedRows]);
+  const mergedDates = [...new Set(mergedRows.map((row) => row.date))].sort();
   return {
-    rows: sortRowsByDate([...keptExistingRows, ...latestUploadedRows]),
+    rows: sortRowsByDate(mergedRows),
     latestDate: latestUploadedDate,
     replacedCount: normalizedExisting.filter((row) => row.date === latestUploadedDate).length,
     uploadedCount: latestUploadedRows.length,
+    keptDateCount: mergedDates.length,
   };
 }
 
@@ -2206,7 +2216,7 @@ function bindEvents() {
       try {
         const mergeResult = await uploadFile(file);
         if (mergeResult?.latestDate) {
-          document.getElementById('upload-status').textContent = `本次仅更新 ${mergeResult.latestDate} 数据`;
+          document.getElementById('upload-status').textContent = `本次仅更新 ${mergeResult.latestDate} 数据，系统自动保留最近 ${mergeResult.keptDateCount || MAX_PUBLISHED_DATES} 天历史`;
         }
         if (PAGE_CONFIG.autoPublish) {
           const publishStatus = document.getElementById('publish-status');
@@ -2217,7 +2227,7 @@ function bindEvents() {
           const urls = await publishGroupData(publishToken);
           clearLocalDraft();
           state.sourceLabel = `${PAGE_CONFIG.groupLabel} 线上数据`;
-          publishStatus.innerHTML = `自动发布成功：<a href="${urls.selfUrl}" target="_blank" rel="noreferrer">当前链接</a>；本次仅更新 ${mergeResult?.latestDate || '最新一天'} 数据；本机已记住 token`;
+          publishStatus.innerHTML = `自动发布成功：<a href="${urls.selfUrl}" target="_blank" rel="noreferrer">当前链接</a>；本次仅更新 ${mergeResult?.latestDate || '最新一天'} 数据，并自动保留最近 ${mergeResult?.keptDateCount || MAX_PUBLISHED_DATES} 天历史；本机已记住 token`;
         }
       } catch (error) {
         document.getElementById('upload-status').textContent = error.message || '上传失败，请确认文件格式';
