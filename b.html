@@ -997,7 +997,7 @@ tfoot td {
   <script>
     window.__INITIAL_SOURCE__ = "B组初始化为空，请先上传 B组 Excel";
     window.__INITIAL_ROWS__ = [];
-    window.__PAGE_CONFIG__ = {"mode": "group", "pageId": "b", "groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "autoPublish": true, "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组，上传 Excel 后点“更新”会自动发布到公网。第一次发布前输入一次 GitHub token，本机浏览器会自动记住。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传并发布", "bossUrl": "https://aks74uk.github.io/"};
+    window.__PAGE_CONFIG__ = {"mode": "group", "pageId": "b", "groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b", "legacyDataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "autoPublish": true, "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组，上传 Excel 后点“更新”会自动发布到公网。第一次发布前输入一次 GitHub token，本机浏览器会自动记住。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传并发布", "bossUrl": "https://aks74uk.github.io/"};
   </script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
@@ -2009,14 +2009,39 @@ async function githubRequest(url, token, options = {}) {
   return response.json();
 }
 
+async function fetchJson(url) {
+  const response = await fetch(url, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+}
+
 async function loadRowsFromDataPath(dataPath, fallbackRows, groupMeta) {
   try {
-    const response = await fetch(`${dataPath}?t=${Date.now()}`, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const rows = await response.json();
+    if (String(dataPath).endsWith('.json')) {
+      const rows = await fetchJson(`${dataPath}?t=${Date.now()}`);
+      if (!Array.isArray(rows)) throw new Error('JSON 结构无效');
+      return rows.map((row) => normalizeExistingRow(expandPublishedRow(row), groupMeta)).filter((row) => row.date);
+    }
+
+    const index = await fetchJson(`${dataPath}/index.json?t=${Date.now()}`);
+    const dates = Array.isArray(index?.dates) ? index.dates : [];
+    const payloads = await Promise.all(
+      dates.map((date) => fetchJson(`${dataPath}/${date}.json?t=${Date.now()}`))
+    );
+    const rows = payloads.flat();
     if (!Array.isArray(rows)) throw new Error('JSON 结构无效');
     return rows.map((row) => normalizeExistingRow(expandPublishedRow(row), groupMeta)).filter((row) => row.date);
   } catch (error) {
+    const legacyPath = groupMeta?.legacyDataPath;
+    if (legacyPath) {
+      try {
+        const rows = await fetchJson(`${legacyPath}?t=${Date.now()}`);
+        if (!Array.isArray(rows)) throw new Error('JSON 结构无效');
+        return rows.map((row) => normalizeExistingRow(expandPublishedRow(row), groupMeta)).filter((row) => row.date);
+      } catch (legacyError) {
+        // ignore and fall through
+      }
+    }
     return fallbackRows.map((row) => normalizeExistingRow(row, groupMeta)).filter((row) => row.date);
   }
 }
@@ -2089,27 +2114,45 @@ function mergeLatestDateRows(existingRows, uploadedRows, groupMeta) {
 
 async function publishGroupData(token) {
   const path = PAGE_CONFIG.dataPath;
-  const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
-  let sha = null;
+  const latestDate = [...new Set(state.rows.map((row) => row.date).filter(Boolean))].sort().at(-1);
+  if (!latestDate) throw new Error('没有可发布的日期数据');
+  const latestRows = state.rows.filter((row) => row.date === latestDate);
+  const allDates = [...new Set(state.rows.map((row) => row.date).filter(Boolean))].sort();
+  const keptDates = listRecentDates(allDates, MAX_PUBLISHED_DATES);
 
-  try {
-    const current = await githubRequest(apiUrl, token);
-    sha = current.sha || null;
-  } catch (error) {
-    if (error.status !== 404 && error.message !== '404') throw error;
+  async function upsertRepoFile(relativePath, contentText, message) {
+    const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${relativePath}`;
+    let sha = null;
+    try {
+      const current = await githubRequest(apiUrl, token);
+      sha = current.sha || null;
+    } catch (error) {
+      if (error.status !== 404 && error.message !== '404') throw error;
+    }
+
+    const payload = {
+      message,
+      content: base64EncodeUnicode(contentText),
+    };
+    if (sha) payload.sha = sha;
+
+    await githubRequest(apiUrl, token, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
   }
 
-  const payload = {
-    message: `Publish ${PAGE_CONFIG.groupLabel} data from ${state.sourceLabel}`,
-    content: base64EncodeUnicode(serializeRowsForPublish(state.rows)),
-  };
-  if (sha) payload.sha = sha;
-
-  await githubRequest(apiUrl, token, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  await upsertRepoFile(
+    `${path}/${latestDate}.json`,
+    serializeRowsForPublish(latestRows),
+    `Publish ${PAGE_CONFIG.groupLabel} ${latestDate} data from ${state.sourceLabel}`
+  );
+  await upsertRepoFile(
+    `${path}/index.json`,
+    JSON.stringify({ dates: keptDates }),
+    `Update ${PAGE_CONFIG.groupLabel} index from ${state.sourceLabel}`
+  );
 
   const stamp = Date.now();
   const selfBase = PAGE_CONFIG.publicUrl || PUBLIC_BASE_URL;
