@@ -145,10 +145,7 @@ tr:last-child td { border-bottom: 0; }
               <th>组别</th>
               <th>分类</th>
               <th>消耗</th>
-              <th>补贴前回收</th>
-              <th>补贴后回收</th>
               <th>补贴前 ROI</th>
-              <th>补贴后 ROI</th>
             </tr>
           </thead>
           <tbody id="group-body"></tbody>
@@ -269,8 +266,8 @@ tr:last-child td { border-bottom: 0; }
       const cards = [
         { label: '当前日期', value: activeDate, sub: `默认展示昨天；当前共 ${dates.length} 天历史` },
         { label: '总消耗', value: money(total.spend), sub: `${activeDate} 总消耗` },
-        { label: '补贴前 ROI回收', value: pct(total.roasRaw), sub: `${activeDate} 总补贴前 ROI` },
-        { label: '补贴后 ROI回收', value: pct(total.roasPost), sub: `${activeDate} 总补贴后 ROI` },
+        { label: '补贴前 ROI', value: pct(total.roasRaw), sub: `${activeDate} 总补贴前 ROI` },
+        { label: '补贴后 ROI', value: pct(total.roasPost), sub: `${activeDate} 总补贴后 ROI` },
       ];
       document.getElementById('summary-grid').innerHTML = cards.map((card) => `
         <article class="summary-card">
@@ -319,10 +316,7 @@ tr:last-child td { border-bottom: 0; }
             <td>${section.label}</td>
             <td>${category.label}</td>
             <td>${money(summary.spend)}</td>
-            <td>${money(summary.revenueRaw)}</td>
-            <td>${money(summary.revenuePost)}</td>
             <td>${pct(summary.roasRaw)}</td>
-            <td>${pct(summary.roasPost)}</td>
           </tr>`;
         }).join('')
       ).join('');
