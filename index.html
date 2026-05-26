@@ -2178,13 +2178,6 @@ async function publishGroupData(token) {
     JSON.stringify({ dates: keptDates }),
     `Update ${PAGE_CONFIG.groupLabel} index from ${state.sourceLabel}`
   );
-  if (PAGE_CONFIG.legacyDataPath) {
-    await upsertRepoFile(
-      PAGE_CONFIG.legacyDataPath,
-      serializeRowsForPublish(state.rows),
-      `Update ${PAGE_CONFIG.groupLabel} legacy snapshot from ${state.sourceLabel}`
-    );
-  }
 
   const stamp = Date.now();
   const selfBase = PAGE_CONFIG.publicUrl || PUBLIC_BASE_URL;
