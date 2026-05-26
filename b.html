@@ -995,7 +995,7 @@ tfoot td {
   </main>
 
   <script>
-    window.__INITIAL_SOURCE__ = "Tiktok Ads_近30日数据_Reelife-zl-260407-01-SINO-TT_20260420-20260524.xlsx";
+    window.__INITIAL_SOURCE__ = "B组初始化为空，请先上传 B组 Excel";
     window.__INITIAL_ROWS__ = [];
     window.__PAGE_CONFIG__ = {"mode": "group", "pageId": "b", "groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b", "legacyDataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "autoPublish": true, "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组，上传 Excel 后点“更新”会自动发布到公网。第一次发布前输入一次 GitHub token，本机浏览器会自动记住。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传并发布", "bossUrl": "https://aks74uk.github.io/"};
   </script>
@@ -2316,7 +2316,13 @@ async function initData() {
   if (PAGE_CONFIG.mode === 'boss') {
     const mergedRows = [];
     for (const source of PAGE_CONFIG.sources || []) {
-      const rows = await loadRowsFromDataPath(source.dataPath, [], source);
+      let rows = [];
+      if (source.legacyDataPath) {
+        rows = await loadRowsFromDataPath(source.legacyDataPath, [], source);
+      }
+      if (!rows.length) {
+        rows = await loadRowsFromDataPath(source.dataPath, [], source);
+      }
       mergedRows.push(...rows);
     }
     state.rows = mergedRows.length
