@@ -83,6 +83,31 @@ tr:last-child td { border-bottom: 0; }
 .group-b-row td:first-child { border-left: 4px solid #7aa9dd; }
 .group-total-row td:first-child { border-left: 4px solid #348779; }
 .group-total-row td { background: rgba(93,174,160,0.09); font-weight: 700; }
+.section-start td { border-top: 10px solid rgba(93, 174, 160, 0.08); }
+.group-a-row.section-start td { border-top-color: rgba(99, 182, 166, 0.14); }
+.group-b-row.section-start td { border-top-color: rgba(122, 169, 221, 0.14); }
+.group-total-row.section-start td { border-top-color: rgba(52, 135, 121, 0.16); }
+.category-all td:nth-child(2) {
+  font-weight: 800;
+}
+.category-us td:nth-child(2) {
+  color: #2f9179;
+}
+.category-non-us td:nth-child(2) {
+  color: #5c7e9f;
+}
+.group-a-row.category-all td,
+.group-b-row.category-all td {
+  background: rgba(255, 255, 255, 0.96);
+}
+.group-a-row.category-us td,
+.group-b-row.category-us td {
+  background: rgba(238, 249, 246, 0.88);
+}
+.group-a-row.category-non-us td,
+.group-b-row.category-non-us td {
+  background: rgba(239, 246, 252, 0.84);
+}
 .status-box {
   border-radius: 18px;
   padding: 16px 18px;
@@ -309,10 +334,12 @@ tr:last-child td { border-bottom: 0; }
         { label: '非美国', filter: (row) => row.country !== '美国' },
       ];
       body.innerHTML = sections.map((section) =>
-        categories.map((category) => {
+        categories.map((category, index) => {
           const scoped = section.rows.filter(category.filter);
           const summary = summarize(scoped);
-          return `<tr class="${section.className}">
+          const categoryClass = category.label === '总数据' ? 'category-all' : category.label === '美国' ? 'category-us' : 'category-non-us';
+          const rowClass = `${section.className} ${categoryClass} ${index === 0 ? 'section-start' : ''}`;
+          return `<tr class="${rowClass}">
             <td>${section.label}</td>
             <td>${category.label}</td>
             <td>${money(summary.spend)}</td>
