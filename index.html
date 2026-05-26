@@ -134,8 +134,8 @@ tr:last-child td { border-bottom: 0; }
     <section class="panel-card">
       <div class="panel-header">
         <div>
-          <p class="panel-kicker">分组汇总</p>
-          <h2>A组 / B组 / 总数据</h2>
+          <p class="panel-kicker">分组回收</p>
+          <h2>A组 / B组 / 总数据 + 美国 / 非美国</h2>
         </div>
       </div>
       <div class="table-wrap">
@@ -143,11 +143,12 @@ tr:last-child td { border-bottom: 0; }
           <thead>
             <tr>
               <th>组别</th>
+              <th>分类</th>
               <th>消耗</th>
+              <th>补贴前回收</th>
+              <th>补贴后回收</th>
               <th>补贴前 ROI</th>
               <th>补贴后 ROI</th>
-              <th>国家数</th>
-              <th>账户数</th>
             </tr>
           </thead>
           <tbody id="group-body"></tbody>
@@ -192,7 +193,7 @@ tr:last-child td { border-bottom: 0; }
 
     const state = {
       rows: [],
-      selectedDate: 'latest',
+      selectedDate: '',
       availableDates: [],
     };
 
@@ -242,6 +243,8 @@ tr:last-child td { border-bottom: 0; }
       const revenuePost = rows.reduce((sum, row) => sum + Number(row.spend || 0) * Number(row.overall_roas_post || 0), 0);
       return {
         spend,
+        revenueRaw,
+        revenuePost,
         roasRaw: safeDiv(revenueRaw, spend),
         roasPost: safeDiv(revenuePost, spend),
         countryCount: new Set(rows.map((row) => row.country)).size,
@@ -249,14 +252,25 @@ tr:last-child td { border-bottom: 0; }
       };
     }
 
+    function getPreferredDate(dates) {
+      if (!dates.length) return '';
+      const now = new Date();
+      now.setDate(now.getDate() - 1);
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const yesterday = `${yyyy}-${mm}-${dd}`;
+      return dates.includes(yesterday) ? yesterday : dates.at(-1);
+    }
+
     function renderSummaryCards(rows, dates) {
-      const total = summarize(rows);
-      const latestDate = dates.at(-1) || '-';
+      const total = summarize(selectedRows(rows));
+      const activeDate = state.selectedDate || getPreferredDate(dates) || '-';
       const cards = [
-        { label: '当前线上最新日期', value: latestDate, sub: `共 ${dates.length} 天历史` },
-        { label: '总消耗', value: money(total.spend), sub: '自动汇总 A组 + B组' },
-        { label: '整体 ROI（补贴前）', value: pct(total.roasRaw), sub: '按线上已保存数据计算' },
-        { label: '整体 ROI（补贴后）', value: pct(total.roasPost), sub: '按 A/B 各自补贴规则计算' },
+        { label: '当前日期', value: activeDate, sub: `默认展示昨天；当前共 ${dates.length} 天历史` },
+        { label: '总消耗', value: money(total.spend), sub: `${activeDate} 总消耗` },
+        { label: '补贴前回收', value: money(total.revenueRaw), sub: `${activeDate} 总补贴前回收` },
+        { label: '补贴后回收', value: money(total.revenuePost), sub: `${activeDate} 总补贴后回收` },
       ];
       document.getElementById('summary-grid').innerHTML = cards.map((card) => `
         <article class="summary-card">
@@ -269,38 +283,49 @@ tr:last-child td { border-bottom: 0; }
 
     function renderDateFilter(dates) {
       const select = document.getElementById('date-filter');
-      select.innerHTML = ['<option value="latest">最新一天</option>', '<option value="all">全部日期</option>']
+      select.innerHTML = ['<option value="all">全部日期</option>']
         .concat(dates.map((date) => `<option value="${date}">${date}</option>`))
         .join('');
-      select.value = state.selectedDate;
+      select.value = state.selectedDate || getPreferredDate(dates);
       document.getElementById('date-caption').textContent = state.selectedDate === 'all'
         ? `当前已选：全部日期`
-        : state.selectedDate === 'latest'
-        ? `当前已选：最新一天（${dates.at(-1) || '-'}）`
-        : `当前已选：${state.selectedDate}`;
+        : `当前已选：${state.selectedDate || getPreferredDate(dates)}`;
     }
 
     function selectedRows(rows) {
       if (state.selectedDate === 'all') return rows;
-      const targetDate = state.selectedDate === 'latest' ? state.availableDates.at(-1) : state.selectedDate;
+      const targetDate = state.selectedDate || getPreferredDate(state.availableDates);
       return rows.filter((row) => row.date === targetDate);
     }
 
     function renderGroupTable(rows) {
       const targetRows = selectedRows(rows);
-      const groups = [
-        { key: 'a', label: 'A组（北京）', className: 'group-a-row', rows: targetRows.filter((row) => row.group_key === 'a') },
-        { key: 'b', label: 'B组（广州）', className: 'group-b-row', rows: targetRows.filter((row) => row.group_key === 'b') },
-      ];
-      const totalRows = targetRows;
       const body = document.getElementById('group-body');
-      body.innerHTML = groups.map((group) => {
-        const summary = summarize(group.rows);
-        return `<tr class="${group.className}"><td>${group.label}</td><td>${money(summary.spend)}</td><td>${pct(summary.roasRaw)}</td><td>${pct(summary.roasPost)}</td><td>${summary.countryCount}</td><td>${summary.accountCount}</td></tr>`;
-      }).join('') + (() => {
-        const summary = summarize(totalRows);
-        return `<tr class="group-total-row"><td>总数据</td><td>${money(summary.spend)}</td><td>${pct(summary.roasRaw)}</td><td>${pct(summary.roasPost)}</td><td>${summary.countryCount}</td><td>${summary.accountCount}</td></tr>`;
-      })();
+      const sections = [
+        { label: 'A组（北京）', className: 'group-a-row', rows: targetRows.filter((row) => row.group_key === 'a') },
+        { label: 'B组（广州）', className: 'group-b-row', rows: targetRows.filter((row) => row.group_key === 'b') },
+        { label: '总数据', className: 'group-total-row', rows: targetRows },
+      ];
+      const categories = [
+        { label: '总数据', filter: (row) => true },
+        { label: '美国', filter: (row) => row.country === '美国' },
+        { label: '非美国', filter: (row) => row.country !== '美国' },
+      ];
+      body.innerHTML = sections.map((section) =>
+        categories.map((category) => {
+          const scoped = section.rows.filter(category.filter);
+          const summary = summarize(scoped);
+          return `<tr class="${section.className}">
+            <td>${section.label}</td>
+            <td>${category.label}</td>
+            <td>${money(summary.spend)}</td>
+            <td>${money(summary.revenueRaw)}</td>
+            <td>${money(summary.revenuePost)}</td>
+            <td>${pct(summary.roasRaw)}</td>
+            <td>${pct(summary.roasPost)}</td>
+          </tr>`;
+        }).join('')
+      ).join('');
     }
 
     function renderDailyTable(rows) {
@@ -346,6 +371,7 @@ tr:last-child td { border-bottom: 0; }
           document.getElementById('status').textContent = 'A组和B组当前都还没有线上数据';
           return;
         }
+        state.selectedDate = getPreferredDate(state.availableDates);
         document.getElementById('status').textContent = `已载入 A组 ${groups[0].length} 条、B组 ${groups[1].length} 条线上数据；当前最新日期 ${state.availableDates.at(-1)}`;
         renderAll();
         document.getElementById('date-filter').addEventListener('change', (event) => {
