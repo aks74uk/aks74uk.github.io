@@ -269,8 +269,8 @@ tr:last-child td { border-bottom: 0; }
       const cards = [
         { label: '当前日期', value: activeDate, sub: `默认展示昨天；当前共 ${dates.length} 天历史` },
         { label: '总消耗', value: money(total.spend), sub: `${activeDate} 总消耗` },
-        { label: '补贴前回收', value: money(total.revenueRaw), sub: `${activeDate} 总补贴前回收` },
-        { label: '补贴后回收', value: money(total.revenuePost), sub: `${activeDate} 总补贴后回收` },
+        { label: '补贴前 ROI回收', value: pct(total.roasRaw), sub: `${activeDate} 总补贴前 ROI` },
+        { label: '补贴后 ROI回收', value: pct(total.roasPost), sub: `${activeDate} 总补贴后 ROI` },
       ];
       document.getElementById('summary-grid').innerHTML = cards.map((card) => `
         <article class="summary-card">
