@@ -995,7 +995,7 @@ tfoot td {
   </main>
 
   <script>
-    window.__INITIAL_SOURCE__ = "Tiktok Ads_近30日数据_Reelife-zl-260407-01-SINO-TT_20260420-20260524.xlsx";
+    window.__INITIAL_SOURCE__ = "zl.xlsx（综合页默认预置）";
     window.__INITIAL_ROWS__ = [];
     window.__PAGE_CONFIG__ = {"mode": "boss", "pageId": "boss", "groupKey": "boss", "groupLabel": "总数据看板", "publicUrl": "https://aks74uk.github.io/", "storageKey": "overseas_dashboard_github_token_boss", "heroTitle": "总数据看板", "heroText": "总数据链接会自动汇总 A组（北京） 和 B组（广州） 的线上数据，打开这个链接即可直接看两组汇总结果。", "actionTitle": "综合数据预览", "sources": [{"groupKey": "a", "groupLabel": "A组（北京）", "dataPath": "data/group-a", "legacyDataPath": "data/group-a.json", "publicUrl": "https://aks74uk.github.io/a.html", "storageKey": "overseas_dashboard_github_token_a", "autoPublish": true, "heroTitle": "A组（北京）投放看板", "heroText": "A组专用链接。只看 A 组，上传 Excel 后点“更新”会自动发布到公网。第一次发布前输入一次 GitHub token，本机浏览器会自动记住。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "A组上传并发布"}, {"groupKey": "b", "groupLabel": "B组（广州）", "dataPath": "data/group-b", "legacyDataPath": "data/group-b.json", "publicUrl": "https://aks74uk.github.io/b.html", "storageKey": "overseas_dashboard_github_token_b", "autoPublish": true, "heroTitle": "B组（广州）投放看板", "heroText": "B组专用链接。只看 B 组，上传 Excel 后点“更新”会自动发布到公网。第一次发布前输入一次 GitHub token，本机浏览器会自动记住。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "B组上传并发布"}]};
   </script>
@@ -2316,7 +2316,13 @@ async function initData() {
   if (PAGE_CONFIG.mode === 'boss') {
     const mergedRows = [];
     for (const source of PAGE_CONFIG.sources || []) {
-      const rows = await loadRowsFromDataPath(source.dataPath, [], source);
+      let rows = [];
+      if (source.legacyDataPath) {
+        rows = await loadRowsFromDataPath(source.legacyDataPath, [], source);
+      }
+      if (!rows.length) {
+        rows = await loadRowsFromDataPath(source.dataPath, [], source);
+      }
       mergedRows.push(...rows);
     }
     state.rows = mergedRows.length
