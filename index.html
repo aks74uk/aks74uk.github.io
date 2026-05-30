@@ -223,6 +223,14 @@ tr:last-child td { border-bottom: 0; }
     const pct = (value) => `${(Number(value || 0) * 100).toFixed(2)}%`;
     const safeDiv = (a, b) => (b ? a / b : 0);
 
+    function normalizeCountryLabel(value) {
+      const text = String(value || '').trim();
+      const normalized = text.toLowerCase();
+      if (!text) return '未标注';
+      if (['united states', 'usa', 'us', 'u.s.', 'u.s.a.', 'america'].includes(normalized)) return '美国';
+      return text;
+    }
+
     function expandRow(row, fallback) {
       const revenues = row.rr || row.revenues_raw || {};
       const spend = Number(row.s || row.spend || 0);
@@ -230,7 +238,7 @@ tr:last-child td { border-bottom: 0; }
         group_key: row.g || row.group_key || fallback.key,
         group_label: row.gl || row.group_label || fallback.label,
         account: row.a || row.account || '-',
-        country: row.c || row.country || '未标注',
+        country: normalizeCountryLabel(row.c || row.country || '未标注'),
         date: row.d || row.date || '',
         spend,
         overall_roas_raw: Number(row.or || row.overall_roas_raw || 0),
