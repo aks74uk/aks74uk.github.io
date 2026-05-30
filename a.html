@@ -1136,6 +1136,22 @@ function normalizeCountryLabel(value) {
   return text;
 }
 
+function isUsCountryLabel(value) {
+  const text = String(value || '').trim();
+  if (!text) return false;
+  const normalized = text.toLowerCase();
+  return (
+    text === '美国' ||
+    normalized === 'united states' ||
+    normalized === 'united states of america' ||
+    normalized === 'usa' ||
+    normalized === 'us' ||
+    normalized === 'u.s.' ||
+    normalized === 'u.s.a.' ||
+    normalized === 'america'
+  );
+}
+
 function normalizeExistingRow(row, fallbackGroup = null) {
   const groupMeta = fallbackGroup || PAGE_CONFIG;
   const spend = parseNumber(row.spend);
@@ -1303,8 +1319,8 @@ function summarizeRowsDetailed(rows, label) {
 }
 
 function buildUsSplitRows(rows, prefix = '') {
-  const usRows = rows.filter((row) => row.country === '美国');
-  const nonUsRows = rows.filter((row) => row.country !== '美国');
+  const usRows = rows.filter((row) => isUsCountryLabel(row.country));
+  const nonUsRows = rows.filter((row) => !isUsCountryLabel(row.country));
   const makeLabel = (label) => (prefix ? `${prefix}${label}` : label);
   return [
     summarizeRowsDetailed(usRows, makeLabel('美国数据')),
