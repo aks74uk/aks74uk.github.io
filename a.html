@@ -1035,6 +1035,24 @@ const REVENUE_HEADER_CANDIDATES = {
   6: ['第 6 天广告收入'],
   13: ['第 13 天广告收入'],
 };
+const WORKBOOK_HEADER_ALIASES = {
+  account: ['账户名称', 'Account name'],
+  country: ['国家/地区', 'Country/Region'],
+  date: ['按天', 'By Day'],
+  seriesName: ['系列名称', 'Campaign name'],
+  spend: ['消耗', 'Cost'],
+  overallRoas: ['广告收入 ROAS (TikTok)', 'Ad revenue ROAS (TikTok)'],
+};
+const ENGLISH_REVENUE_HEADER_CANDIDATES = {
+  0: ['Day 0 ad revenue'],
+  1: ['Day 1 ad revenue'],
+  2: ['Day 2 ad revenue'],
+  3: ['Day 3 ad revenue'],
+  4: ['Day 4 ad revenue'],
+  5: ['Day 5 ad revenue'],
+  6: ['Day 6 ad revenue'],
+  13: ['Day 13 ad  revenue', 'Day 13 ad revenue'],
+};
 const PAGE_CONFIG = window.__PAGE_CONFIG__ || {};
 const LOCAL_ROWS_STORAGE_KEY = `overseas_dashboard_rows_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
 const LOCAL_SOURCE_STORAGE_KEY = `overseas_dashboard_source_${PAGE_CONFIG.pageId || PAGE_CONFIG.groupKey || 'default'}`;
@@ -1170,21 +1188,31 @@ function expandPublishedRow(row) {
 }
 
 function pickRevenueValue(row, day) {
-  const candidates = REVENUE_HEADER_CANDIDATES[day] || [`第 ${day} 天广告收入`];
+  const candidates = [
+    ...(REVENUE_HEADER_CANDIDATES[day] || [`第 ${day} 天广告收入`]),
+    ...(ENGLISH_REVENUE_HEADER_CANDIDATES[day] || []),
+  ];
   for (const key of candidates) {
     if (key in row) return parseNumber(row[key]);
   }
   return 0;
 }
 
+function pickWorkbookValue(row, candidates) {
+  for (const key of candidates || []) {
+    if (key in row) return row[key];
+  }
+  return '';
+}
+
 function normalizeWorkbookRow(row, groupMeta = PAGE_CONFIG) {
-  const account = String(row['账户名称'] || '').trim();
-  const date = parseDate(row['按天']);
-  const spend = parseNumber(row['消耗']);
+  const account = String(pickWorkbookValue(row, WORKBOOK_HEADER_ALIASES.account) || '').trim();
+  const date = parseDate(pickWorkbookValue(row, WORKBOOK_HEADER_ALIASES.date));
+  const spend = parseNumber(pickWorkbookValue(row, WORKBOOK_HEADER_ALIASES.spend));
   if (!account || account.startsWith('总计') || !date || spend <= 0) return null;
 
-  const overallRoasRaw = parseNumber(row['广告收入 ROAS (TikTok)']);
-  const seriesName = String(row['系列名称'] || '').trim();
+  const overallRoasRaw = parseNumber(pickWorkbookValue(row, WORKBOOK_HEADER_ALIASES.overallRoas));
+  const seriesName = String(pickWorkbookValue(row, WORKBOOK_HEADER_ALIASES.seriesName) || '').trim();
   const overallRoasPost = isSubsidizedRow(groupMeta.groupKey, account, seriesName) ? Math.max(1.05, overallRoasRaw) : overallRoasRaw;
   const revenuesRaw = Object.fromEntries(ROI_DAYS.map((day) => [day, pickRevenueValue(row, day)]));
 
@@ -1195,7 +1223,7 @@ function normalizeWorkbookRow(row, groupMeta = PAGE_CONFIG) {
     owner_name: getOwnerName(groupMeta.groupKey, account),
     series_name: seriesName,
     drama_title: extractDramaTitle(seriesName),
-    country: String(row['国家/地区'] || '').trim() || '未标注',
+    country: String(pickWorkbookValue(row, WORKBOOK_HEADER_ALIASES.country) || '').trim() || '未标注',
     date,
     spend,
     revenue0_raw: revenuesRaw[0],
@@ -2178,13 +2206,6 @@ async function publishGroupData(token) {
     JSON.stringify({ dates: keptDates }),
     `Update ${PAGE_CONFIG.groupLabel} index from ${state.sourceLabel}`
   );
-  if (PAGE_CONFIG.legacyDataPath) {
-    await upsertRepoFile(
-      PAGE_CONFIG.legacyDataPath,
-      serializeRowsForPublish(state.rows),
-      `Update ${PAGE_CONFIG.groupLabel} legacy snapshot from ${state.sourceLabel}`
-    );
-  }
 
   const stamp = Date.now();
   const selfBase = PAGE_CONFIG.publicUrl || PUBLIC_BASE_URL;
@@ -2317,11 +2338,11 @@ async function initData() {
     const mergedRows = [];
     for (const source of PAGE_CONFIG.sources || []) {
       let rows = [];
-      if (source.legacyDataPath) {
-        rows = await loadRowsFromDataPath(source.legacyDataPath, [], source);
-      }
-      if (!rows.length) {
+      if (source.dataPath) {
         rows = await loadRowsFromDataPath(source.dataPath, [], source);
+      }
+      if (!rows.length && source.legacyDataPath) {
+        rows = await loadRowsFromDataPath(source.legacyDataPath, [], source);
       }
       mergedRows.push(...rows);
     }
@@ -2345,21 +2366,31 @@ async function initData() {
 }
 
 (async function init() {
-  await initData();
-  const dates = [...new Set(state.rows.map((row) => row.date))].sort();
-  const latest = [dates.at(-1)].filter(Boolean);
-  const yesterdayLike = getYesterdayLikeDates(dates);
+  if (PAGE_CONFIG.mode === 'boss') {
+    state.sourceLabel = '正在加载 A组 + B组 线上数据...';
+  }
   if (PAGE_CONFIG.mode !== 'boss') {
     state.filters.module2Group = PAGE_CONFIG.groupKey || 'a';
     state.filters.module3Group = PAGE_CONFIG.groupKey || 'a';
     state.filters.module4Group = PAGE_CONFIG.groupKey || 'a';
   }
-  state.filters.usSplitDates = yesterdayLike;
-  state.filters.module2Dates = latest;
-  state.filters.module3Dates = latest;
-  state.filters.module4Dates = latest;
   renderAll();
   bindEvents();
+  try {
+    await initData();
+    const dates = [...new Set(state.rows.map((row) => row.date))].sort();
+    const latest = [dates.at(-1)].filter(Boolean);
+    const yesterdayLike = getYesterdayLikeDates(dates);
+    state.filters.usSplitDates = yesterdayLike;
+    state.filters.module2Dates = latest;
+    state.filters.module3Dates = latest;
+    state.filters.module4Dates = latest;
+    renderAll();
+  } catch (error) {
+    const message = error?.message || '总数据加载失败';
+    document.getElementById('upload-status').textContent = message;
+    document.getElementById('publish-status').textContent = message;
+  }
 })();
 
   </script>
