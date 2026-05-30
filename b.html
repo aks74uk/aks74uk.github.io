@@ -1128,6 +1128,14 @@ function getOwnerName(groupKey, account) {
   return matched?.label || '未匹配负责人';
 }
 
+function normalizeCountryLabel(value) {
+  const text = String(value || '').trim();
+  const normalized = text.toLowerCase();
+  if (!text) return '未标注';
+  if (['united states', 'usa', 'us', 'u.s.', 'u.s.a.', 'america'].includes(normalized)) return '美国';
+  return text;
+}
+
 function normalizeExistingRow(row, fallbackGroup = null) {
   const groupMeta = fallbackGroup || PAGE_CONFIG;
   const spend = parseNumber(row.spend);
@@ -1156,7 +1164,7 @@ function normalizeExistingRow(row, fallbackGroup = null) {
     date: parseDate(row.date),
     spend,
     account: row.account || '-',
-    country: row.country || '未标注',
+    country: normalizeCountryLabel(row.country),
     owner_name: row.owner_name || getOwnerName(row.group_key || row.groupKey || groupMeta.groupKey, row.account),
     series_name: row.series_name || '',
     drama_title: row.drama_title || extractDramaTitle(row.series_name || ''),
@@ -1223,7 +1231,7 @@ function normalizeWorkbookRow(row, groupMeta = PAGE_CONFIG) {
     owner_name: getOwnerName(groupMeta.groupKey, account),
     series_name: seriesName,
     drama_title: extractDramaTitle(seriesName),
-    country: String(pickWorkbookValue(row, WORKBOOK_HEADER_ALIASES.country) || '').trim() || '未标注',
+    country: normalizeCountryLabel(pickWorkbookValue(row, WORKBOOK_HEADER_ALIASES.country)),
     date,
     spend,
     revenue0_raw: revenuesRaw[0],
