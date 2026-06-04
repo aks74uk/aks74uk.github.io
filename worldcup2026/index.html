@@ -671,8 +671,8 @@
     <section>
       <div class="section-title">
         <div>
-          <h2>今日赔率组合归纳</h2>
-          <p>把当天比赛赔率按行输入，工具会结合模型概率归纳出稳健观察组合和高赔率观察方向。没有当天真实盘口时，可以先用你拿到的赔率手动录入。</p>
+          <h2>核心 AI 组合引擎</h2>
+          <p>把官方公开赔率或你拿到的赔率按行输入，系统会同时生成稳健覆盖组合和高赔率风险组合。核心输出是命中覆盖率、回报区间、EV、阵容克制、心理窗口和判罚尺度波动。</p>
         </div>
       </div>
       <div class="card">
@@ -685,7 +685,9 @@
           <button id="fetchOddsBtn">从接口获取赔率</button>
           <button class="primary" id="analyzeCombosBtn">分析今日组合</button>
         </div>
+        <div class="compare" id="coreEnginePanel"></div>
         <div class="compare" id="comboPanel"></div>
+        <p class="footer-note">数据接入口径：国内官方赔率建议通过后端服务接入合规数据源、授权数据服务或人工导入，不建议前端直接抓取页面。系统只做数据分析与风险模拟，不提供交易、代购或资金撮合。</p>
       </div>
     </section>
 
@@ -1630,6 +1632,137 @@
       return { ...item, matrix, picks: picks.sort((a, b) => b.ev - a.ev) };
     }
 
+    function parsedTodayOdds() {
+      return els.todayOddsInput.value
+        .split(/\n+/)
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(parseOddsLine)
+        .filter(Boolean)
+        .map(analyzeOneMatchOdds);
+    }
+
+    function outcomeSets(match) {
+      const byKey = Object.fromEntries(match.picks.map(p => [p.key, p]));
+      const candidates = [
+        ["home"],
+        ["draw"],
+        ["away"],
+        ["home", "draw"],
+        ["draw", "away"],
+        ["home", "away"]
+      ];
+      return candidates
+        .map(keys => keys.map(key => byKey[key]).filter(Boolean))
+        .filter(items => items.length)
+        .map(items => {
+          const coverage = items.reduce((sum, x) => sum + x.p, 0);
+          const oddsList = items.map(x => x.odds);
+          const expectedUnit = items.reduce((sum, x) => sum + x.p * x.odds, 0);
+          return {
+            match,
+            items,
+            label: items.map(x => x.label.replace(`${zh(match.home.name)} `, "").replace(`${zh(match.away.name)} `, "")).join("/"),
+            coverage,
+            minOdds: Math.min(...oddsList),
+            maxOdds: Math.max(...oddsList),
+            expectedUnit
+          };
+        });
+    }
+
+    function productPairs(items) {
+      const out = [];
+      for (let i = 0; i < items.length; i++) {
+        for (let j = i + 1; j < items.length; j++) out.push([items[i], items[j]]);
+      }
+      return out;
+    }
+
+    function portfolioFromSets(a, b, bankroll) {
+      const comboCount = a.items.length * b.items.length;
+      const unit = comboCount ? bankroll / comboCount : 0;
+      const minReturn = unit * a.minOdds * b.minOdds;
+      const maxReturn = unit * a.maxOdds * b.maxOdds;
+      const expectedReturn = unit * a.expectedUnit * b.expectedUnit;
+      const coverage = a.coverage * b.coverage;
+      return {
+        a,
+        b,
+        comboCount,
+        unit,
+        coverage,
+        minReturn,
+        maxReturn,
+        expectedReturn,
+        ev: expectedReturn - bankroll,
+        score: coverage * 100 + Math.min(30, Math.max(0, minReturn / Math.max(1, bankroll) * 22)) + Math.max(-20, Math.min(25, (expectedReturn / Math.max(1, bankroll) - 1) * 60))
+      };
+    }
+
+    function setText(set) {
+      return `${zh(set.match.home.name)}vs${zh(set.match.away.name)} ${set.label}`;
+    }
+
+    function verdictPortfolio(p) {
+      if (p.coverage >= .68 && p.minReturn >= p.unit * 1.2) return "稳健覆盖";
+      if (p.coverage >= .55) return "均衡观察";
+      return "波动较高";
+    }
+
+    function refereeVariance(match) {
+      const diff = Math.abs(match.home.rating - match.away.rating);
+      const drawTension = match.matrix.draw * 100;
+      const upsetTension = Math.max(match.home.upset, match.away.upset) * .28;
+      return Math.max(12, Math.min(88, drawTension * .75 + upsetTension + Math.max(0, 18 - diff) * 1.2));
+    }
+
+    function renderCoreEngine(parsed = parsedTodayOdds()) {
+      const bankroll = Math.max(0, Number(els.comboBankroll.value) || 0);
+      const panel = document.getElementById("coreEnginePanel");
+      if (!parsed.length) {
+        panel.innerHTML = `<div class="compare-box"><h3>核心引擎待输入</h3><p class="muted">导入当天赔率后，系统会生成稳健覆盖组合和高赔率风险组合。</p></div>`;
+        return;
+      }
+      const setsByMatch = parsed.map(match => outcomeSets(match));
+      const portfolios = productPairs(setsByMatch)
+        .flatMap(([left, right]) => left.flatMap(a => right.map(b => portfolioFromSets(a, b, bankroll))))
+        .filter(p => p.comboCount <= 4 && p.coverage >= .42)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+      const allPicks = parsed.flatMap(match => match.picks.map(p => ({ ...p, match })));
+      const riskPicks = allPicks
+        .filter(p => p.odds >= 3 || p.key === "draw")
+        .map(p => {
+          const underdog = p.key === "away" ? p.match.away : p.key === "home" ? p.match.home : (p.match.home.rating < p.match.away.rating ? p.match.home : p.match.away);
+          const favorite = underdog.name === p.match.home.name ? p.match.away : p.match.home;
+          const cold = boldScore(underdog, favorite);
+          const refVar = refereeVariance(p.match);
+          const riskScore = p.ev * 55 + p.odds * 4.5 + cold * .38 + refVar * .22;
+          return { ...p, cold, refVar, riskScore };
+        })
+        .sort((a, b) => b.riskScore - a.riskScore)
+        .slice(0, 5);
+      panel.innerHTML = `
+        <div class="compare-box">
+          <h3>稳健覆盖组合</h3>
+          <div class="upset-list">${portfolios.map(p => `
+            <div class="upset-item">
+              <div><b>${setText(p.a)} 串 ${setText(p.b)}</b>
+              <p class="muted" style="margin:6px 0 0;">${verdictPortfolio(p)} · 覆盖率 ${(p.coverage * 100).toFixed(1)}% · ${p.comboCount} 注拆分 · 单注模拟 ${p.unit.toFixed(0)} · 回报区间 ${p.minReturn.toFixed(0)}-${p.maxReturn.toFixed(0)} · EV ${p.ev.toFixed(0)}</p></div>
+            </div>`).join("") || `<p class="muted">当前赔率里没有形成足够清晰的覆盖组合。</p>`}</div>
+        </div>
+        <div class="compare-box">
+          <h3>高赔率风险组合</h3>
+          <div class="upset-list">${riskPicks.map(p => `
+            <div class="upset-item">
+              <div><b>${zh(p.match.home.name)} vs ${zh(p.match.away.name)}：${p.label}</b>
+              <p class="muted" style="margin:6px 0 0;">赔率 ${p.odds.toFixed(2)} · 模型 ${(p.p * 100).toFixed(1)}% · 冷门窗口 ${p.cold.toFixed(0)} · 判罚尺度波动 ${p.refVar.toFixed(0)} · 适合小比例研究。</p></div>
+            </div>`).join("") || `<p class="muted">暂无值得重点观察的高赔率方向。</p>`}</div>
+        </div>
+      `;
+    }
+
     function comboText(items) {
       const odds = items.reduce((acc, x) => acc * x.odds, 1);
       const prob = items.reduce((acc, x) => acc * x.p, 1);
@@ -1668,17 +1801,13 @@
 
     function renderCombos() {
       const bankroll = Math.max(0, Number(els.comboBankroll.value) || 0);
-      const parsed = els.todayOddsInput.value
-        .split(/\n+/)
-        .map(line => line.trim())
-        .filter(Boolean)
-        .map(parseOddsLine)
-        .filter(Boolean)
-        .map(analyzeOneMatchOdds);
+      const parsed = parsedTodayOdds();
       if (!parsed.length) {
+        renderCoreEngine(parsed);
         document.getElementById("comboPanel").innerHTML = `<div class="compare-box"><h3>无法识别赔率</h3><p class="muted">格式示例：法国 vs 塞内加尔 | 胜 1.55 平 4.10 负 6.20</p></div>`;
         return;
       }
+      renderCoreEngine(parsed);
       const allPicks = parsed.flatMap(match => match.picks.map(p => ({ ...p, match })));
       const safeSingles = allPicks
         .filter(p => p.p >= .48 && p.ev > -.04)
