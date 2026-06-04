@@ -197,7 +197,8 @@
     }
 
     input[type="text"],
-    input[type="number"] {
+    input[type="number"],
+    textarea {
       border: 1px solid var(--line);
       border-radius: 6px;
       background: white;
@@ -206,6 +207,13 @@
       font: inherit;
       min-height: 40px;
       width: min(220px, 100%);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      resize: vertical;
+      line-height: 1.55;
     }
 
     main {
@@ -621,6 +629,49 @@
     <section>
       <div class="section-title">
         <div>
+          <h2>对决比分与让球建议</h2>
+          <p>基于双方实力、黑马分、打法错位和小组赛方差，估算可能比分、胜平负、让球胜平负。适合赛前做单场盘口拆解。</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <select id="matchHome" aria-label="主队"></select>
+          <select id="matchAway" aria-label="客队"></select>
+          <select id="handicapLine" aria-label="让球">
+            <option value="-1">主队 -1</option>
+            <option value="-0.5">主队 -0.5</option>
+            <option value="0" selected>平手盘 0</option>
+            <option value="0.5">主队 +0.5</option>
+            <option value="1">主队 +1</option>
+          </select>
+        </div>
+        <div class="compare" id="matchPanel"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <div>
+          <h2>今日赔率组合归纳</h2>
+          <p>把当天比赛赔率按行输入，工具会结合模型概率归纳出保险型买法和高赔率方向。没有当天真实盘口时，可以先用你拿到的赔率手动录入。</p>
+        </div>
+      </div>
+      <div class="card">
+        <textarea id="todayOddsInput" aria-label="今日赔率输入">法国 vs 塞内加尔 | 胜 1.55 平 4.10 负 6.20
+德国 vs 科特迪瓦 | 胜 1.48 平 4.30 负 6.80
+美国 vs 土耳其 | 胜 2.05 平 3.35 负 3.70
+荷兰 vs 日本 | 胜 1.78 平 3.70 负 4.80</textarea>
+        <div class="toolbar">
+          <input id="comboBankroll" type="number" value="1000" min="0" step="10" aria-label="组合本金">
+          <button class="primary" id="analyzeCombosBtn">分析今日组合</button>
+        </div>
+        <div class="compare" id="comboPanel"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <div>
           <h2>赔率与风控</h2>
           <p>输入当天盘口赔率，工具会把赔率换成隐含概率，并和模型概率比较。只有出现正期望值且优势足够时，才给出保守仓位建议。</p>
         </div>
@@ -903,6 +954,12 @@
       teamSort: document.getElementById("teamSort"),
       teamA: document.getElementById("teamA"),
       teamB: document.getElementById("teamB"),
+      matchHome: document.getElementById("matchHome"),
+      matchAway: document.getElementById("matchAway"),
+      handicapLine: document.getElementById("handicapLine"),
+      todayOddsInput: document.getElementById("todayOddsInput"),
+      comboBankroll: document.getElementById("comboBankroll"),
+      analyzeCombosBtn: document.getElementById("analyzeCombosBtn"),
       betTeam: document.getElementById("betTeam"),
       betMarket: document.getElementById("betMarket"),
       betOdds: document.getElementById("betOdds"),
@@ -924,7 +981,7 @@
     });
 
     teams.forEach(t => {
-      [els.teamA, els.teamB, els.betTeam].forEach(select => {
+      [els.teamA, els.teamB, els.matchHome, els.matchAway, els.betTeam].forEach(select => {
         const opt = document.createElement("option");
         opt.value = t.name;
         opt.textContent = `${t.flag} ${zh(t.name)}`;
@@ -933,6 +990,8 @@
     });
     els.teamA.value = "France";
     els.teamB.value = "Senegal";
+    els.matchHome.value = "France";
+    els.matchAway.value = "Senegal";
     els.betTeam.value = "Senegal";
 
     function normalize(value, min, max) {
@@ -972,6 +1031,72 @@
     function probability(a, b) {
       const diff = a.rating - b.rating;
       return 1 / (1 + Math.exp(-diff / 10));
+    }
+
+    function factorial(n) {
+      let out = 1;
+      for (let i = 2; i <= n; i++) out *= i;
+      return out;
+    }
+
+    function poisson(k, lambda) {
+      return Math.exp(-lambda) * Math.pow(lambda, k) / factorial(k);
+    }
+
+    function expectedGoals(home, away) {
+      const diff = home.rating - away.rating;
+      const homeUpset = Math.max(0, home.upset - 70) / 100;
+      const awayUpset = Math.max(0, away.upset - 70) / 100;
+      const clash = clashBoost(away.name, home.name) / 100;
+      const homeXg = Math.max(.25, Math.min(3.4, 1.32 + diff / 32 + homeUpset * .32 - awayUpset * .18));
+      const awayXg = Math.max(.20, Math.min(3.2, 1.05 - diff / 38 + awayUpset * .36 + clash * .38));
+      return { homeXg, awayXg };
+    }
+
+    function scoreMatrix(home, away) {
+      const { homeXg, awayXg } = expectedGoals(home, away);
+      const scores = [];
+      let homeWin = 0, draw = 0, awayWin = 0;
+      for (let h = 0; h <= 5; h++) {
+        for (let a = 0; a <= 5; a++) {
+          const p = poisson(h, homeXg) * poisson(a, awayXg);
+          scores.push({ h, a, p });
+          if (h > a) homeWin += p;
+          else if (h === a) draw += p;
+          else awayWin += p;
+        }
+      }
+      const total = homeWin + draw + awayWin;
+      scores.forEach(s => s.p = s.p / total);
+      return {
+        homeXg,
+        awayXg,
+        homeWin: homeWin / total,
+        draw: draw / total,
+        awayWin: awayWin / total,
+        scores: scores.sort((a, b) => b.p - a.p)
+      };
+    }
+
+    function handicapProb(matrix, line) {
+      let win = 0, push = 0, lose = 0;
+      matrix.scores.forEach(s => {
+        const adjusted = s.h + line - s.a;
+        if (adjusted > 0) win += s.p;
+        else if (adjusted === 0) push += s.p;
+        else lose += s.p;
+      });
+      return { win, push, lose };
+    }
+
+    function suggestionByProb(p, label) {
+      if (p >= .56) return `${label}，偏保险`;
+      if (p >= .47) return `${label}，可观察`;
+      return `${label}，不建议重仓`;
+    }
+
+    function scoreText(score) {
+      return `${score.h}-${score.a}`;
     }
 
     function clashBoost(underName, favName) {
@@ -1211,6 +1336,42 @@
       }).join("");
     }
 
+    function renderMatchPanel() {
+      const home = calcTeam(teamByName[els.matchHome.value]);
+      const away = calcTeam(teamByName[els.matchAway.value]);
+      const line = Number(els.handicapLine.value);
+      const matrix = scoreMatrix(home, away);
+      const hcap = handicapProb(matrix, line);
+      const topScores = matrix.scores.slice(0, 6);
+      const resultOptions = [
+        { label: "主胜", p: matrix.homeWin },
+        { label: "平局", p: matrix.draw },
+        { label: "客胜", p: matrix.awayWin }
+      ].sort((a, b) => b.p - a.p);
+      const hcapOptions = [
+        { label: `让球主胜(${line > 0 ? "+" : ""}${line})`, p: hcap.win },
+        { label: "让球走水", p: hcap.push },
+        { label: `让球客胜(${line > 0 ? "+" : ""}${line})`, p: hcap.lose }
+      ].sort((a, b) => b.p - a.p);
+      const boldPick = topScores.find(s => Math.abs(s.h - s.a) <= 1 && s.p > .055) || topScores[0];
+      document.getElementById("matchPanel").innerHTML = `
+        <div class="compare-box">
+          <h3>${home.flag} ${zh(home.name)} vs ${away.flag} ${zh(away.name)}</h3>
+          <p class="muted">预估 xG：${zh(home.name)} ${matrix.homeXg.toFixed(2)} · ${zh(away.name)} ${matrix.awayXg.toFixed(2)}</p>
+          <div class="pill-row">${topScores.map(s => `<span class="pill">${scoreText(s)} ${(s.p * 100).toFixed(1)}%</span>`).join("")}</div>
+          <p class="muted"><b>可能比分：</b>${topScores.slice(0, 3).map(scoreText).join(" / ")}。<b>大胆比分：</b>${scoreText(boldPick)}。</p>
+        </div>
+        <div class="compare-box">
+          <h3>胜平负与让球</h3>
+          <div class="metric"><span>胜平负概率</span><b>主胜 ${(matrix.homeWin * 100).toFixed(1)}% · 平 ${(matrix.draw * 100).toFixed(1)}% · 客胜 ${(matrix.awayWin * 100).toFixed(1)}%</b></div>
+          <div class="metric"><span>胜平负建议</span><b>${suggestionByProb(resultOptions[0].p, resultOptions[0].label)}</b></div>
+          <div class="metric"><span>让球概率</span><b>${hcapOptions.map(x => `${x.label} ${(x.p * 100).toFixed(1)}%`).join(" · ")}</b></div>
+          <div class="metric"><span>让球建议</span><b>${suggestionByProb(hcapOptions[0].p, hcapOptions[0].label)}</b></div>
+          <p class="muted">保守口径优先看概率最高且大于 56% 的方向；低于 47% 的方向不建议重仓。</p>
+        </div>
+      `;
+    }
+
     function decimalOdds(raw) {
       const text = String(raw).trim();
       if (!text) return null;
@@ -1304,6 +1465,105 @@
           <div class="metric"><span>概率优势</span><b>${(edge * 100).toFixed(1)} 个百分点</b></div>
           <div class="metric"><span>建议仓位</span><b>${(stakePct * 100).toFixed(2)}% 本金，约 ${stake.toFixed(0)}</b></div>
           <p class="muted">${note}</p>
+        </div>
+      `;
+    }
+
+    function teamFromAnyName(name) {
+      const clean = String(name || "").trim();
+      return teams.find(t => t.name.toLowerCase() === clean.toLowerCase() || zh(t.name) === clean) || null;
+    }
+
+    function parseOddsLine(line) {
+      const [matchPart, oddsPart = ""] = line.split("|").map(x => x.trim());
+      if (!matchPart || !oddsPart) return null;
+      const teamsText = matchPart.split(/\s+vs\s+|\s+VS\s+|\s+v\s+|\s+对\s+|-/).map(x => x.trim()).filter(Boolean);
+      if (teamsText.length < 2) return null;
+      const home = teamFromAnyName(teamsText[0]);
+      const away = teamFromAnyName(teamsText[1]);
+      if (!home || !away) return null;
+      const pickOdds = {};
+      const regex = /(胜|主胜|平|平局|负|客胜)\s*([+-]?\d+(?:\.\d+)?)/g;
+      let match;
+      while ((match = regex.exec(oddsPart))) {
+        const key = match[1].includes("平") ? "draw" : match[1].includes("负") || match[1].includes("客") ? "away" : "home";
+        pickOdds[key] = decimalOdds(match[2]);
+      }
+      if (!pickOdds.home && !pickOdds.draw && !pickOdds.away) return null;
+      return { home: calcTeam(home), away: calcTeam(away), pickOdds, raw: line };
+    }
+
+    function analyzeOneMatchOdds(item) {
+      const matrix = scoreMatrix(item.home, item.away);
+      const picks = [
+        { key: "home", label: `${zh(item.home.name)} 胜`, p: matrix.homeWin, odds: item.pickOdds.home },
+        { key: "draw", label: "平局", p: matrix.draw, odds: item.pickOdds.draw },
+        { key: "away", label: `${zh(item.away.name)} 胜`, p: matrix.awayWin, odds: item.pickOdds.away }
+      ].filter(x => x.odds);
+      picks.forEach(x => {
+        x.implied = 1 / x.odds;
+        x.edge = x.p - x.implied;
+        x.ev = x.p * x.odds - 1;
+        x.score = x.ev * 100 + x.p * 30 + (x.odds >= 3.2 ? 12 : 0);
+      });
+      return { ...item, matrix, picks: picks.sort((a, b) => b.ev - a.ev) };
+    }
+
+    function comboText(items) {
+      const odds = items.reduce((acc, x) => acc * x.odds, 1);
+      const prob = items.reduce((acc, x) => acc * x.p, 1);
+      const ev = prob * odds - 1;
+      return { odds, prob, ev };
+    }
+
+    function renderCombos() {
+      const bankroll = Math.max(0, Number(els.comboBankroll.value) || 0);
+      const parsed = els.todayOddsInput.value
+        .split(/\n+/)
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(parseOddsLine)
+        .filter(Boolean)
+        .map(analyzeOneMatchOdds);
+      if (!parsed.length) {
+        document.getElementById("comboPanel").innerHTML = `<div class="compare-box"><h3>无法识别赔率</h3><p class="muted">格式示例：法国 vs 塞内加尔 | 胜 1.55 平 4.10 负 6.20</p></div>`;
+        return;
+      }
+      const allPicks = parsed.flatMap(match => match.picks.map(p => ({ ...p, match })));
+      const safeSingles = allPicks
+        .filter(p => p.p >= .48 && p.ev > -.04)
+        .sort((a, b) => (b.p + b.ev) - (a.p + a.ev))
+        .slice(0, 4);
+      const valueSingles = allPicks
+        .filter(p => p.ev > .03)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+      const highOdds = allPicks
+        .filter(p => p.odds >= 3 && p.ev > -.08)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 4);
+      const safeCombo = comboText(safeSingles.slice(0, 2));
+      const highCombo = comboText(highOdds.slice(0, 2));
+      const safeStake = bankroll * (safeCombo.ev > 0 ? .025 : .01);
+      const highStake = bankroll * (highCombo.ev > 0 ? .01 : .004);
+      document.getElementById("comboPanel").innerHTML = `
+        <div class="compare-box">
+          <h3>保险型买法</h3>
+          <div class="upset-list">${safeSingles.map(p => `
+            <div class="upset-item">
+              <div><b>${zh(p.match.home.name)} vs ${zh(p.match.away.name)}：${p.label}</b>
+              <p class="muted" style="margin:6px 0 0;">赔率 ${p.odds.toFixed(2)} · 模型 ${(p.p * 100).toFixed(1)}% · EV ${(p.ev * 100).toFixed(1)}%</p></div>
+            </div>`).join("") || `<p class="muted">今天没有足够保险的方向，建议降低下注频率。</p>`}</div>
+          <p class="muted"><b>2 串参考：</b>${safeSingles.slice(0, 2).map(p => p.label).join(" + ") || "无"}；组合赔率 ${safeCombo.odds.toFixed(2)}，建议仓位约 ${safeStake.toFixed(0)}。</p>
+        </div>
+        <div class="compare-box">
+          <h3>高赔率方向</h3>
+          <div class="upset-list">${highOdds.map(p => `
+            <div class="upset-item">
+              <div><b>${zh(p.match.home.name)} vs ${zh(p.match.away.name)}：${p.label}</b>
+              <p class="muted" style="margin:6px 0 0;">赔率 ${p.odds.toFixed(2)} · 模型 ${(p.p * 100).toFixed(1)}% · EV ${(p.ev * 100).toFixed(1)}%。适合小注，不适合重仓。</p></div>
+            </div>`).join("") || `<p class="muted">没有发现可接受的高赔率方向。</p>`}</div>
+          <p class="muted"><b>小注组合：</b>${highOdds.slice(0, 2).map(p => p.label).join(" + ") || "无"}；组合赔率 ${highCombo.odds.toFixed(2)}，建议仓位约 ${highStake.toFixed(0)}。</p>
         </div>
       `;
     }
@@ -1426,7 +1686,9 @@
       renderUpsets();
       renderTeams();
       renderCompare();
+      renderMatchPanel();
       renderBetting();
+      renderCombos();
       renderAnalysis();
     }
 
@@ -1438,6 +1700,7 @@
       renderAll();
     });
 
+    els.analyzeCombosBtn.addEventListener("click", renderCombos);
     els.createOrderBtn.addEventListener("click", createPaymentOrder);
     els.checkAccessBtn.addEventListener("click", checkAccess);
     els.accessTokenInput.value = localStorage.getItem("worldcup_access_token") || "";
