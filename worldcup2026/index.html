@@ -1795,8 +1795,34 @@
         els.todayOddsInput.value = data.lines.join("\n");
         renderCombos();
       } catch (error) {
-        document.getElementById("comboPanel").innerHTML = `<div class="compare-box"><h3>暂时无法自动获取</h3><p class="muted">${error.message}。可以先手动粘贴赔率；上线后需要在支付/数据后端配置赔率 API key。</p></div>`;
+        try {
+          const data = await fetchSportteryPublicOdds();
+          if (!data.lines.length) throw new Error("竞彩公开接口没有返回在售胜平负赔率");
+          els.todayOddsInput.value = data.lines.join("\n");
+          renderCombos();
+        } catch (fallbackError) {
+          document.getElementById("comboPanel").innerHTML = `<div class="compare-box"><h3>暂时无法自动获取</h3><p class="muted">后端接口：${error.message}。竞彩公开接口：${fallbackError.message}。可以先手动粘贴赔率。</p></div>`;
+        }
       }
+    }
+
+    async function fetchSportteryPublicOdds() {
+      const date = new Date().toISOString().slice(0, 10);
+      const url = new URL("https://webapi.sporttery.cn/gateway/uniform/football/getVoteV1.qry");
+      url.searchParams.set("poolCode", "HAD");
+      url.searchParams.set("pageSize", "80");
+      url.searchParams.set("pageNo", "1");
+      url.searchParams.set("businessDate", date);
+      const response = await fetch(url.toString(), { method: "GET" });
+      const data = await response.json();
+      if (!response.ok || data.errorCode !== "0") throw new Error(data.errorMessage || `请求失败 ${response.status}`);
+      const matches = data.value?.matches?.list || [];
+      return {
+        provider: "sporttery",
+        lines: matches
+          .filter(match => match.poolStatus === "Selling" && match.h && match.d && match.a)
+          .map(match => `${match.homeTeamAllName} vs ${match.awayTeamAllName} | 胜 ${match.h} 平 ${match.d} 负 ${match.a}`)
+      };
     }
 
     function renderCombos() {
