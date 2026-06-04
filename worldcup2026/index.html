@@ -652,6 +652,25 @@
     <section>
       <div class="section-title">
         <div>
+          <h2>AI 情绪与心理判断</h2>
+          <p>从球队压力、阵容稳定、舆论热度、市场赔率倾向和爆冷心理窗口判断比赛情绪。当前为内置推理模型，后续可接新闻、社媒和赔率异动数据。</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <select id="emotionHome" aria-label="情绪分析主队"></select>
+          <select id="emotionAway" aria-label="情绪分析客队"></select>
+          <input id="emotionHomeOdds" type="text" value="1.80" aria-label="主胜赔率" placeholder="主胜赔率">
+          <input id="emotionDrawOdds" type="text" value="3.60" aria-label="平局赔率" placeholder="平局赔率">
+          <input id="emotionAwayOdds" type="text" value="4.80" aria-label="客胜赔率" placeholder="客胜赔率">
+        </div>
+        <div class="compare" id="emotionPanel"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <div>
           <h2>今日赔率组合归纳</h2>
           <p>把当天比赛赔率按行输入，工具会结合模型概率归纳出保险型买法和高赔率方向。没有当天真实盘口时，可以先用你拿到的赔率手动录入。</p>
         </div>
@@ -958,6 +977,11 @@
       matchHome: document.getElementById("matchHome"),
       matchAway: document.getElementById("matchAway"),
       handicapLine: document.getElementById("handicapLine"),
+      emotionHome: document.getElementById("emotionHome"),
+      emotionAway: document.getElementById("emotionAway"),
+      emotionHomeOdds: document.getElementById("emotionHomeOdds"),
+      emotionDrawOdds: document.getElementById("emotionDrawOdds"),
+      emotionAwayOdds: document.getElementById("emotionAwayOdds"),
       todayOddsInput: document.getElementById("todayOddsInput"),
       comboBankroll: document.getElementById("comboBankroll"),
       fetchOddsBtn: document.getElementById("fetchOddsBtn"),
@@ -983,7 +1007,7 @@
     });
 
     teams.forEach(t => {
-      [els.teamA, els.teamB, els.matchHome, els.matchAway, els.betTeam].forEach(select => {
+      [els.teamA, els.teamB, els.matchHome, els.matchAway, els.emotionHome, els.emotionAway, els.betTeam].forEach(select => {
         const opt = document.createElement("option");
         opt.value = t.name;
         opt.textContent = `${t.flag} ${zh(t.name)}`;
@@ -994,6 +1018,8 @@
     els.teamB.value = "Senegal";
     els.matchHome.value = "France";
     els.matchAway.value = "Senegal";
+    els.emotionHome.value = "Netherlands";
+    els.emotionAway.value = "Japan";
     els.betTeam.value = "Senegal";
 
     function normalize(value, min, max) {
@@ -1374,6 +1400,92 @@
       `;
     }
 
+    function teamEmotionProfile(team) {
+      const favoritePressure = Math.max(0, 90 - team.rank) * .32 + team.history * .24;
+      const underdogFreedom = Math.max(0, team.rank - 22) * .42 + team.upset * .38;
+      const stability = (team.scout ? scouting[team.name]?.locker ?? 74 : 72) * .46 + team.history * .18 + team.strength * .22;
+      const motivation = Math.min(95, underdogFreedom * .55 + team.upset * .45);
+      const pressure = Math.min(95, favoritePressure + (team.rating > 80 ? 12 : 0) - (team.group ? 0 : 5));
+      return {
+        pressure: Math.max(18, pressure),
+        freedom: Math.max(18, Math.min(95, underdogFreedom)),
+        stability: Math.max(25, Math.min(95, stability)),
+        motivation,
+        label: pressure > 72 ? "热门压力型" : motivation > 70 ? "低预期冲击型" : stability > 70 ? "稳定执行型" : "波动观察型"
+      };
+    }
+
+    function marketEmotion(home, away, homeOdds, drawOdds, awayOdds) {
+      const matrix = scoreMatrix(home, away);
+      const impliedHome = 1 / homeOdds;
+      const impliedDraw = 1 / drawOdds;
+      const impliedAway = 1 / awayOdds;
+      const overround = impliedHome + impliedDraw + impliedAway;
+      const normHome = impliedHome / overround;
+      const normDraw = impliedDraw / overround;
+      const normAway = impliedAway / overround;
+      const homeHeat = normHome - matrix.homeWin;
+      const drawHeat = normDraw - matrix.draw;
+      const awayHeat = normAway - matrix.awayWin;
+      const hottest = [
+        { label: `${zh(home.name)}胜`, heat: homeHeat },
+        { label: "平局", heat: drawHeat },
+        { label: `${zh(away.name)}胜`, heat: awayHeat }
+      ].sort((a, b) => b.heat - a.heat)[0];
+      return { matrix, overround, normHome, normDraw, normAway, homeHeat, drawHeat, awayHeat, hottest };
+    }
+
+    function emotionVerdict(home, away, market, homeProfile, awayProfile) {
+      const upsetWindow = awayProfile.freedom * .32 + away.upset * .35 + market.awayHeat * -80 + clashBoost(away.name, home.name) * .55;
+      const favoriteFragility = homeProfile.pressure * .42 + Math.max(0, 70 - homeProfile.stability) * .35 + Math.max(0, market.homeHeat) * 75;
+      const drawWindow = market.matrix.draw * 100 + Math.max(0, homeProfile.pressure - awayProfile.pressure) * .18 + Math.abs(home.rating - away.rating) * -.12;
+      const notes = [];
+      if (market.hottest.heat > .06) notes.push(`市场明显偏热：${market.hottest.label}`);
+      if (upsetWindow > 58) notes.push(`${zh(away.name)}存在爆冷心理窗口`);
+      if (favoriteFragility > 62) notes.push(`${zh(home.name)}热门压力偏高，适合防冷`);
+      if (drawWindow > 34) notes.push("平局窗口打开，适合纳入防守型组合");
+      if (!notes.length) notes.push("市场和模型分歧不大，优先看临场阵容和赔率变化");
+      const action = upsetWindow > 64
+        ? "高赔率方向：客胜/客队受让，小注研究"
+        : drawWindow > 36
+          ? "保险防守：胜平或让球方向优先"
+          : favoriteFragility > 68
+            ? "热门谨慎：不建议重仓单边主胜"
+            : "常规处理：按 EV 和仓位规则执行";
+      return { upsetWindow, favoriteFragility, drawWindow, notes, action };
+    }
+
+    function renderEmotionPanel() {
+      const home = calcTeam(teamByName[els.emotionHome.value]);
+      const away = calcTeam(teamByName[els.emotionAway.value]);
+      const homeOdds = decimalOdds(els.emotionHomeOdds.value) || 1.8;
+      const drawOdds = decimalOdds(els.emotionDrawOdds.value) || 3.6;
+      const awayOdds = decimalOdds(els.emotionAwayOdds.value) || 4.8;
+      const homeProfile = teamEmotionProfile(home);
+      const awayProfile = teamEmotionProfile(away);
+      const market = marketEmotion(home, away, homeOdds, drawOdds, awayOdds);
+      const verdict = emotionVerdict(home, away, market, homeProfile, awayProfile);
+      document.getElementById("emotionPanel").innerHTML = `
+        <div class="compare-box">
+          <h3>${home.flag} ${zh(home.name)} vs ${away.flag} ${zh(away.name)}</h3>
+          <div class="metric"><span>${zh(home.name)}情绪画像</span><b>${homeProfile.label} · 压力 ${homeProfile.pressure.toFixed(0)} · 稳定 ${homeProfile.stability.toFixed(0)}</b></div>
+          <div class="metric"><span>${zh(away.name)}情绪画像</span><b>${awayProfile.label} · 自由度 ${awayProfile.freedom.toFixed(0)} · 动机 ${awayProfile.motivation.toFixed(0)}</b></div>
+          <div class="metric"><span>市场热度</span><b>${market.hottest.label} 偏热 ${(market.hottest.heat * 100).toFixed(1)} 个百分点</b></div>
+          <div class="pill-row">
+            <span class="pill">爆冷窗口 ${verdict.upsetWindow.toFixed(0)}</span>
+            <span class="pill">热门脆弱 ${verdict.favoriteFragility.toFixed(0)}</span>
+            <span class="pill">平局窗口 ${verdict.drawWindow.toFixed(0)}</span>
+          </div>
+        </div>
+        <div class="compare-box">
+          <h3>AI 判断</h3>
+          <p class="muted"><b>行为建议：</b>${verdict.action}</p>
+          <div class="upset-list">${verdict.notes.map(note => `<div class="upset-item"><div><b>${note}</b></div></div>`).join("")}</div>
+          <p class="muted">如果临场赔率继续压低热门但模型没有同步提升，应降低热门仓位；如果弱队赔率升高但伤停稳定，可保留小注冷门仓位。</p>
+        </div>
+      `;
+    }
+
     function decimalOdds(raw) {
       const text = String(raw).trim();
       if (!text) return null;
@@ -1721,6 +1833,7 @@
       renderTeams();
       renderCompare();
       renderMatchPanel();
+      renderEmotionPanel();
       renderBetting();
       renderCombos();
       renderAnalysis();
