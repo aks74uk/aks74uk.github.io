@@ -499,10 +499,10 @@
   <header>
     <div class="hero-main">
       <div>
-        <span class="eyebrow">2026 FIFA World Cup · 预测模型 · 经济背景 · 爆冷指数</span>
+        <span class="eyebrow">2026 FIFA World Cup · 预测模型 · 阵容状态 · 风险观察</span>
         <h1>2026 年世界杯比赛预测分析工具</h1>
         <p class="hero-copy">
-          用一个透明的模型同时观察球队实力、国家经济资源、足球传统、主场环境和黑马潜力。你可以调节权重，查看小组出线、潜在黑马、夺冠梯队和两队对比。
+          用一个透明的模型同时观察球队实力、阵容状态、打法克制、心理情绪、主场环境和黑马潜力。你可以调节权重，查看小组出线、潜在黑马、夺冠梯队和两队对比。
         </p>
         <div class="hero-kpis">
           <div class="hero-kpi"><b>48</b><span>参赛队</span></div>
@@ -512,19 +512,19 @@
         </div>
       </div>
       <p class="footer-note" style="color:rgba(255,255,255,.72); max-width:760px;">
-        说明：本工具基于公开分组、FIFA 排名近似、阵容/状态观察和宏观经济量级做赛前判断。黑马模型不把“历史爆冷”作为训练因子，而是聚焦阵容、打法、磨合、稳定性和健康状态。
+        说明：本工具基于公开分组、FIFA 排名近似、阵容/状态观察、打法克制和心理窗口做赛前判断。黑马模型不把“历史爆冷”作为训练因子，而是聚焦阵容、打法、磨合、稳定性和健康状态。
       </p>
     </div>
 
     <aside class="control-panel" aria-label="模型权重控制">
       <h2>模型权重</h2>
-      <p>默认值偏向竞技实力，同时保留经济资源、历史传统和爆冷变量。调高某项后，所有表格会重新计算。</p>
+      <p>默认值偏向竞技实力，同时保留阵容状态、历史传统和爆冷变量。调高某项后，所有表格会重新计算。</p>
       <div class="slider-row">
         <div class="slider-label"><span>竞技实力</span><span id="wStrengthVal">55%</span></div>
         <input id="wStrength" type="range" min="25" max="75" value="55">
       </div>
       <div class="slider-row">
-        <div class="slider-label"><span>经济资源</span><span id="wEconomyVal">15%</span></div>
+        <div class="slider-label"><span>阵容状态</span><span id="wEconomyVal">15%</span></div>
         <input id="wEconomy" type="range" min="0" max="35" value="15">
       </div>
       <div class="slider-row">
@@ -559,7 +559,7 @@
       <div class="section-title">
         <div>
           <h2>小组预测</h2>
-          <p>排名展示每组预估顺位、晋级概率、爆冷风险和经济背景。第三名的晋级概率按 12 组中 8 个最好第三的赛制近似处理。</p>
+          <p>排名展示每组预估顺位、晋级概率、爆冷风险和阵容状态。第三名的晋级概率按 12 组中 8 个最好第三的赛制近似处理。</p>
         </div>
       </div>
       <div class="groups" id="groups"></div>
@@ -597,12 +597,12 @@
     <section>
       <div class="section-title">
         <div>
-          <h2>球队与国家背景</h2>
-          <p>经济指标为估算口径，用于宏观比较：GDP 总量代表资源盘子，人均 GDP 代表训练、医疗、联赛环境的潜在质量，人口代表选材池。</p>
+          <h2>球队状态画像</h2>
+          <p>这里保留和足球直接相关的判断：FIFA 排名、阵容厚度、近期状态、打法克制、磨合稳定、伤停可用性和心理压力。</p>
         </div>
         <select id="teamSort" aria-label="球队排序">
           <option value="rating">按综合评分</option>
-          <option value="economy">按经济资源</option>
+          <option value="economy">按阵容状态</option>
           <option value="upset">按爆冷指数</option>
           <option value="rank">按 FIFA 排名</option>
         </select>
@@ -614,7 +614,7 @@
       <div class="section-title">
         <div>
           <h2>两队对比</h2>
-          <p>选择两支球队，查看胜率倾向、经济差异和比赛叙事。适合做单场赛前判断。</p>
+          <p>选择两支球队，查看胜率倾向、阵容状态、打法错位和比赛叙事。适合做单场赛前判断。</p>
         </div>
       </div>
       <div class="card">
@@ -672,7 +672,7 @@
       <div class="section-title">
         <div>
           <h2>今日赔率组合归纳</h2>
-          <p>把当天比赛赔率按行输入，工具会结合模型概率归纳出保险型买法和高赔率方向。没有当天真实盘口时，可以先用你拿到的赔率手动录入。</p>
+          <p>把当天比赛赔率按行输入，工具会结合模型概率归纳出稳健观察组合和高赔率观察方向。没有当天真实盘口时，可以先用你拿到的赔率手动录入。</p>
         </div>
       </div>
       <div class="card">
@@ -692,14 +692,14 @@
     <section>
       <div class="section-title">
         <div>
-          <h2>赔率与风控</h2>
-          <p>输入当天盘口赔率，工具会把赔率换成隐含概率，并和模型概率比较。只有出现正期望值且优势足够时，才给出保守仓位建议。</p>
+          <h2>赔率价值与风险模拟</h2>
+          <p>输入当天盘口赔率，工具会把赔率换成隐含概率，并和模型概率比较。只有出现正期望值且优势足够时，才给出保守的模拟资金占比。</p>
         </div>
       </div>
       <div class="card">
         <div class="toolbar">
-          <select id="betTeam" aria-label="选择投注球队"></select>
-          <select id="betMarket" aria-label="选择投注市场">
+          <select id="betTeam" aria-label="选择分析球队"></select>
+          <select id="betMarket" aria-label="选择分析市场">
             <option value="advance">小组出线</option>
             <option value="groupWinner">小组第一</option>
             <option value="outright">冠军远期</option>
@@ -709,7 +709,7 @@
           <input id="bankroll" type="number" value="1000" min="0" step="10" aria-label="本金">
         </div>
         <div class="compare" id="bettingPanel"></div>
-        <p class="footer-note">风控口径：建议仓位采用 15% Kelly，并封顶本金 2.5%。任何负 EV、优势不足或信息不完整的盘口，默认建议不下注。</p>
+        <p class="footer-note">风控口径：模拟资金占比采用 15% Kelly，并封顶本金 2.5%。任何负 EV、优势不足或信息不完整的盘口，默认暂不纳入观察。</p>
       </div>
     </section>
 
@@ -717,7 +717,7 @@
       <div class="section-title">
         <div>
           <h2>会员支付解锁</h2>
-          <p>开通后解锁高级赔率分析、仓位建议和私密更新。支付成功后会生成访问码，访问码可保存到本机浏览器。</p>
+          <p>开通后解锁高级赔率分析、风险模拟和私密更新。支付成功后会生成访问码，访问码可保存到本机浏览器。</p>
         </div>
       </div>
       <div class="card">
@@ -753,7 +753,7 @@
         </div>
       </div>
       <div class="card footer-note">
-        数据来源与口径：赛制和“48 队、12 组、前二加 8 个最好第三晋级”参考 <a href="https://gpcustomersupportfwc2026.tickets.fifa.com/hc/en-gb/articles/28784798873117-10-What-is-the-format-for-the-FIFA-World-Cup-2026-tournament">FIFA 票务帮助中心</a>；分组信息参考 <a href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/final-draw-results">FIFA Final Draw results</a> 及 FIFA 分组预览；宏观经济口径参考 <a href="https://data.worldbank.org/indicator/NY.GDP.MKTP.CD">World Bank GDP</a> 与 <a href="https://data.worldbank.org/indicator/NY.GDP.PCAP.CD">World Bank GDP per capita</a> 指标。部分 FIFA 排名和经济值为赛前近似，用于分析工具而非投注建议。
+        数据来源与口径：赛制和“48 队、12 组、前二加 8 个最好第三晋级”参考 <a href="https://gpcustomersupportfwc2026.tickets.fifa.com/hc/en-gb/articles/28784798873117-10-What-is-the-format-for-the-FIFA-World-Cup-2026-tournament">FIFA 票务帮助中心</a>；分组信息参考 <a href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/final-draw-results">FIFA Final Draw results</a> 及 FIFA 分组预览。部分 FIFA 排名和阵容状态值为赛前近似，本工具仅用于体育数据研究、赛前复盘和风险教育，不提供彩票销售、代购、投注入口、返佣导流或收益承诺。
       </div>
     </section>
   </main>
@@ -780,14 +780,14 @@
       ["Spain","🇪🇸",2,1620,33000,48,93,67,"控球体系成熟，面对强硬反击队需要提高终结效率。"],
       ["England","🏴",4,3400,50500,57,91,66,"纸面强度高，小组 L 的克罗地亚和加纳会测试抗压。"],
       ["Portugal","🇵🇹",5,288,28000,10,90,69,"个人能力密度高，路径上要警惕哥伦比亚式身体对抗。"],
-      ["Brazil","🇧🇷",6,2170,10100,203,95,72,"传统和天赋上限最高梯队，经济差距不妨碍足球人才供给。"],
+      ["Brazil","🇧🇷",6,2170,10100,203,95,72,"传统和天赋上限最高梯队，关键看防守转换和终结稳定性。"],
       ["Netherlands","🇳🇱",7,1118,62000,18,88,70,"大赛稳定但同组日本、瑞典、突尼斯都不好处理。"],
       ["Morocco","🇲🇦",8,152,4100,38,79,82,"2022 四强后的自信仍在，是最强非洲争冠外线。"],
       ["Belgium","🇧🇪",9,645,55500,12,78,61,"黄金一代尾声，实力仍够拿下组内主动权。"],
       ["Germany","🇩🇪",10,4450,53500,84,89,58,"资源和传统顶级，但 2018、2022 连续小组失误拉高风险。"],
       ["Croatia","🇭🇷",10,82,21000,4,87,74,"淘汰赛韧性极高，人口小但足球体系产出惊人。"],
       ["Colombia","🇨🇴",13,363,7100,52,76,73,"身体对抗和边路冲击强，能惩罚高位压上的强队。"],
-      ["United States","🇺🇸",14,27300,82000,342,62,68,"东道主和经济资源加成明显，D 组关键是把控首战节奏。"],
+      ["United States","🇺🇸",14,27300,82000,342,62,68,"东道主和主场环境加成明显，D 组关键是把控首战节奏。"],
       ["Mexico","🇲🇽",15,1790,13900,129,77,62,"主场环境加成明显，但突破 16 强仍是核心门槛。"],
       ["Uruguay","🇺🇾",17,78,21500,3,86,76,"小国强足球传统，防守和强度让西班牙也不能掉以轻心。"],
       ["Senegal","🇸🇳",18,31,1900,18,70,84,"中后场身体对抗和直接推进很强，I 组最有能力把热门球队拖进消耗战。"],
@@ -822,7 +822,7 @@
       ["New Zealand","🇳🇿",89,253,48000,5,38,59,"OFC 直接名额受益，目标是从伊朗或埃及身上偷分。"],
       ["Bosnia and Herzegovina","🇧🇦",57,28,8200,3,50,67,"欧洲附加赛突围，B 组对加拿大和卡塔尔都有机会。"],
       ["Turkey","🇹🇷",35,1118,13100,86,62,71,"欧洲强硬派，D 组真实实力可能高于排名表面。"],
-      ["Switzerland","🇨🇭",16,885,99500,9,76,62,"稳定性和经济资源都高，是 B 组最稳的一档。"]
+      ["Switzerland","🇨🇭",16,885,99500,9,76,62,"稳定性、纪律性和执行力都高，是 B 组最稳的一档。"]
     ].map(([name, flag, rank, gdp, gdpPc, pop, history, upsetBase, note]) => ({name, flag, rank, gdp, gdpPc, pop, history, upsetBase, note}));
 
     const historyUpsets = [
@@ -1043,17 +1043,14 @@
 
     function calcTeam(t, w = weights()) {
       const strength = 100 - normalize(t.rank, 1, 95) * 100;
-      const gdpScore = normalize(Math.log10(t.gdp + 1), Math.log10(2), Math.log10(4500)) * 100;
-      const pcScore = normalize(Math.log10(t.gdpPc + 300), Math.log10(900), Math.log10(105000)) * 100;
-      const popScore = normalize(Math.log10(t.pop + 1), Math.log10(1.1), Math.log10(205)) * 100;
-      const economy = Math.max(0, Math.min(100, gdpScore * .43 + pcScore * .37 + popScore * .20));
+      const scout = scoutingScore(t.name);
+      const squadContext = scout ?? Math.max(18, Math.min(95, strength * .48 + t.upsetBase * .34 + t.history * .18));
       const host = ["United States", "Canada", "Mexico"].includes(t.name) ? 7 : 0;
-      const raw = strength * w.strength + economy * w.economy + t.history * w.history + t.upsetBase * w.upset + host * 100;
+      const raw = strength * w.strength + squadContext * w.economy + t.history * w.history + t.upsetBase * w.upset + host * 100;
       const totalWeight = w.strength + w.economy + w.history + w.upset + (host ? 7 : 0);
       const rating = raw / totalWeight;
-      const scout = scoutingScore(t.name);
-      const upset = scout ?? Math.max(18, Math.min(95, t.upsetBase * .42 + strength * .22 + (t.rank > 45 ? 8 : 0) + economy * .08));
-      return {...t, strength, economy, rating, upset, scout};
+      const upset = scout ?? Math.max(18, Math.min(95, t.upsetBase * .48 + strength * .24 + t.history * .10 + (t.rank > 45 ? 8 : 0)));
+      return {...t, strength, economy: squadContext, squadContext, rating, upset, scout};
     }
 
     function probability(a, b) {
@@ -1120,7 +1117,7 @@
     function suggestionByProb(p, label) {
       if (p >= .56) return `${label}，偏保险`;
       if (p >= .47) return `${label}，可观察`;
-      return `${label}，不建议重仓`;
+      return `${label}，仅保留观察`;
     }
 
     function scoreText(score) {
@@ -1158,11 +1155,21 @@
       return Math.min(97, scoutingWeight * .78 + chaos + clashBoost(under.name, fav.name) + p * 18);
     }
 
-    function boldScoreline(score) {
-      if (score >= 88) return "大胆比分：2-1";
-      if (score >= 80) return "大胆比分：1-0";
-      if (score >= 72) return "大胆剧本：1-1 后靠最好第三晋级";
-      return "大胆剧本：先丢球后追平，打乱小组排序";
+    function upsetScoreline(under, fav, score) {
+      const matrix = scoreMatrix(under, fav);
+      const underWins = matrix.scores
+        .filter(s => s.h > s.a)
+        .sort((a, b) => (b.p + (b.h - b.a) * .012) - (a.p + (a.h - a.a) * .012));
+      const draws = matrix.scores
+        .filter(s => s.h === s.a)
+        .sort((a, b) => b.p - a.p);
+      const nearMiss = matrix.scores
+        .filter(s => Math.abs(s.h - s.a) <= 1)
+        .sort((a, b) => b.p - a.p);
+      if (score >= 84 && underWins.length) return `大胆比分：${scoreText(underWins[0])}`;
+      if (score >= 74 && draws.length) return `防冷比分：${scoreText(draws[0])}`;
+      if (underWins.length) return `小概率比分：${scoreText(underWins[0])}`;
+      return `扰动剧本：${scoreText(nearMiss[0] || matrix.scores[0])}`;
     }
 
     function groupRows(group, w = weights()) {
@@ -1303,7 +1310,7 @@
         <div class="upset-item">
           <div>
             <b>${x.under.flag} ${zh(x.under.name)} 爆冷 ${x.fav.flag} ${zh(x.fav.name)}</b>
-            <p class="muted" style="margin:6px 0 0;">${boldScoreline(x.score)}。大胆指数 ${x.score.toFixed(0)}，模型胜率只给 ${(probability(x.under, x.fav) * 100).toFixed(1)}%，但战术错位和小组赛方差足够放大冷门。${scouting[x.under.name]?.style ?? x.under.note}</p>
+            <p class="muted" style="margin:6px 0 0;">${upsetScoreline(x.under, x.fav, x.score)}。大胆指数 ${x.score.toFixed(0)}，模型胜率只给 ${(probability(x.under, x.fav) * 100).toFixed(1)}%，但战术错位和小组赛方差足够放大冷门。${scouting[x.under.name]?.style ?? x.under.note}</p>
           </div>
           <div class="score-ring" style="--slice:${x.score * 3.6}deg">${Math.round(x.score)}</div>
         </div>
@@ -1337,7 +1344,7 @@
             <span class="rank-badge">${t.group} #${t.rank}</span>
           </div>
           <div class="metric"><span>综合评分</span><b>${t.rating.toFixed(1)}</b><div class="bar"><i style="width:${percent(t.rating)}"></i></div></div>
-          <div class="metric"><span>经济背景</span><b>GDP ${money(t.gdp)} · 人均 ${Math.round(t.gdpPc / 1000)}k$</b></div>
+          <div class="metric"><span>阵容状态</span><b>${t.squadContext.toFixed(1)} · ${t.scout ? "重点球探建模" : "基础状态模型"}</b></div>
           <div class="metric"><span>黑马 Skills</span><b>${t.scout ? t.upset.toFixed(0) : "未重点建模"}</b></div>
           <div class="metric"><span>分析</span><span>${t.note}</span></div>
         </article>
@@ -1357,7 +1364,7 @@
             <h3><span class="flag">${t.flag}</span>${zh(t.name)}</h3>
             <p class="muted">对 ${zh(other.name)} 的模型胜率倾向：<b>${(p * 100).toFixed(1)}%</b></p>
             <div class="metric"><span>综合评分</span><b>${t.rating.toFixed(1)}</b><div class="bar"><i style="width:${percent(t.rating)}"></i></div></div>
-            <div class="metric"><span>经济背景</span><b>GDP ${money(t.gdp)} · 人均 ${Math.round(t.gdpPc / 1000)}k$ · 人口 ${t.pop}M</b></div>
+            <div class="metric"><span>阵容状态</span><b>${t.squadContext.toFixed(1)} · 黑马分 ${t.upset.toFixed(0)} · FIFA #${t.rank}</b></div>
             <div class="metric"><span>关键叙事</span><span>${t.note}</span></div>
           </div>
         `;
@@ -1395,7 +1402,7 @@
           <div class="metric"><span>胜平负建议</span><b>${suggestionByProb(resultOptions[0].p, resultOptions[0].label)}</b></div>
           <div class="metric"><span>让球概率</span><b>${hcapOptions.map(x => `${x.label} ${(x.p * 100).toFixed(1)}%`).join(" · ")}</b></div>
           <div class="metric"><span>让球建议</span><b>${suggestionByProb(hcapOptions[0].p, hcapOptions[0].label)}</b></div>
-          <p class="muted">保守口径优先看概率最高且大于 56% 的方向；低于 47% 的方向不建议重仓。</p>
+          <p class="muted">保守口径优先看概率最高且大于 56% 的方向；低于 47% 的方向只保留观察，不作为核心判断。</p>
         </div>
       `;
     }
@@ -1446,12 +1453,12 @@
       if (drawWindow > 34) notes.push("平局窗口打开，适合纳入防守型组合");
       if (!notes.length) notes.push("市场和模型分歧不大，优先看临场阵容和赔率变化");
       const action = upsetWindow > 64
-        ? "高赔率方向：客胜/客队受让，小注研究"
+        ? "高赔率观察：客胜/客队受让，小比例研究"
         : drawWindow > 36
           ? "保险防守：胜平或让球方向优先"
           : favoriteFragility > 68
-            ? "热门谨慎：不建议重仓单边主胜"
-            : "常规处理：按 EV 和仓位规则执行";
+            ? "热门谨慎：降低单边主胜权重"
+            : "常规处理：按 EV 和风险规则执行";
       return { upsetWindow, favoriteFragility, drawWindow, notes, action };
     }
 
@@ -1481,7 +1488,7 @@
           <h3>AI 判断</h3>
           <p class="muted"><b>行为建议：</b>${verdict.action}</p>
           <div class="upset-list">${verdict.notes.map(note => `<div class="upset-item"><div><b>${note}</b></div></div>`).join("")}</div>
-          <p class="muted">如果临场赔率继续压低热门但模型没有同步提升，应降低热门仓位；如果弱队赔率升高但伤停稳定，可保留小注冷门仓位。</p>
+          <p class="muted">如果临场赔率继续压低热门但模型没有同步提升，应降低热门方向权重；如果弱队赔率升高但伤停稳定，可保留小比例冷门观察。</p>
         </div>
       `;
     }
@@ -1558,10 +1565,10 @@
       const kelly = ev > 0 ? ev / (odds - 1) : 0;
       const stakePct = Math.max(0, Math.min(.025, kelly * .15));
       const stake = bankroll * stakePct;
-      const status = ev >= .08 && edge >= .04 ? "可小注" : ev >= .04 && edge >= .02 ? "观察价" : "不下注";
-      const cls = status === "可小注" ? "ev-good" : status === "观察价" ? "ev-watch" : "ev-bad";
-      const note = status === "可小注"
-        ? "赔率相对模型有明显错配，只适合小仓位分散下注。"
+      const status = ev >= .08 && edge >= .04 ? "可纳入观察" : ev >= .04 && edge >= .02 ? "观察价" : "暂不纳入";
+      const cls = status === "可纳入观察" ? "ev-good" : status === "观察价" ? "ev-watch" : "ev-bad";
+      const note = status === "可纳入观察"
+        ? "赔率相对模型有明显错配，只适合小比例分散模拟。"
         : status === "观察价"
           ? "有一点价格优势，但安全边际不够，适合等临场赔率或阵容确认。"
           : "赔率没有给出足够补偿，按风控规则跳过。";
@@ -1574,10 +1581,10 @@
           <div class="metric"><span>模型概率</span><b>${(model * 100).toFixed(1)}%</b></div>
         </div>
         <div class="compare-box">
-          <h3>EV 与仓位</h3>
+          <h3>EV 与风险模拟</h3>
           <div class="metric"><span>期望值 EV</span><b class="${cls}">${(ev * 100).toFixed(1)}%</b></div>
           <div class="metric"><span>概率优势</span><b>${(edge * 100).toFixed(1)} 个百分点</b></div>
-          <div class="metric"><span>建议仓位</span><b>${(stakePct * 100).toFixed(2)}% 本金，约 ${stake.toFixed(0)}</b></div>
+          <div class="metric"><span>模拟资金占比</span><b>${(stakePct * 100).toFixed(2)}% 本金，约 ${stake.toFixed(0)}</b></div>
           <p class="muted">${note}</p>
         </div>
       `;
@@ -1693,22 +1700,22 @@
       const highStake = bankroll * (highCombo.ev > 0 ? .01 : .004);
       document.getElementById("comboPanel").innerHTML = `
         <div class="compare-box">
-          <h3>保险型买法</h3>
+          <h3>稳健观察组合</h3>
           <div class="upset-list">${safeSingles.map(p => `
             <div class="upset-item">
               <div><b>${zh(p.match.home.name)} vs ${zh(p.match.away.name)}：${p.label}</b>
               <p class="muted" style="margin:6px 0 0;">赔率 ${p.odds.toFixed(2)} · 模型 ${(p.p * 100).toFixed(1)}% · EV ${(p.ev * 100).toFixed(1)}%</p></div>
-            </div>`).join("") || `<p class="muted">今天没有足够保险的方向，建议降低下注频率。</p>`}</div>
-          <p class="muted"><b>2 串参考：</b>${safeComboPicks.map(p => `${zh(p.match.home.name)}vs${zh(p.match.away.name)} ${p.label}`).join(" + ") || "无"}；组合赔率 ${safeCombo.odds.toFixed(2)}，建议仓位约 ${safeStake.toFixed(0)}。</p>
+            </div>`).join("") || `<p class="muted">今天没有足够稳健的方向，建议降低观察频率。</p>`}</div>
+          <p class="muted"><b>2 串参考：</b>${safeComboPicks.map(p => `${zh(p.match.home.name)}vs${zh(p.match.away.name)} ${p.label}`).join(" + ") || "无"}；组合赔率 ${safeCombo.odds.toFixed(2)}，模拟资金约 ${safeStake.toFixed(0)}。</p>
         </div>
         <div class="compare-box">
-          <h3>高赔率方向</h3>
+          <h3>高赔率观察方向</h3>
           <div class="upset-list">${highOdds.map(p => `
             <div class="upset-item">
               <div><b>${zh(p.match.home.name)} vs ${zh(p.match.away.name)}：${p.label}</b>
-              <p class="muted" style="margin:6px 0 0;">赔率 ${p.odds.toFixed(2)} · 模型 ${(p.p * 100).toFixed(1)}% · EV ${(p.ev * 100).toFixed(1)}%。适合小注，不适合重仓。</p></div>
+              <p class="muted" style="margin:6px 0 0;">赔率 ${p.odds.toFixed(2)} · 模型 ${(p.p * 100).toFixed(1)}% · EV ${(p.ev * 100).toFixed(1)}%。适合小比例研究，不适合作为核心判断。</p></div>
             </div>`).join("") || `<p class="muted">没有发现可接受的高赔率方向。</p>`}</div>
-          <p class="muted"><b>小注组合：</b>${highComboPicks.map(p => `${zh(p.match.home.name)}vs${zh(p.match.away.name)} ${p.label}`).join(" + ") || "无"}；组合赔率 ${highCombo.odds.toFixed(2)}，建议仓位约 ${highStake.toFixed(0)}。</p>
+          <p class="muted"><b>小比例组合：</b>${highComboPicks.map(p => `${zh(p.match.home.name)}vs${zh(p.match.away.name)} ${p.label}`).join(" + ") || "无"}；组合赔率 ${highCombo.odds.toFixed(2)}，模拟资金约 ${highStake.toFixed(0)}。</p>
           <p class="muted">同一场比赛的胜/平/负是互斥结果，只能作为单独候选，系统不会把它们放进同一个串关组合。</p>
         </div>
       `;
@@ -1815,7 +1822,7 @@
       const top = all.slice(0, 6).map(t => `${t.flag}${zh(t.name)}`).join("、");
       const dark = all.filter(t => t.scout).sort((a, b) => b.upset - a.upset).slice(0, 5).map(t => `${t.flag}${zh(t.name)}`).join("、");
       document.getElementById("finalAnalysis").textContent =
-        `当前权重下，争冠第一梯队是 ${top}。经济背景会帮助解释训练、医疗和联赛体系资源，但黑马判断重点转向阵容厚度、打法错位、磨合程度、内部稳定、近期状态和伤停可用性。最该重点研究的黑马或搅局者是 ${dark}。`;
+        `当前权重下，争冠第一梯队是 ${top}。黑马判断重点放在阵容厚度、打法错位、磨合程度、内部稳定、近期状态和伤停可用性。最该重点研究的黑马或搅局者是 ${dark}。`;
     }
 
     function syncLabels() {
