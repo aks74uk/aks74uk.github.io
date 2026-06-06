@@ -694,6 +694,23 @@
     <section>
       <div class="section-title">
         <div>
+          <h2>ChatGPT 预测助手</h2>
+          <p>把当前赔率、稳健组合、高赔率风险、单场比分和情绪判断交给后端 AI 模型复核。API key 只放后端，不会暴露在公开网页里。</p>
+        </div>
+      </div>
+      <div class="card">
+        <textarea id="aiQuestion" aria-label="AI 预测问题">请基于当前赔率和模型结果，给我今天最值得观察的稳健组合和高赔率风险方向，并说明不建议选择哪些方向。</textarea>
+        <div class="toolbar">
+          <button class="primary" id="askAiBtn">询问 ChatGPT 预测</button>
+        </div>
+        <div class="compare" id="aiPanel"></div>
+        <p class="footer-note">AI 输出只用于数据研究和风险复核。真实上线前，请在后端配置 `OPENAI_API_KEY`，并把支付/AI 后端部署到 HTTPS 域名。</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <div>
           <h2>赔率价值与风险模拟</h2>
           <p>输入当天盘口赔率，工具会把赔率换成隐含概率，并和模型概率比较。只有出现正期望值且优势足够时，才给出保守的模拟资金占比。</p>
         </div>
@@ -988,6 +1005,8 @@
       comboBankroll: document.getElementById("comboBankroll"),
       fetchOddsBtn: document.getElementById("fetchOddsBtn"),
       analyzeCombosBtn: document.getElementById("analyzeCombosBtn"),
+      aiQuestion: document.getElementById("aiQuestion"),
+      askAiBtn: document.getElementById("askAiBtn"),
       betTeam: document.getElementById("betTeam"),
       betMarket: document.getElementById("betMarket"),
       betOdds: document.getElementById("betOdds"),
@@ -1887,6 +1906,57 @@
       return data;
     }
 
+    function panelText(id) {
+      return document.getElementById(id)?.innerText || "";
+    }
+
+    async function askAiPredictor() {
+      const panel = document.getElementById("aiPanel");
+      panel.innerHTML = `<div class="compare-box"><h3>AI 正在复核</h3><p class="muted">正在把当前赔率、组合结果和模型摘要发送到后端...</p></div>`;
+      try {
+        const data = await apiFetch("/api/ai/predict", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            question: els.aiQuestion.value,
+            context: {
+              oddsText: els.todayOddsInput.value,
+              bankroll: els.comboBankroll.value,
+              coreEngineText: panelText("coreEnginePanel"),
+              comboText: panelText("comboPanel"),
+              matchText: panelText("matchPanel"),
+              emotionText: panelText("emotionPanel")
+            }
+          })
+        });
+        panel.innerHTML = `
+          <div class="compare-box">
+            <h3>AI 预测复核</h3>
+            <p class="muted">模型：${data.model || "OpenAI"}</p>
+            <div class="pay-code">${escapeText(data.answer || "没有返回内容")}</div>
+          </div>
+        `;
+      } catch (error) {
+        panel.innerHTML = `
+          <div class="compare-box">
+            <h3>AI 暂不可用</h3>
+            <p class="muted">${error.message}</p>
+            <p class="muted">请确认后端已启动，并配置了 OPENAI_API_KEY 或 config.json 的 openai.apiKey。</p>
+          </div>
+        `;
+      }
+    }
+
+    function escapeText(text) {
+      return String(text).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char])).replace(/\n/g, "<br>");
+    }
+
     function paymentPanel(html) {
       document.getElementById("paymentPanel").innerHTML = html;
     }
@@ -2011,6 +2081,7 @@
 
     els.fetchOddsBtn.addEventListener("click", fetchTodayOdds);
     els.analyzeCombosBtn.addEventListener("click", renderCombos);
+    els.askAiBtn.addEventListener("click", askAiPredictor);
     els.createOrderBtn.addEventListener("click", createPaymentOrder);
     els.checkAccessBtn.addEventListener("click", checkAccess);
     els.accessTokenInput.value = localStorage.getItem("worldcup_access_token") || "";
