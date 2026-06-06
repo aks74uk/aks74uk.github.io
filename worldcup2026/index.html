@@ -1160,13 +1160,13 @@
     function upsetScoreline(under, fav, score) {
       const matrix = scoreMatrix(under, fav);
       const underWins = matrix.scores
-        .filter(s => s.h > s.a)
-        .sort((a, b) => (b.p + (b.h - b.a) * .012) - (a.p + (a.h - a.a) * .012));
+        .filter(s => s.h > s.a && s.h <= 2 && s.a <= 1 && s.h - s.a <= 2)
+        .sort((a, b) => b.p - a.p);
       const draws = matrix.scores
-        .filter(s => s.h === s.a)
+        .filter(s => s.h === s.a && s.h <= 2)
         .sort((a, b) => b.p - a.p);
       const nearMiss = matrix.scores
-        .filter(s => Math.abs(s.h - s.a) <= 1)
+        .filter(s => Math.abs(s.h - s.a) <= 1 && s.h <= 2 && s.a <= 2)
         .sort((a, b) => b.p - a.p);
       if (score >= 84 && underWins.length) return `大胆比分：${scoreText(underWins[0])}`;
       if (score >= 74 && draws.length) return `防冷比分：${scoreText(draws[0])}`;
