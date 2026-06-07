@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>2026 世界杯比赛预测分析工具</title>
+  <title>WorldCup Alpha · 2026 世界杯 AI 会员分析平台</title>
   <style>
     :root {
       --ink: #17201c;
@@ -17,6 +17,7 @@
       --red: #be3c34;
       --blue: #276f9e;
       --shadow: 0 18px 44px rgba(32, 44, 38, .12);
+      --soft: #eef5f1;
     }
 
     * { box-sizing: border-box; }
@@ -33,7 +34,7 @@
     }
 
     header {
-      min-height: 86vh;
+      min-height: 84vh;
       display: grid;
       grid-template-columns: minmax(0, 1fr) 390px;
       gap: 28px;
@@ -98,6 +99,33 @@
       margin: 0;
     }
 
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 26px;
+    }
+
+    .hero-actions a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 11px 15px;
+      border-radius: 6px;
+      font-weight: 900;
+      text-decoration: none;
+      color: white;
+      border: 1px solid rgba(255,255,255,.36);
+      background: rgba(255,255,255,.12);
+    }
+
+    .hero-actions a.primary-link {
+      background: #fff;
+      color: var(--field-dark);
+      border-color: #fff;
+    }
+
     .hero-kpis {
       display: grid;
       grid-template-columns: repeat(4, minmax(120px, 1fr));
@@ -132,6 +160,69 @@
       border-radius: 8px;
       box-shadow: var(--shadow);
       padding: 18px;
+    }
+
+    .commercial-panel {
+      display: grid;
+      gap: 12px;
+    }
+
+    .price-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .price-card.featured {
+      border-color: rgba(200, 147, 34, .75);
+      background: linear-gradient(180deg, #fffaf0, #fff);
+    }
+
+    .price {
+      font-size: 30px;
+      font-weight: 950;
+      line-height: 1;
+      margin: 8px 0;
+    }
+
+    .feature-list {
+      display: grid;
+      gap: 10px;
+      padding: 0;
+      margin: 14px 0 0;
+      list-style: none;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .feature-list li {
+      padding-left: 22px;
+      position: relative;
+    }
+
+    .feature-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: .55em;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--field);
+    }
+
+    details.advanced-settings {
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+      margin-top: 8px;
+    }
+
+    details.advanced-settings summary {
+      cursor: pointer;
+      font-weight: 900;
+      color: var(--field-dark);
     }
 
     .control-panel h2,
@@ -243,12 +334,50 @@
     .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
+    .grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
     .card {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 8px;
       box-shadow: 0 10px 24px rgba(32, 44, 38, .07);
       padding: 18px;
+    }
+
+    .section-band {
+      margin-top: 22px;
+      padding: 22px;
+      background: rgba(255,255,255,.62);
+      border: 1px solid rgba(215, 222, 214, .9);
+      border-radius: 8px;
+    }
+
+    .member-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      background: white;
+      display: grid;
+      gap: 10px;
+      min-height: 150px;
+    }
+
+    .member-card.locked {
+      background:
+        linear-gradient(135deg, rgba(23,32,28,.02), rgba(29,109,81,.08)),
+        white;
+    }
+
+    .lock-badge {
+      display: inline-flex;
+      width: fit-content;
+      border: 1px solid rgba(200,147,34,.45);
+      background: #fff8e6;
+      color: #7a5611;
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 12px;
+      font-weight: 900;
     }
 
     .insight {
@@ -445,6 +574,12 @@
       font-size: 13px;
     }
 
+    .compact-copy {
+      color: var(--muted);
+      line-height: 1.65;
+      margin: 8px 0 0;
+    }
+
     .ev-good { color: var(--field-dark); }
     .ev-watch { color: var(--gold); }
     .ev-bad { color: var(--red); }
@@ -477,7 +612,8 @@
       .hero-kpis,
       .groups,
       .team-list,
-      .grid.cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid.cols-3,
+      .grid.cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 720px) {
@@ -488,6 +624,7 @@
       .team-list,
       .grid.cols-2,
       .grid.cols-3,
+      .grid.cols-4,
       .compare { grid-template-columns: 1fr; }
       .section-title { display: block; }
       table { font-size: 12px; }
@@ -499,57 +636,110 @@
   <header>
     <div class="hero-main">
       <div>
-        <span class="eyebrow">2026 FIFA World Cup · 预测模型 · 阵容状态 · 风险观察</span>
-        <h1>2026 年世界杯比赛预测分析工具</h1>
+        <span class="eyebrow">WorldCup Alpha · 会员专属 · AI 赛前情报</span>
+        <h1>2026 世界杯 AI 会员分析平台</h1>
         <p class="hero-copy">
-          用一个透明的模型同时观察球队实力、阵容状态、打法克制、心理情绪、主场环境和黑马潜力。你可以调节权重，查看小组出线、潜在黑马、夺冠梯队和两队对比。
+          每天把公开赔率、阵容状态、打法克制、心理压力和冷门窗口整理成清晰报告。免费用户看样例，会员解锁每日组合、单场比分、风险等级和 ChatGPT 复核。
         </p>
+        <div class="hero-actions">
+          <a class="primary-link" href="#membership">立即开通会员</a>
+          <a href="#daily-brief">查看今日样例</a>
+          <a href="#ai-engine">体验 AI 分析</a>
+        </div>
         <div class="hero-kpis">
-          <div class="hero-kpi"><b>48</b><span>参赛队</span></div>
-          <div class="hero-kpi"><b>12</b><span>四队小组</span></div>
-          <div class="hero-kpi"><b>32</b><span>淘汰赛名额</span></div>
-          <div class="hero-kpi"><b>8</b><span>最好第三晋级</span></div>
+          <div class="hero-kpi"><b>每日</b><span>赔率组合报告</span></div>
+          <div class="hero-kpi"><b>48</b><span>球队状态库</span></div>
+          <div class="hero-kpi"><b>2类</b><span>稳健/高赔率方向</span></div>
+          <div class="hero-kpi"><b>AI</b><span>复核与风险说明</span></div>
         </div>
       </div>
       <p class="footer-note" style="color:rgba(255,255,255,.72); max-width:760px;">
-        说明：本工具基于公开分组、FIFA 排名近似、阵容/状态观察、打法克制和心理窗口做赛前判断。黑马模型不把“历史爆冷”作为训练因子，而是聚焦阵容、打法、磨合、稳定性和健康状态。
+        产品定位：体育数据分析、赔率隐含概率、赛前风险复核和会员情报服务。不提供彩票销售、代购、资金托管或收益承诺。
       </p>
     </div>
 
-    <aside class="control-panel" aria-label="模型权重控制">
-      <h2>模型权重</h2>
-      <p>默认值偏向竞技实力，同时保留阵容状态、历史传统和爆冷变量。调高某项后，所有表格会重新计算。</p>
-      <div class="slider-row">
-        <div class="slider-label"><span>竞技实力</span><span id="wStrengthVal">55%</span></div>
-        <input id="wStrength" type="range" min="25" max="75" value="55">
+    <aside class="control-panel" aria-label="会员开通摘要">
+      <h2>会员解锁</h2>
+      <p>适合需要每天快速看结论、组合方向和风险提醒的用户。开通后通过访问码解锁高级分析。</p>
+      <div class="commercial-panel">
+        <div class="price-card">
+          <b>7 天体验版</b>
+          <div class="price">¥19.9</div>
+          <span class="muted">适合先看每日分析质量</span>
+        </div>
+        <div class="price-card featured">
+          <b>月卡高级版</b>
+          <div class="price">¥99</div>
+          <span class="muted">每日组合 + AI 复核 + 访问码</span>
+        </div>
+        <a class="primary-link" href="#membership" style="background:var(--field);color:#fff;text-decoration:none;text-align:center;border-radius:6px;padding:12px;font-weight:900;">开通会员</a>
       </div>
-      <div class="slider-row">
-        <div class="slider-label"><span>阵容状态</span><span id="wEconomyVal">15%</span></div>
-        <input id="wEconomy" type="range" min="0" max="35" value="15">
-      </div>
-      <div class="slider-row">
-        <div class="slider-label"><span>世界杯历史</span><span id="wHistoryVal">20%</span></div>
-        <input id="wHistory" type="range" min="0" max="35" value="20">
-      </div>
-      <div class="slider-row">
-        <div class="slider-label"><span>爆冷/韧性</span><span id="wUpsetVal">10%</span></div>
-        <input id="wUpset" type="range" min="0" max="30" value="10">
-      </div>
-      <div class="toolbar">
-        <button class="primary" id="resetBtn">恢复默认</button>
-        <select id="groupSelect" aria-label="选择小组">
-          <option value="ALL">全部小组</option>
-        </select>
-      </div>
+      <details class="advanced-settings">
+        <summary>高级模型设置</summary>
+        <p>仅用于内部调参和专业用户复核，默认值已经适合普通用户浏览。</p>
+        <div class="slider-row">
+          <div class="slider-label"><span>竞技实力</span><span id="wStrengthVal">55%</span></div>
+          <input id="wStrength" type="range" min="25" max="75" value="55">
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>阵容状态</span><span id="wEconomyVal">15%</span></div>
+          <input id="wEconomy" type="range" min="0" max="35" value="15">
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>大赛稳定</span><span id="wHistoryVal">20%</span></div>
+          <input id="wHistory" type="range" min="0" max="35" value="20">
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>冷门韧性</span><span id="wUpsetVal">10%</span></div>
+          <input id="wUpset" type="range" min="0" max="30" value="10">
+        </div>
+        <div class="toolbar">
+          <button class="primary" id="resetBtn">恢复默认</button>
+          <select id="groupSelect" aria-label="选择小组">
+            <option value="ALL">全部小组</option>
+          </select>
+        </div>
+      </details>
     </aside>
   </header>
 
   <main>
-    <section>
+    <section class="section-band">
       <div class="section-title">
         <div>
-          <h2>核心预测</h2>
-          <p>模型先对每支球队打分，再用组内相对强度估算期望积分；夺冠概率是综合评分、淘汰赛路径和传统强队稳定性后的赛前指数。</p>
+          <h2>会员能看到什么</h2>
+          <p>页面不再展示冗长模型过程。商业版只交付结论、理由、风险和会员操作入口。</p>
+        </div>
+      </div>
+      <div class="grid cols-4">
+        <div class="member-card">
+          <span class="lock-badge">每日更新</span>
+          <h3>今日组合报告</h3>
+          <p class="compact-copy">把当天赔率整理成稳健观察组合、高赔率风险方向和不建议项。</p>
+        </div>
+        <div class="member-card">
+          <span class="lock-badge">单场拆解</span>
+          <h3>比分与让球</h3>
+          <p class="compact-copy">输出可能比分、胜平负倾向、让球方向和主要风险。</p>
+        </div>
+        <div class="member-card">
+          <span class="lock-badge">AI 复核</span>
+          <h3>ChatGPT 分析</h3>
+          <p class="compact-copy">结合赔率、阵容、心理和模型结果，生成一版可读的赛前复核。</p>
+        </div>
+        <div class="member-card locked">
+          <span class="lock-badge">会员访问码</span>
+          <h3>私密更新</h3>
+          <p class="compact-copy">支付后生成访问码，后续可扩展为会员专属日报和历史报告。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="daily-brief">
+      <div class="section-title">
+        <div>
+          <h2>今日公开样例</h2>
+          <p>免费页面只展示部分摘要。完整组合、AI 复核和更细的风险参数放到会员区。</p>
         </div>
       </div>
       <div class="grid cols-3" id="summaryCards"></div>
@@ -558,8 +748,8 @@
     <section>
       <div class="section-title">
         <div>
-          <h2>小组预测</h2>
-          <p>排名展示每组预估顺位、晋级概率、爆冷风险和阵容状态。第三名的晋级概率按 12 组中 8 个最好第三的赛制近似处理。</p>
+          <h2>小组出线预测</h2>
+          <p>展示每组预估顺位、出线概率和冷门风险。会员版可查看完整单队路径和每轮关键比赛。</p>
         </div>
       </div>
       <div class="groups" id="groups"></div>
@@ -568,8 +758,8 @@
     <section>
       <div class="section-title">
         <div>
-          <h2>黑马 Skills 重点分析</h2>
-          <p>这里的黑马评分不使用历届爆冷结果，而是按赛前球探维度拆解：阵容强度、打法克制、磨合程度、更衣室稳定、近期状态、伤停可用性。</p>
+          <h2>黑马观察名单</h2>
+          <p>展示最可能扰动小组格局的球队。详细参数不作为公开卖点展示，只保留用户能理解的克制点和风险点。</p>
         </div>
       </div>
       <div class="grid cols-3" id="blackhorseFocus"></div>
@@ -578,17 +768,17 @@
     <section>
       <div class="section-title">
         <div>
-          <h2>爆冷雷达</h2>
-          <p>爆冷指数重点看“阵容真实强度高于排名、打法能克制热门、球队磨合稳定、当前伤停可控”。指数越高，越像能在单场制造麻烦的球队。</p>
+          <h2>冷门风险提醒</h2>
+          <p>公开页只展示可读结论。会员报告会给出更完整的赔率错配、阵容状态和临场风险变化。</p>
         </div>
       </div>
       <div class="grid cols-2">
         <div class="card">
-          <h3>最值得防范的冷门</h3>
+          <h3>公开冷门样例</h3>
           <div class="upset-list" id="upsets"></div>
         </div>
         <div class="card">
-          <h3>历届黑马启发，不参与评分</h3>
+          <h3>会员版解锁内容</h3>
           <div class="upset-list" id="historyUpsets"></div>
         </div>
       </div>
@@ -597,8 +787,8 @@
     <section>
       <div class="section-title">
         <div>
-          <h2>球队状态画像</h2>
-          <p>这里保留和足球直接相关的判断：FIFA 排名、阵容厚度、近期状态、打法克制、磨合稳定、伤停可用性和心理压力。</p>
+          <h2>球队状态库</h2>
+          <p>免费版展示摘要。会员版用于组合报告、单场比分、让球方向和 AI 复核。</p>
         </div>
         <select id="teamSort" aria-label="球队排序">
           <option value="rating">按综合评分</option>
@@ -613,8 +803,8 @@
     <section>
       <div class="section-title">
         <div>
-          <h2>两队对比</h2>
-          <p>选择两支球队，查看胜率倾向、阵容状态、打法错位和比赛叙事。适合做单场赛前判断。</p>
+          <h2>免费单场对比</h2>
+          <p>选择两支球队查看基础倾向。会员版会叠加赔率、阵容状态、情绪和临场风险。</p>
         </div>
       </div>
       <div class="card">
@@ -629,8 +819,8 @@
     <section>
       <div class="section-title">
         <div>
-          <h2>对决比分与让球建议</h2>
-          <p>基于双方实力、黑马分、打法错位和小组赛方差，估算可能比分、胜平负、让球胜平负。适合赛前做单场盘口拆解。</p>
+          <h2>会员单场报告样例</h2>
+          <p>展示可能比分、胜平负倾向和让球方向。正式会员报告会结合当天真实赔率和临场阵容更新。</p>
         </div>
       </div>
       <div class="card">
@@ -652,8 +842,8 @@
     <section>
       <div class="section-title">
         <div>
-          <h2>AI 情绪与心理判断</h2>
-          <p>从球队压力、阵容稳定、舆论热度、市场赔率倾向和爆冷心理窗口判断比赛情绪。当前为内置推理模型，后续可接新闻、社媒和赔率异动数据。</p>
+          <h2>心理与市场热度</h2>
+          <p>把热门压力、弱队冲击意愿、赔率热度和防冷窗口转成可读提醒。</p>
         </div>
       </div>
       <div class="card">
@@ -668,11 +858,11 @@
       </div>
     </section>
 
-    <section>
+    <section id="ai-engine">
       <div class="section-title">
         <div>
-          <h2>核心 AI 组合引擎</h2>
-          <p>把官方公开赔率或你拿到的赔率按行输入，系统会同时生成稳健覆盖组合和高赔率风险组合。核心输出是命中覆盖率、回报区间、EV、阵容克制、心理窗口和判罚尺度波动。</p>
+          <h2>会员每日组合引擎</h2>
+          <p>输入当天赔率后，系统生成“稳健观察”和“高赔率风险”两类报告。公开页展示样例，会员版提供完整结论和 AI 复核。</p>
         </div>
       </div>
       <div class="card">
@@ -687,15 +877,15 @@
         </div>
         <div class="compare" id="coreEnginePanel"></div>
         <div class="compare" id="comboPanel"></div>
-        <p class="footer-note">数据接入口径：国内官方赔率建议通过后端服务接入合规数据源、授权数据服务或人工导入，不建议前端直接抓取页面。系统只做数据分析与风险模拟，不提供交易、代购或资金撮合。</p>
+        <p class="footer-note">数据接入口径：建议通过后端服务接入合规数据源、授权数据服务或人工导入。系统只做数据分析与风险模拟，不提供交易、代购或资金撮合。</p>
       </div>
     </section>
 
     <section>
       <div class="section-title">
         <div>
-          <h2>ChatGPT 预测助手</h2>
-          <p>把当前赔率、稳健组合、高赔率风险、单场比分和情绪判断交给后端 AI 模型复核。API key 只放后端，不会暴露在公开网页里。</p>
+          <h2>ChatGPT 会员复核</h2>
+          <p>会员可把当前赔率、组合报告、单场比分和心理热度交给后端 AI 模型复核。API key 只放后端，不会暴露在公开网页里。</p>
         </div>
       </div>
       <div class="card">
@@ -711,8 +901,8 @@
     <section>
       <div class="section-title">
         <div>
-          <h2>赔率价值与风险模拟</h2>
-          <p>输入当天盘口赔率，工具会把赔率换成隐含概率，并和模型概率比较。只有出现正期望值且优势足够时，才给出保守的模拟资金占比。</p>
+          <h2>赔率价值样例</h2>
+          <p>把赔率换成隐含概率，并和模型概率比较。会员版会输出完整风险等级和不建议项。</p>
         </div>
       </div>
       <div class="card">
@@ -728,15 +918,15 @@
           <input id="bankroll" type="number" value="1000" min="0" step="10" aria-label="本金">
         </div>
         <div class="compare" id="bettingPanel"></div>
-        <p class="footer-note">风控口径：模拟资金占比采用 15% Kelly，并封顶本金 2.5%。任何负 EV、优势不足或信息不完整的盘口，默认暂不纳入观察。</p>
+        <p class="footer-note">风控口径：风险观察比例采用保守 Kelly 口径，并设置上限。任何负 EV、优势不足或信息不完整的方向，默认暂不纳入观察。</p>
       </div>
     </section>
 
-    <section>
+    <section id="membership">
       <div class="section-title">
         <div>
-          <h2>会员支付解锁</h2>
-          <p>开通后解锁高级赔率分析、风险模拟和私密更新。支付成功后会生成访问码，访问码可保存到本机浏览器。</p>
+          <h2>开通会员</h2>
+          <p>开通后解锁每日组合报告、AI 复核、单场比分与风险提醒。支付成功后会生成访问码，访问码可保存到本机浏览器。</p>
         </div>
       </div>
       <div class="card">
@@ -1337,11 +1527,17 @@
         </div>
       `).join("");
 
-      document.getElementById("historyUpsets").innerHTML = historyUpsets.map(x => `
+      const memberUnlocks = [
+        ["完整每日报告", "稳健组合、高赔率风险、不建议项和风险等级一次性整理。"],
+        ["临场复核", "阵容变化、赔率异动和心理热度会进入会员版更新口径。"],
+        ["AI 二次解释", "把模型结果转成清晰中文，不展示冗长内部计算过程。"],
+        ["访问码体系", "支付成功后生成会员访问码，后续可接入日报和历史报告。"]
+      ];
+      document.getElementById("historyUpsets").innerHTML = memberUnlocks.map(([title, desc]) => `
         <div class="upset-item">
           <div>
-            <b>${x.year} · ${x.match}</b>
-            <p class="muted" style="margin:6px 0 0;">${x.lesson}</p>
+            <b>${title}</b>
+            <p class="muted" style="margin:6px 0 0;">${desc}</p>
           </div>
         </div>
       `).join("");
@@ -1605,7 +1801,7 @@
           <h3>EV 与风险模拟</h3>
           <div class="metric"><span>期望值 EV</span><b class="${cls}">${(ev * 100).toFixed(1)}%</b></div>
           <div class="metric"><span>概率优势</span><b>${(edge * 100).toFixed(1)} 个百分点</b></div>
-          <div class="metric"><span>模拟资金占比</span><b>${(stakePct * 100).toFixed(2)}% 本金，约 ${stake.toFixed(0)}</b></div>
+          <div class="metric"><span>风险观察比例</span><b>${(stakePct * 100).toFixed(2)}% 权重，参考值 ${stake.toFixed(0)}</b></div>
           <p class="muted">${note}</p>
         </div>
       `;
@@ -1764,19 +1960,19 @@
         .slice(0, 5);
       panel.innerHTML = `
         <div class="compare-box">
-          <h3>稳健覆盖组合</h3>
+          <h3>稳健观察报告</h3>
           <div class="upset-list">${portfolios.map(p => `
             <div class="upset-item">
               <div><b>${setText(p.a)} 串 ${setText(p.b)}</b>
-              <p class="muted" style="margin:6px 0 0;">${verdictPortfolio(p)} · 覆盖率 ${(p.coverage * 100).toFixed(1)}% · ${p.comboCount} 注拆分 · 单注模拟 ${p.unit.toFixed(0)} · 回报区间 ${p.minReturn.toFixed(0)}-${p.maxReturn.toFixed(0)} · EV ${p.ev.toFixed(0)}</p></div>
+              <p class="muted" style="margin:6px 0 0;">${verdictPortfolio(p)} · 覆盖率 ${(p.coverage * 100).toFixed(1)}% · ${p.comboCount} 个观察方向 · 回报区间 ${p.minReturn.toFixed(0)}-${p.maxReturn.toFixed(0)} · 风险值 ${Math.max(1, Math.round(100 - p.coverage * 100))}</p></div>
             </div>`).join("") || `<p class="muted">当前赔率里没有形成足够清晰的覆盖组合。</p>`}</div>
         </div>
         <div class="compare-box">
-          <h3>高赔率风险组合</h3>
+          <h3>高赔率风险报告</h3>
           <div class="upset-list">${riskPicks.map(p => `
             <div class="upset-item">
               <div><b>${zh(p.match.home.name)} vs ${zh(p.match.away.name)}：${p.label}</b>
-              <p class="muted" style="margin:6px 0 0;">赔率 ${p.odds.toFixed(2)} · 模型 ${(p.p * 100).toFixed(1)}% · 冷门窗口 ${p.cold.toFixed(0)} · 判罚尺度波动 ${p.refVar.toFixed(0)} · 适合小比例研究。</p></div>
+              <p class="muted" style="margin:6px 0 0;">赔率 ${p.odds.toFixed(2)} · 模型 ${(p.p * 100).toFixed(1)}% · 冷门窗口 ${p.cold.toFixed(0)} · 市场波动 ${p.refVar.toFixed(0)} · 仅作风险观察。</p></div>
             </div>`).join("") || `<p class="muted">暂无值得重点观察的高赔率方向。</p>`}</div>
         </div>
       `;
@@ -1874,22 +2070,22 @@
       const highStake = bankroll * (highCombo.ev > 0 ? .01 : .004);
       document.getElementById("comboPanel").innerHTML = `
         <div class="compare-box">
-          <h3>稳健观察组合</h3>
+          <h3>稳健观察</h3>
           <div class="upset-list">${safeSingles.map(p => `
             <div class="upset-item">
               <div><b>${zh(p.match.home.name)} vs ${zh(p.match.away.name)}：${p.label}</b>
               <p class="muted" style="margin:6px 0 0;">赔率 ${p.odds.toFixed(2)} · 模型 ${(p.p * 100).toFixed(1)}% · EV ${(p.ev * 100).toFixed(1)}%</p></div>
             </div>`).join("") || `<p class="muted">今天没有足够稳健的方向，建议降低观察频率。</p>`}</div>
-          <p class="muted"><b>2 串参考：</b>${safeComboPicks.map(p => `${zh(p.match.home.name)}vs${zh(p.match.away.name)} ${p.label}`).join(" + ") || "无"}；组合赔率 ${safeCombo.odds.toFixed(2)}，模拟资金约 ${safeStake.toFixed(0)}。</p>
+          <p class="muted"><b>组合摘要：</b>${safeComboPicks.map(p => `${zh(p.match.home.name)}vs${zh(p.match.away.name)} ${p.label}`).join(" + ") || "无"}；组合赔率 ${safeCombo.odds.toFixed(2)}，建议风险等级 ${safeCombo.ev > 0 ? "中低" : "中"}。</p>
         </div>
         <div class="compare-box">
-          <h3>高赔率观察方向</h3>
+          <h3>高赔率观察</h3>
           <div class="upset-list">${highOdds.map(p => `
             <div class="upset-item">
               <div><b>${zh(p.match.home.name)} vs ${zh(p.match.away.name)}：${p.label}</b>
               <p class="muted" style="margin:6px 0 0;">赔率 ${p.odds.toFixed(2)} · 模型 ${(p.p * 100).toFixed(1)}% · EV ${(p.ev * 100).toFixed(1)}%。适合小比例研究，不适合作为核心判断。</p></div>
             </div>`).join("") || `<p class="muted">没有发现可接受的高赔率方向。</p>`}</div>
-          <p class="muted"><b>小比例组合：</b>${highComboPicks.map(p => `${zh(p.match.home.name)}vs${zh(p.match.away.name)} ${p.label}`).join(" + ") || "无"}；组合赔率 ${highCombo.odds.toFixed(2)}，模拟资金约 ${highStake.toFixed(0)}。</p>
+          <p class="muted"><b>风险摘要：</b>${highComboPicks.map(p => `${zh(p.match.home.name)}vs${zh(p.match.away.name)} ${p.label}`).join(" + ") || "无"}；组合赔率 ${highCombo.odds.toFixed(2)}，建议风险等级 ${highCombo.ev > 0 ? "高" : "很高"}。</p>
           <p class="muted">同一场比赛的胜/平/负是互斥结果，只能作为单独候选，系统不会把它们放进同一个串关组合。</p>
         </div>
       `;
@@ -2085,7 +2281,29 @@
     els.createOrderBtn.addEventListener("click", createPaymentOrder);
     els.checkAccessBtn.addEventListener("click", checkAccess);
     els.accessTokenInput.value = localStorage.getItem("worldcup_access_token") || "";
-    Object.values(els).forEach(el => el.addEventListener("input", renderAll));
+    [
+      els.wStrength,
+      els.wEconomy,
+      els.wHistory,
+      els.wUpset,
+      els.groupSelect,
+      els.teamSort,
+      els.teamA,
+      els.teamB,
+      els.matchHome,
+      els.matchAway,
+      els.handicapLine,
+      els.emotionHome,
+      els.emotionAway,
+      els.emotionHomeOdds,
+      els.emotionDrawOdds,
+      els.emotionAwayOdds,
+      els.betTeam,
+      els.betMarket,
+      els.betOdds,
+      els.bankroll
+    ].forEach(el => el.addEventListener("input", renderAll));
+    [els.todayOddsInput, els.comboBankroll].forEach(el => el.addEventListener("input", renderCombos));
     renderAll();
     if (els.accessTokenInput.value) checkAccess();
   </script>
