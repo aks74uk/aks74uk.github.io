@@ -225,6 +225,90 @@
       color: var(--field-dark);
     }
 
+    .schedule-box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 10px 24px rgba(32, 44, 38, .07);
+      overflow: hidden;
+    }
+
+    .schedule-box > summary {
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      padding: 16px 18px;
+      font-weight: 950;
+      list-style: none;
+    }
+
+    .schedule-box > summary::-webkit-details-marker { display: none; }
+
+    .schedule-box > summary span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .schedule-inner {
+      border-top: 1px solid var(--line);
+      padding: 16px;
+    }
+
+    .schedule-list {
+      display: grid;
+      gap: 10px;
+      max-height: 520px;
+      overflow: auto;
+      padding-right: 4px;
+      margin-top: 14px;
+    }
+
+    .match-row {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .match-title {
+      font-weight: 950;
+      font-size: 16px;
+      line-height: 1.35;
+    }
+
+    .match-sub {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+      margin-top: 4px;
+    }
+
+    .match-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .odds-preview {
+      grid-column: 1 / -1;
+      border-top: 1px dashed var(--line);
+      padding-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+      display: none;
+    }
+
+    .match-row.open .odds-preview { display: block; }
+
     .control-panel h2,
     .section-title h2,
     .card h3 {
@@ -748,6 +832,38 @@
     <section>
       <div class="section-title">
         <div>
+          <h2>世界杯完整赛程</h2>
+          <p>全部 104 场比赛已换算为北京时间。点击展开后可筛选阶段、搜索球队，并一键进入单场分析或模型赔率测算。</p>
+        </div>
+      </div>
+      <details class="schedule-box">
+        <summary>
+          <b>查看全部赛程与北京时间</b>
+          <span>小组赛 72 场 · 淘汰赛 32 场 · 默认收起</span>
+        </summary>
+        <div class="schedule-inner">
+          <div class="toolbar">
+            <select id="scheduleRound" aria-label="赛程阶段">
+              <option value="ALL">全部阶段</option>
+              <option value="Group Stage">小组赛</option>
+              <option value="Round of 32">32 强</option>
+              <option value="Round of 16">16 强</option>
+              <option value="Quarter-final">1/4 决赛</option>
+              <option value="Semi-final">半决赛</option>
+              <option value="Third-place">三四名决赛</option>
+              <option value="Final">决赛</option>
+            </select>
+            <input id="scheduleSearch" type="text" placeholder="搜索球队/场馆/场次" aria-label="搜索赛程">
+          </div>
+          <div class="schedule-list" id="scheduleList"></div>
+          <p class="footer-note">时间来源：赛程页结构化数据提供 UTC 开球时间，本页面统一换算为北京时间 UTC+8。赔率测算为模型公允赔率，不等于官方实际赔率；实际观察前请以合规数据源的实时赔率为准。</p>
+        </div>
+      </details>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <div>
           <h2>小组出线预测</h2>
           <p>展示每组预估顺位、出线概率和冷门风险。会员版可查看完整单队路径和每轮关键比赛。</p>
         </div>
@@ -1043,6 +1159,8 @@
       {match: "德国连续 2018、2022 小组出局", year: "2018/2022", lesson: "传统强队若终结效率低，小组赛容错非常薄。"}
     ];
 
+    const scheduleRaw = [[1,"Mexico vs South Africa","2026-06-11T19:00:00+00:00","Estadio Azteca","Mexico City","MX"],[2,"South Korea vs Czech Republic","2026-06-12T02:00:00+00:00","Estadio Akron","Guadalajara","MX"],[3,"Canada vs Bosnia and Herzegovina","2026-06-12T19:00:00+00:00","BMO Field","Toronto","CA"],[4,"United States vs Paraguay","2026-06-13T01:00:00+00:00","SoFi Stadium","Los Angeles","US"],[5,"Haiti vs Scotland","2026-06-14T01:00:00+00:00","Gillette Stadium","Boston","US"],[6,"Australia vs Turkey","2026-06-14T04:00:00+00:00","BC Place","Vancouver","CA"],[7,"Brazil vs Morocco","2026-06-13T22:00:00+00:00","MetLife Stadium","New York / New Jersey","US"],[8,"Qatar vs Switzerland","2026-06-13T19:00:00+00:00","Levi's Stadium","San Francisco Bay Area","US"],[9,"Ivory Coast vs Ecuador","2026-06-14T23:00:00+00:00","Lincoln Financial Field","Philadelphia","US"],[10,"Germany vs Curaçao","2026-06-14T17:00:00+00:00","NRG Stadium","Houston","US"],[11,"Netherlands vs Japan","2026-06-14T20:00:00+00:00","AT&T Stadium","Dallas","US"],[12,"Sweden vs Tunisia","2026-06-15T02:00:00+00:00","Estadio BBVA","Monterrey","MX"],[13,"Saudi Arabia vs Uruguay","2026-06-15T22:00:00+00:00","Hard Rock Stadium","Miami","US"],[14,"Spain vs Cape Verde","2026-06-15T16:00:00+00:00","Mercedes-Benz Stadium","Atlanta","US"],[15,"Iran vs New Zealand","2026-06-16T01:00:00+00:00","SoFi Stadium","Los Angeles","US"],[16,"Belgium vs Egypt","2026-06-15T19:00:00+00:00","Lumen Field","Seattle","US"],[17,"France vs Senegal","2026-06-16T19:00:00+00:00","MetLife Stadium","New York / New Jersey","US"],[18,"Iraq vs Norway","2026-06-16T22:00:00+00:00","Gillette Stadium","Boston","US"],[19,"Argentina vs Algeria","2026-06-17T01:00:00+00:00","Arrowhead Stadium","Kansas City","US"],[20,"Austria vs Jordan","2026-06-17T04:00:00+00:00","Levi's Stadium","San Francisco Bay Area","US"],[21,"Ghana vs Panama","2026-06-17T23:00:00+00:00","BMO Field","Toronto","CA"],[22,"England vs Croatia","2026-06-17T20:00:00+00:00","AT&T Stadium","Dallas","US"],[23,"Portugal vs DR Congo","2026-06-17T17:00:00+00:00","NRG Stadium","Houston","US"],[24,"Uzbekistan vs Colombia","2026-06-18T02:00:00+00:00","Estadio Azteca","Mexico City","MX"],[25,"Czech Republic vs South Africa","2026-06-18T16:00:00+00:00","Mercedes-Benz Stadium","Atlanta","US"],[26,"Switzerland vs Bosnia and Herzegovina","2026-06-18T19:00:00+00:00","SoFi Stadium","Los Angeles","US"],[27,"Canada vs Qatar","2026-06-18T22:00:00+00:00","BC Place","Vancouver","CA"],[28,"Mexico vs South Korea","2026-06-19T01:00:00+00:00","Estadio Akron","Guadalajara","MX"],[29,"Brazil vs Haiti","2026-06-20T01:00:00+00:00","Lincoln Financial Field","Philadelphia","US"],[30,"Scotland vs Morocco","2026-06-19T22:00:00+00:00","Gillette Stadium","Boston","US"],[31,"Turkey vs Paraguay","2026-06-20T03:00:00+00:00","Levi's Stadium","San Francisco Bay Area","US"],[32,"United States vs Australia","2026-06-19T19:00:00+00:00","Lumen Field","Seattle","US"],[33,"Germany vs Ivory Coast","2026-06-20T20:00:00+00:00","BMO Field","Toronto","CA"],[34,"Ecuador vs Curaçao","2026-06-21T00:00:00+00:00","Arrowhead Stadium","Kansas City","US"],[35,"Netherlands vs Sweden","2026-06-20T17:00:00+00:00","NRG Stadium","Houston","US"],[36,"Tunisia vs Japan","2026-06-21T04:00:00+00:00","Estadio BBVA","Monterrey","MX"],[37,"Uruguay vs Cape Verde","2026-06-21T22:00:00+00:00","Hard Rock Stadium","Miami","US"],[38,"Spain vs Saudi Arabia","2026-06-21T16:00:00+00:00","Mercedes-Benz Stadium","Atlanta","US"],[39,"Belgium vs Iran","2026-06-21T19:00:00+00:00","SoFi Stadium","Los Angeles","US"],[40,"New Zealand vs Egypt","2026-06-22T01:00:00+00:00","BC Place","Vancouver","CA"],[41,"Norway vs Senegal","2026-06-23T00:00:00+00:00","MetLife Stadium","New York / New Jersey","US"],[42,"France vs Iraq","2026-06-22T21:00:00+00:00","Lincoln Financial Field","Philadelphia","US"],[43,"Argentina vs Austria","2026-06-22T17:00:00+00:00","AT&T Stadium","Dallas","US"],[44,"Jordan vs Algeria","2026-06-23T03:00:00+00:00","Levi's Stadium","San Francisco Bay Area","US"],[45,"England vs Ghana","2026-06-23T20:00:00+00:00","Gillette Stadium","Boston","US"],[46,"Panama vs Croatia","2026-06-23T23:00:00+00:00","BMO Field","Toronto","CA"],[47,"Portugal vs Uzbekistan","2026-06-23T17:00:00+00:00","NRG Stadium","Houston","US"],[48,"Colombia vs DR Congo","2026-06-24T02:00:00+00:00","Estadio Akron","Guadalajara","MX"],[49,"Scotland vs Brazil","2026-06-24T22:00:00+00:00","Hard Rock Stadium","Miami","US"],[50,"Morocco vs Haiti","2026-06-24T22:00:00+00:00","Mercedes-Benz Stadium","Atlanta","US"],[51,"Switzerland vs Canada","2026-06-24T19:00:00+00:00","BC Place","Vancouver","CA"],[52,"Bosnia and Herzegovina vs Qatar","2026-06-24T19:00:00+00:00","Lumen Field","Seattle","US"],[53,"Czech Republic vs Mexico","2026-06-25T01:00:00+00:00","Estadio Azteca","Mexico City","MX"],[54,"South Africa vs South Korea","2026-06-25T01:00:00+00:00","Estadio BBVA","Monterrey","MX"],[55,"Curaçao vs Ivory Coast","2026-06-25T20:00:00+00:00","Lincoln Financial Field","Philadelphia","US"],[56,"Ecuador vs Germany","2026-06-25T20:00:00+00:00","MetLife Stadium","New York / New Jersey","US"],[57,"Japan vs Sweden","2026-06-25T23:00:00+00:00","AT&T Stadium","Dallas","US"],[58,"Tunisia vs Netherlands","2026-06-25T23:00:00+00:00","Arrowhead Stadium","Kansas City","US"],[59,"Turkey vs United States","2026-06-26T02:00:00+00:00","SoFi Stadium","Los Angeles","US"],[60,"Paraguay vs Australia","2026-06-26T02:00:00+00:00","Levi's Stadium","San Francisco Bay Area","US"],[61,"Norway vs France","2026-06-26T19:00:00+00:00","Gillette Stadium","Boston","US"],[62,"Senegal vs Iraq","2026-06-26T19:00:00+00:00","BMO Field","Toronto","CA"],[63,"Egypt vs Iran","2026-06-27T03:00:00+00:00","Lumen Field","Seattle","US"],[64,"New Zealand vs Belgium","2026-06-27T03:00:00+00:00","BC Place","Vancouver","CA"],[65,"Cape Verde vs Saudi Arabia","2026-06-27T00:00:00+00:00","NRG Stadium","Houston","US"],[66,"Uruguay vs Spain","2026-06-27T00:00:00+00:00","Estadio Akron","Guadalajara","MX"],[67,"Panama vs England","2026-06-27T21:00:00+00:00","MetLife Stadium","New York / New Jersey","US"],[68,"Croatia vs Ghana","2026-06-27T21:00:00+00:00","Lincoln Financial Field","Philadelphia","US"],[69,"Algeria vs Austria","2026-06-28T02:00:00+00:00","Arrowhead Stadium","Kansas City","US"],[70,"Jordan vs Argentina","2026-06-28T02:00:00+00:00","AT&T Stadium","Dallas","US"],[71,"Colombia vs Portugal","2026-06-27T23:30:00+00:00","Hard Rock Stadium","Miami","US"],[72,"DR Congo vs Uzbekistan","2026-06-27T23:30:00+00:00","Mercedes-Benz Stadium","Atlanta","US"],[73,"Group A runners-up vs Group B runners-up","2026-06-28T19:00:00+00:00","SoFi Stadium","Los Angeles","US"],[74,"Group E winners vs Group A/B/C/D/F third place","2026-06-29T20:30:00+00:00","Gillette Stadium","Boston","US"],[75,"Group F winners vs Group C runners-up","2026-06-30T01:00:00+00:00","Estadio BBVA","Monterrey","MX"],[76,"Group C winners vs Group F runners-up","2026-06-29T17:00:00+00:00","NRG Stadium","Houston","US"],[77,"Group I winners vs Group C/D/F/G/H third place","2026-06-30T21:00:00+00:00","MetLife Stadium","New York / New Jersey","US"],[78,"Group E runners-up vs Group I runners-up","2026-06-30T17:00:00+00:00","AT&T Stadium","Dallas","US"],[79,"Group A winners vs Group C/E/F/H/I third place","2026-07-01T01:00:00+00:00","Estadio Azteca","Mexico City","MX"],[80,"Group L winners vs Group E/H/I/J/K third place","2026-07-01T16:00:00+00:00","Mercedes-Benz Stadium","Atlanta","US"],[81,"Group D winners vs Group B/E/F/I/J third place","2026-07-02T00:00:00+00:00","Levi's Stadium","San Francisco Bay Area","US"],[82,"Group G winners vs Group A/E/H/I/J third place","2026-07-01T20:00:00+00:00","Lumen Field","Seattle","US"],[83,"Group K runners-up vs Group L runners-up","2026-07-02T23:00:00+00:00","BMO Field","Toronto","CA"],[84,"Group H winners vs Group J runners-up","2026-07-02T19:00:00+00:00","SoFi Stadium","Los Angeles","US"],[85,"Group B winners vs Group E/F/G/I/J third place","2026-07-03T03:00:00+00:00","BC Place","Vancouver","CA"],[86,"Group J winners vs Group H runners-up","2026-07-03T22:00:00+00:00","Hard Rock Stadium","Miami","US"],[87,"Group K winners vs Group D/E/I/J/L third place","2026-07-04T01:30:00+00:00","Arrowhead Stadium","Kansas City","US"],[88,"Group D runners-up vs Group G runners-up","2026-07-03T18:00:00+00:00","AT&T Stadium","Dallas","US"],[89,"Winner Match 74 vs Winner Match 77","2026-07-04T21:00:00+00:00","Lincoln Financial Field","Philadelphia","US"],[90,"Winner Match 73 vs Winner Match 75","2026-07-04T17:00:00+00:00","NRG Stadium","Houston","US"],[91,"Winner Match 76 vs Winner Match 78","2026-07-05T20:00:00+00:00","MetLife Stadium","New York / New Jersey","US"],[92,"Winner Match 79 vs Winner Match 80","2026-07-06T00:00:00+00:00","Estadio Azteca","Mexico City","MX"],[93,"Winner Match 83 vs Winner Match 84","2026-07-06T19:00:00+00:00","AT&T Stadium","Dallas","US"],[94,"Winner Match 81 vs Winner Match 82","2026-07-07T00:00:00+00:00","Lumen Field","Seattle","US"],[95,"Winner Match 86 vs Winner Match 88","2026-07-07T16:00:00+00:00","Mercedes-Benz Stadium","Atlanta","US"],[96,"Winner Match 85 vs Winner Match 87","2026-07-07T20:00:00+00:00","BC Place","Vancouver","CA"],[97,"Winner Match 89 vs Winner Match 90","2026-07-09T20:00:00+00:00","Gillette Stadium","Boston","US"],[98,"Winner Match 93 vs Winner Match 94","2026-07-10T19:00:00+00:00","SoFi Stadium","Los Angeles","US"],[99,"Winner Match 91 vs Winner Match 92","2026-07-11T21:00:00+00:00","Hard Rock Stadium","Miami","US"],[100,"Winner Match 95 vs Winner Match 96","2026-07-12T01:00:00+00:00","Arrowhead Stadium","Kansas City","US"],[101,"Winner Match 97 vs Winner Match 98","2026-07-14T19:00:00+00:00","AT&T Stadium","Dallas","US"],[102,"Winner Match 99 vs Winner Match 100","2026-07-15T19:00:00+00:00","Mercedes-Benz Stadium","Atlanta","US"],[103,"Loser Match 101 vs Loser Match 102","2026-07-18T21:00:00+00:00","Hard Rock Stadium","Miami","US"],[104,"Winner Match 101 vs Winner Match 102","2026-07-19T19:00:00+00:00","MetLife Stadium","New York / New Jersey","US"]];
+
     const zhNames = {
       Argentina: "阿根廷",
       France: "法国",
@@ -1097,6 +1215,14 @@
     function zh(name) {
       return zhNames[name] || name;
     }
+
+    const teamAliases = {
+      "Czech Republic": "Czechia",
+      "Curaçao": "Curacao",
+      "Curacao": "Curacao",
+      "DR Congo": "DR Congo",
+      "Bosnia & Herzegovina": "Bosnia and Herzegovina"
+    };
 
     const scouting = {
       Japan: {
@@ -1197,6 +1323,8 @@
       analyzeCombosBtn: document.getElementById("analyzeCombosBtn"),
       aiQuestion: document.getElementById("aiQuestion"),
       askAiBtn: document.getElementById("askAiBtn"),
+      scheduleRound: document.getElementById("scheduleRound"),
+      scheduleSearch: document.getElementById("scheduleSearch"),
       betTeam: document.getElementById("betTeam"),
       betMarket: document.getElementById("betMarket"),
       betOdds: document.getElementById("betOdds"),
@@ -1333,6 +1461,146 @@
 
     function scoreText(score) {
       return `${score.h}-${score.a}`;
+    }
+
+    function scheduleRoundName(no) {
+      if (no <= 72) return "Group Stage";
+      if (no <= 88) return "Round of 32";
+      if (no <= 96) return "Round of 16";
+      if (no <= 100) return "Quarter-final";
+      if (no <= 102) return "Semi-final";
+      if (no === 103) return "Third-place";
+      return "Final";
+    }
+
+    function roundZh(round) {
+      return {
+        "Group Stage": "小组赛",
+        "Round of 32": "32 强",
+        "Round of 16": "16 强",
+        "Quarter-final": "1/4 决赛",
+        "Semi-final": "半决赛",
+        "Third-place": "三四名决赛",
+        "Final": "决赛"
+      }[round] || round;
+    }
+
+    function beijingTime(iso) {
+      return new Intl.DateTimeFormat("zh-CN", {
+        timeZone: "Asia/Shanghai",
+        month: "2-digit",
+        day: "2-digit",
+        weekday: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }).format(new Date(iso));
+    }
+
+    function translateSlot(text) {
+      return String(text)
+        .replace(/Group ([A-L]) winners/g, "$1组第1")
+        .replace(/Group ([A-L]) runners-up/g, "$1组第2")
+        .replace(/Group ([A-L])\/([A-L])\/([A-L])\/([A-L])\/([A-L]) third place/g, "$1/$2/$3/$4/$5组第3")
+        .replace(/Group ([A-L])\/([A-L])\/([A-L])\/([A-L]) third place/g, "$1/$2/$3/$4组第3")
+        .replace(/Winner Match (\d+)/g, "第$1场胜者")
+        .replace(/Loser Match (\d+)/g, "第$1场负者");
+    }
+
+    function scheduleTeams(rawName) {
+      const [left = "", right = ""] = rawName.split(" vs ");
+      return { left, right, home: teamFromAnyName(left), away: teamFromAnyName(right) };
+    }
+
+    function scheduleLabel(item) {
+      const { left, right, home, away } = scheduleTeams(item.name);
+      if (home && away) return `${teamByName[home.name].flag} ${zh(home.name)} vs ${teamByName[away.name].flag} ${zh(away.name)}`;
+      return `${translateSlot(left)} vs ${translateSlot(right)}`;
+    }
+
+    function scheduleVenue(item) {
+      return `${item.venue} · ${item.city}`;
+    }
+
+    function fairOdds(p) {
+      return Math.max(1.01, 1 / Math.max(.01, p));
+    }
+
+    function scheduleOddsPreview(item) {
+      const { home, away } = scheduleTeams(item.name);
+      if (!home || !away) return "淘汰赛对阵未完全确认，暂不生成赔率测算。";
+      const h = calcTeam(home);
+      const a = calcTeam(away);
+      const matrix = scoreMatrix(h, a);
+      const best = [
+        { label: `${zh(h.name)}胜`, p: matrix.homeWin, odds: fairOdds(matrix.homeWin) },
+        { label: "平局", p: matrix.draw, odds: fairOdds(matrix.draw) },
+        { label: `${zh(a.name)}胜`, p: matrix.awayWin, odds: fairOdds(matrix.awayWin) }
+      ].sort((x, y) => y.p - x.p);
+      const hcap = handicapProb(matrix, 0);
+      const topScores = matrix.scores.slice(0, 3).map(s => `${scoreText(s)} ${(s.p * 100).toFixed(1)}%`).join(" / ");
+      return [
+        `模型公允赔率：${zh(h.name)}胜 ${fairOdds(matrix.homeWin).toFixed(2)}，平 ${fairOdds(matrix.draw).toFixed(2)}，${zh(a.name)}胜 ${fairOdds(matrix.awayWin).toFixed(2)}。`,
+        `建议观察方式：优先看 ${best[0].label}，模型概率 ${(best[0].p * 100).toFixed(1)}%；平手盘方向 ${hcap.win >= hcap.lose ? zh(h.name) : zh(a.name)} 不败更稳。`,
+        `可能比分：${topScores}。实际赔率若高于模型公允赔率 3%-5% 以上，才进入价值观察；否则只做赛前分析。`
+      ].join(" ");
+    }
+
+    const worldCupSchedule = scheduleRaw.map(([no, name, startDate, venue, city, country]) => ({
+      no,
+      name,
+      startDate,
+      venue,
+      city,
+      country,
+      round: scheduleRoundName(no)
+    })).sort((a, b) => new Date(a.startDate) - new Date(b.startDate) || a.no - b.no);
+
+    function renderSchedule() {
+      const round = els.scheduleRound.value;
+      const query = String(els.scheduleSearch.value || "").trim().toLowerCase();
+      const rows = worldCupSchedule.filter(item => {
+        const hay = `${item.no} ${item.name} ${scheduleLabel(item)} ${item.venue} ${item.city} ${roundZh(item.round)}`.toLowerCase();
+        return (round === "ALL" || item.round === round) && (!query || hay.includes(query));
+      });
+      document.getElementById("scheduleList").innerHTML = rows.map(item => {
+        const { home, away } = scheduleTeams(item.name);
+        const canAnalyze = home && away;
+        return `
+          <article class="match-row" data-match-no="${item.no}">
+            <div>
+              <div class="match-title">第 ${item.no} 场 · ${scheduleLabel(item)}</div>
+              <div class="match-sub">${roundZh(item.round)} · 北京时间 ${beijingTime(item.startDate)} · ${scheduleVenue(item)}</div>
+            </div>
+            <div class="match-actions">
+              <button data-action="schedule-analyze" data-no="${item.no}" ${canAnalyze ? "" : "disabled"}>进入比赛分析预测</button>
+              <button data-action="schedule-odds" data-no="${item.no}" ${canAnalyze ? "" : "disabled"}>赔率精算</button>
+            </div>
+            <div class="odds-preview">${scheduleOddsPreview(item)}</div>
+          </article>
+        `;
+      }).join("") || `<p class="muted">没有匹配到赛程。</p>`;
+    }
+
+    function analyzeScheduleMatch(no) {
+      const item = worldCupSchedule.find(row => row.no === Number(no));
+      if (!item) return;
+      const { home, away } = scheduleTeams(item.name);
+      if (!home || !away) return;
+      els.matchHome.value = home.name;
+      els.matchAway.value = away.name;
+      els.emotionHome.value = home.name;
+      els.emotionAway.value = away.name;
+      els.betTeam.value = home.name;
+      renderMatchPanel();
+      renderEmotionPanel();
+      renderBetting();
+      document.getElementById("matchPanel").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function toggleScheduleOdds(no) {
+      const row = document.querySelector(`[data-match-no="${Number(no)}"]`);
+      if (row) row.classList.toggle("open");
     }
 
     function clashBoost(underName, favName) {
@@ -1808,7 +2076,7 @@
     }
 
     function teamFromAnyName(name) {
-      const clean = String(name || "").trim();
+      const clean = teamAliases[String(name || "").trim()] || String(name || "").trim();
       return teams.find(t => t.name.toLowerCase() === clean.toLowerCase() || zh(t.name) === clean) || null;
     }
 
@@ -2264,6 +2532,7 @@
       renderEmotionPanel();
       renderBetting();
       renderCombos();
+      renderSchedule();
       renderAnalysis();
     }
 
@@ -2278,6 +2547,14 @@
     els.fetchOddsBtn.addEventListener("click", fetchTodayOdds);
     els.analyzeCombosBtn.addEventListener("click", renderCombos);
     els.askAiBtn.addEventListener("click", askAiPredictor);
+    els.scheduleRound.addEventListener("input", renderSchedule);
+    els.scheduleSearch.addEventListener("input", renderSchedule);
+    document.getElementById("scheduleList").addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      if (button.dataset.action === "schedule-analyze") analyzeScheduleMatch(button.dataset.no);
+      if (button.dataset.action === "schedule-odds") toggleScheduleOdds(button.dataset.no);
+    });
     els.createOrderBtn.addEventListener("click", createPaymentOrder);
     els.checkAccessBtn.addEventListener("click", checkAccess);
     els.accessTokenInput.value = localStorage.getItem("worldcup_access_token") || "";
