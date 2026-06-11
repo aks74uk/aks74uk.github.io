@@ -1044,6 +1044,28 @@
       </div>
     </section>
 
+    <section id="daily-forecast">
+      <div class="section-title">
+        <div>
+          <h2>每日比赛预报</h2>
+          <p>选择日期后，系统按北京时间筛出当天赛程，结合赔率计算比分分布、不败覆盖、组合回报区间和风险等级。</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input id="dailyDate" type="date" aria-label="选择预报日期">
+          <input id="dailyBankroll" type="number" value="1000" min="0" step="10" aria-label="预报参考资金">
+          <button id="tomorrowForecastBtn">载入明天赛程</button>
+          <button id="fillForecastOddsBtn">用模型公允赔率填充</button>
+          <button class="primary" id="analyzeDailyForecastBtn">生成每日预报</button>
+        </div>
+        <textarea id="dailyOddsInput" aria-label="每日赔率输入" placeholder="格式：墨西哥 vs 南非 | 胜 1.55 平 4.10 负 6.20"></textarea>
+        <div class="compare" id="dailyForecastPanel"></div>
+        <div class="compare" id="dailyPortfolioPanel"></div>
+        <p class="footer-note">计算口径：不败方向等于胜平或平负两个互斥结果的覆盖组合；回报区间按等额分配到每个结果计算。该模块只做概率和风险研究，不构成投注指令或收益承诺。</p>
+      </div>
+    </section>
+
     <section>
       <div class="section-title">
         <div>
@@ -1372,6 +1394,12 @@
       comboBankroll: document.getElementById("comboBankroll"),
       fetchOddsBtn: document.getElementById("fetchOddsBtn"),
       analyzeCombosBtn: document.getElementById("analyzeCombosBtn"),
+      dailyDate: document.getElementById("dailyDate"),
+      dailyBankroll: document.getElementById("dailyBankroll"),
+      tomorrowForecastBtn: document.getElementById("tomorrowForecastBtn"),
+      fillForecastOddsBtn: document.getElementById("fillForecastOddsBtn"),
+      analyzeDailyForecastBtn: document.getElementById("analyzeDailyForecastBtn"),
+      dailyOddsInput: document.getElementById("dailyOddsInput"),
       aiQuestion: document.getElementById("aiQuestion"),
       askAiBtn: document.getElementById("askAiBtn"),
       scheduleRound: document.getElementById("scheduleRound"),
@@ -2176,6 +2204,209 @@
         .map(analyzeOneMatchOdds);
     }
 
+    function beijingDateKey(iso) {
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Shanghai",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(new Date(iso));
+      const map = Object.fromEntries(parts.map(part => [part.type, part.value]));
+      return `${map.year}-${map.month}-${map.day}`;
+    }
+
+    function addDateDays(dateKey, days) {
+      const date = dateKey ? new Date(`${dateKey}T00:00:00+08:00`) : new Date();
+      date.setUTCDate(date.getUTCDate() + days);
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Shanghai",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(date);
+      const map = Object.fromEntries(parts.map(part => [part.type, part.value]));
+      return `${map.year}-${map.month}-${map.day}`;
+    }
+
+    function tomorrowBeijingKey() {
+      return addDateDays(beijingDateKey(new Date().toISOString()), 1);
+    }
+
+    function scheduleForDate(dateKey) {
+      return worldCupSchedule.filter(item => beijingDateKey(item.startDate) === dateKey && scheduleTeams(item.name).home && scheduleTeams(item.name).away);
+    }
+
+    function oddsLineFromSchedule(item) {
+      const { home, away } = scheduleTeams(item.name);
+      if (!home || !away) return "";
+      const h = calcTeam(home);
+      const a = calcTeam(away);
+      const matrix = scoreMatrix(h, a);
+      return `${zh(h.name)} vs ${zh(a.name)} | 胜 ${fairOdds(matrix.homeWin).toFixed(2)} 平 ${fairOdds(matrix.draw).toFixed(2)} 负 ${fairOdds(matrix.awayWin).toFixed(2)}`;
+    }
+
+    function fillDailyOddsFromSchedule() {
+      const dateKey = els.dailyDate.value || tomorrowBeijingKey();
+      els.dailyDate.value = dateKey;
+      const rows = scheduleForDate(dateKey).map(oddsLineFromSchedule).filter(Boolean);
+      els.dailyOddsInput.value = rows.join("\n");
+      renderDailyForecast();
+    }
+
+    function oddsMatchKey(home, away) {
+      return [home.name, away.name].sort().join("|").toLowerCase();
+    }
+
+    function parsedDailyOdds() {
+      return els.dailyOddsInput.value
+        .split(/\n+/)
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(parseOddsLine)
+        .filter(Boolean)
+        .map(analyzeOneMatchOdds);
+    }
+
+    function scheduleItemForParsed(match) {
+      const key = oddsMatchKey(match.home, match.away);
+      return worldCupSchedule.find(item => {
+        const teams = scheduleTeams(item.name);
+        return teams.home && teams.away && oddsMatchKey(teams.home, teams.away) === key;
+      });
+    }
+
+    function outcomePick(match, key) {
+      return match.picks.find(p => p.key === key) || null;
+    }
+
+    function coverageSet(match, keys, label, angle) {
+      const items = keys.map(key => outcomePick(match, key)).filter(Boolean);
+      if (items.length !== keys.length) return null;
+      const coverage = items.reduce((sum, item) => sum + item.p, 0);
+      const unitExpected = items.reduce((sum, item) => sum + item.p * item.odds, 0);
+      const splitExpected = unitExpected / items.length;
+      const minReturnRatio = Math.min(...items.map(item => item.odds)) / items.length;
+      const maxReturnRatio = Math.max(...items.map(item => item.odds)) / items.length;
+      const edge = splitExpected - 1;
+      return {
+        match,
+        items,
+        keys,
+        label,
+        angle,
+        coverage,
+        splitExpected,
+        minReturnRatio,
+        maxReturnRatio,
+        edge,
+        score: coverage * 100 + Math.max(-18, Math.min(24, edge * 70)) + Math.min(18, minReturnRatio * 10)
+      };
+    }
+
+    function matchForecast(match) {
+      const matrix = match.matrix;
+      const sets = [
+        coverageSet(match, ["home", "draw"], `${zh(match.home.name)}不败`, "主队胜+平局"),
+        coverageSet(match, ["draw", "away"], `${zh(match.away.name)}不败`, "平局+客队胜"),
+        coverageSet(match, ["home"], `${zh(match.home.name)}胜`, "单选主胜"),
+        coverageSet(match, ["draw"], "平局", "单选平局"),
+        coverageSet(match, ["away"], `${zh(match.away.name)}胜`, "单选客胜")
+      ].filter(Boolean).sort((a, b) => b.score - a.score);
+      const safest = [...sets].sort((a, b) => b.coverage - a.coverage || b.minReturnRatio - a.minReturnRatio)[0];
+      const bestValue = sets[0];
+      const topScores = matrix.scores.slice(0, 4).map(score => `${scoreText(score)} ${(score.p * 100).toFixed(1)}%`).join(" / ");
+      const item = scheduleItemForParsed(match);
+      return { match, sets, safest, bestValue, topScores, item };
+    }
+
+    function forecastReason(forecast) {
+      const { match, safest } = forecast;
+      const diff = Math.abs(match.home.rating - match.away.rating);
+      const favorite = match.matrix.homeWin >= match.matrix.awayWin ? match.home : match.away;
+      const underdog = favorite.name === match.home.name ? match.away : match.home;
+      const cold = boldScore(underdog, favorite);
+      const parts = [];
+      if (safest.keys.length === 2) parts.push(`${safest.label}覆盖 ${(safest.coverage * 100).toFixed(1)}%，比单选更适合降低赛果波动。`);
+      if (diff < 8) parts.push("双方评分接近，平局权重需要保留。");
+      if (cold > 72) parts.push(`${zh(underdog.name)}冷门窗口偏高，不建议只压热门单胜。`);
+      if (match.matrix.draw > .25) parts.push("模型平局概率偏高，低比分概率较集中。");
+      return parts.join(" ") || "模型倾向清晰，但仍需赛前阵容和临场赔率确认。";
+    }
+
+    function dailyPortfolioCandidates(forecasts, bankroll) {
+      const candidateSets = forecasts
+        .map(forecast => forecast.sets.filter(set => set.keys.length <= 2 && set.coverage >= .42).slice(0, 3))
+        .filter(items => items.length);
+      return productPairs(candidateSets)
+        .flatMap(([left, right]) => left.flatMap(a => right.map(b => {
+          const comboCount = a.items.length * b.items.length;
+          const unit = comboCount ? bankroll / comboCount : 0;
+          const minReturn = unit * Math.min(...a.items.map(x => x.odds)) * Math.min(...b.items.map(x => x.odds));
+          const maxReturn = unit * Math.max(...a.items.map(x => x.odds)) * Math.max(...b.items.map(x => x.odds));
+          const expectedReturn = bankroll * a.splitExpected * b.splitExpected;
+          const coverage = a.coverage * b.coverage;
+          return {
+            a,
+            b,
+            comboCount,
+            coverage,
+            minReturn,
+            maxReturn,
+            expectedReturn,
+            score: coverage * 100 + Math.max(-20, Math.min(30, (expectedReturn / Math.max(1, bankroll) - 1) * 70)) + Math.min(18, minReturn / Math.max(1, bankroll) * 16)
+          };
+        })))
+        .filter(item => item.comboCount <= 4 && item.coverage >= .35)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 4);
+    }
+
+    function renderDailyForecast() {
+      const parsed = parsedDailyOdds();
+      const bankroll = Math.max(0, Number(els.dailyBankroll.value) || 0);
+      const dateKey = els.dailyDate.value || tomorrowBeijingKey();
+      els.dailyDate.value = dateKey;
+      const scheduleRows = scheduleForDate(dateKey);
+      if (!parsed.length) {
+        document.getElementById("dailyForecastPanel").innerHTML = `<div class="compare-box"><h3>等待赔率</h3><p class="muted">请选择日期并填入赔率，或点击“用模型公允赔率填充”。</p></div>`;
+        document.getElementById("dailyPortfolioPanel").innerHTML = "";
+        return;
+      }
+      const forecasts = parsed.map(matchForecast);
+      document.getElementById("dailyForecastPanel").innerHTML = forecasts.map(forecast => {
+        const { match, safest, bestValue, item } = forecast;
+        const timeText = item ? `北京时间 ${beijingTime(item.startDate)} · ${scheduleVenue(item)}` : "赔率输入比赛";
+        return `
+          <div class="compare-box">
+            <h3>${zh(match.home.name)} vs ${zh(match.away.name)}</h3>
+            <p class="muted">${timeText}</p>
+            <div class="metric"><span>可能比分</span><b>${forecast.topScores}</b></div>
+            <div class="metric"><span>最稳覆盖</span><b>${safest.label} · ${(safest.coverage * 100).toFixed(1)}%</b></div>
+            <div class="metric"><span>回报区间</span><b>${(safest.minReturnRatio * bankroll).toFixed(0)}-${(safest.maxReturnRatio * bankroll).toFixed(0)}</b></div>
+            <div class="metric"><span>价格判断</span><b class="${bestValue.edge >= .03 ? "ev-good" : bestValue.edge >= 0 ? "ev-watch" : "ev-bad"}">${bestValue.label} · EV ${(bestValue.edge * 100).toFixed(1)}%</b></div>
+            <p class="muted">${forecastReason(forecast)}</p>
+          </div>
+        `;
+      }).join("");
+      const portfolios = dailyPortfolioCandidates(forecasts, bankroll);
+      const scheduleHint = scheduleRows.length ? `${dateKey} 共 ${scheduleRows.length} 场可识别赛程。` : `${dateKey} 没有匹配到已知世界杯赛程，当前按赔率文本分析。`;
+      document.getElementById("dailyPortfolioPanel").innerHTML = `
+        <div class="compare-box">
+          <h3>日期摘要</h3>
+          <p class="muted">${scheduleHint}</p>
+          <p class="muted">稳健逻辑优先保留不败方向；若赔率没有补偿，系统会把它降为“观察”，不强行给出高风险结论。</p>
+        </div>
+        <div class="compare-box">
+          <h3>组合推演</h3>
+          <div class="upset-list">${portfolios.map(item => `
+            <div class="upset-item">
+              <div><b>${setText(item.a)} 串 ${setText(item.b)}</b>
+              <p class="muted" style="margin:6px 0 0;">覆盖率 ${(item.coverage * 100).toFixed(1)}% · ${item.comboCount} 个结果覆盖 · 参考回报 ${item.minReturn.toFixed(0)}-${item.maxReturn.toFixed(0)} · 期望 ${item.expectedReturn.toFixed(0)}</p></div>
+            </div>`).join("") || `<p class="muted">当天比赛数量或赔率不足，暂不生成组合。</p>`}</div>
+        </div>
+      `;
+    }
+
     function outcomeSets(match) {
       const byKey = Object.fromEntries(match.picks.map(p => [p.key, p]));
       const candidates = [
@@ -2620,6 +2851,7 @@
       renderBetting();
       renderCombos();
       renderSchedule();
+      renderDailyForecast();
       renderAnalysis();
     }
 
@@ -2633,6 +2865,12 @@
 
     els.fetchOddsBtn.addEventListener("click", fetchTodayOdds);
     els.analyzeCombosBtn.addEventListener("click", renderCombos);
+    els.tomorrowForecastBtn.addEventListener("click", () => {
+      els.dailyDate.value = tomorrowBeijingKey();
+      fillDailyOddsFromSchedule();
+    });
+    els.fillForecastOddsBtn.addEventListener("click", fillDailyOddsFromSchedule);
+    els.analyzeDailyForecastBtn.addEventListener("click", renderDailyForecast);
     els.askAiBtn.addEventListener("click", askAiPredictor);
     els.scheduleRound.addEventListener("input", renderSchedule);
     els.scheduleSearch.addEventListener("input", renderSchedule);
@@ -2669,6 +2907,9 @@
       els.bankroll
     ].forEach(el => el.addEventListener("input", renderAll));
     [els.todayOddsInput, els.comboBankroll].forEach(el => el.addEventListener("input", renderCombos));
+    [els.dailyDate, els.dailyBankroll, els.dailyOddsInput].forEach(el => el.addEventListener("input", renderDailyForecast));
+    els.dailyDate.value = tomorrowBeijingKey();
+    fillDailyOddsFromSchedule();
     renderAll();
     handlePaymentReturn();
     if (els.accessTokenInput.value) checkAccess();
