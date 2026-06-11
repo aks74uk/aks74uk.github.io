@@ -679,6 +679,24 @@
       line-height: 1.6;
     }
 
+    .global-stack {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .global-step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .global-step b {
+      display: block;
+      margin-bottom: 8px;
+    }
+
     .qr-img {
       width: 180px;
       height: 180px;
@@ -696,6 +714,7 @@
       .hero-kpis,
       .groups,
       .team-list,
+      .global-stack,
       .grid.cols-3,
       .grid.cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
@@ -706,6 +725,7 @@
       .hero-kpis,
       .groups,
       .team-list,
+      .global-stack,
       .grid.cols-2,
       .grid.cols-3,
       .grid.cols-4,
@@ -815,6 +835,33 @@
           <span class="lock-badge">会员访问码</span>
           <h3>私密更新</h3>
           <p class="compact-copy">支付后生成访问码，后续可扩展为会员专属日报和历史报告。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <div>
+          <h2>全球部署能力</h2>
+          <p>页面可以放在海外 CDN，支付、AI 和赔率接口统一走 HTTPS 后端。国内用户走微信/支付宝，海外用户走 Stripe/PayPal。</p>
+        </div>
+      </div>
+      <div class="global-stack">
+        <div class="global-step">
+          <b>海外 CDN</b>
+          <p class="compact-copy">静态页面可部署到 GitHub Pages、Cloudflare Pages 或 Vercel，全球节点缓存。</p>
+        </div>
+        <div class="global-step">
+          <b>API 后端</b>
+          <p class="compact-copy">订单、AI、赔率采集统一放在后端，密钥不进入浏览器。</p>
+        </div>
+        <div class="global-step">
+          <b>支付通道</b>
+          <p class="compact-copy">支持微信、支付宝、Stripe、PayPal 四类入口，按地区选择。</p>
+        </div>
+        <div class="global-step">
+          <b>合规边界</b>
+          <p class="compact-copy">只提供体育数据研究、概率测算和风险提示，不提供彩票销售或资金托管。</p>
         </div>
       </div>
     </section>
@@ -1052,11 +1099,14 @@
             <option value="week">7天体验版 ¥19.9</option>
             <option value="month" selected>月卡高级版 ¥99</option>
             <option value="season">赛程高级版 ¥299</option>
+            <option value="global_month">Global Monthly $19.99</option>
           </select>
           <select id="payChannel" aria-label="支付方式">
             <option value="mock">模拟支付</option>
             <option value="wechat">微信支付</option>
             <option value="alipay">支付宝</option>
+            <option value="stripe">Stripe</option>
+            <option value="paypal">PayPal</option>
           </select>
           <input id="payContact" type="text" placeholder="手机号或邮箱" aria-label="联系方式">
           <button class="primary" id="createOrderBtn">创建订单</button>
@@ -1066,7 +1116,8 @@
           <input id="accessTokenInput" type="text" placeholder="输入访问码" aria-label="访问码">
           <button id="checkAccessBtn">验证访问码</button>
         </div>
-        <p class="footer-note" id="accessStatus">未验证会员状态。真实上线时请把支付后端地址换成你的 HTTPS 域名。</p>
+        <p class="footer-note" id="accessStatus">未验证会员状态。真实上线时请把支付后端地址换成你的 HTTPS 域名，例如 https://api.your-domain.com。</p>
+        <p class="footer-note">海外支付建议用 Global Monthly 套餐搭配 Stripe 或 PayPal；国内支付建议用人民币套餐搭配微信/支付宝。支付后只开通数据分析会员权限，不提供任何交易、代购或收益承诺。</p>
       </div>
     </section>
 
@@ -2487,6 +2538,42 @@
       }, 10000);
     }
 
+    async function handlePaymentReturn() {
+      const params = new URLSearchParams(location.search);
+      const orderNo = params.get("orderNo") || localStorage.getItem("worldcup_last_order");
+      const paypalOrderId = params.get("token");
+      if (!orderNo) return;
+      if (params.get("paypal") === "1" && paypalOrderId) {
+        paymentPanel(`<div class="compare-box"><h3>正在确认 PayPal 支付</h3><p class="muted">请稍等，系统正在捕获订单并开通会员访问码。</p></div>`);
+        try {
+          const data = await apiFetch("/api/pay/paypal/capture", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ orderNo, paypalOrderId })
+          });
+          renderPaymentOrder(data.order);
+        } catch (error) {
+          paymentPanel(`<div class="compare-box"><h3>PayPal 确认失败</h3><p class="muted">${error.message}</p></div>`);
+        }
+        return;
+      }
+      if (params.get("paid") === "1") {
+        try {
+          const data = await apiFetch(`/api/orders/query?orderNo=${encodeURIComponent(orderNo)}`);
+          renderPaymentOrder(data.order);
+          if (data.order.status !== "paid") pollOrder(orderNo);
+        } catch {
+          pollOrder(orderNo);
+        }
+      }
+    }
+
+    function syncPaymentPlanForChannel() {
+      if (els.payChannel.value === "stripe" || els.payChannel.value === "paypal") {
+        els.payPlan.value = "global_month";
+      }
+    }
+
     async function checkAccess() {
       const accessToken = els.accessTokenInput.value.trim() || localStorage.getItem("worldcup_access_token") || "";
       if (!accessToken) {
@@ -2556,6 +2643,7 @@
       if (button.dataset.action === "schedule-odds") toggleScheduleOdds(button.dataset.no);
     });
     els.createOrderBtn.addEventListener("click", createPaymentOrder);
+    els.payChannel.addEventListener("change", syncPaymentPlanForChannel);
     els.checkAccessBtn.addEventListener("click", checkAccess);
     els.accessTokenInput.value = localStorage.getItem("worldcup_access_token") || "";
     [
@@ -2582,6 +2670,7 @@
     ].forEach(el => el.addEventListener("input", renderAll));
     [els.todayOddsInput, els.comboBankroll].forEach(el => el.addEventListener("input", renderCombos));
     renderAll();
+    handlePaymentReturn();
     if (els.accessTokenInput.value) checkAccess();
   </script>
 </body>
