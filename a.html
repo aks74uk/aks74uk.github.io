@@ -647,7 +647,7 @@ tfoot td {
         <p class="eyebrow">Overseas Performance Board</p>
         <h1 id="hero-title">海外投放数据看板</h1>
         <p id="hero-text" class="hero-text">
-          看板支持在线浏览、上传新 Excel、切换单日和多日维度。补贴账户会自动按 max(真实ROI, 1.05) 计算补贴后 ROI，模块 5 重点看 H24 之后的增速变化。
+          看板支持在线浏览、上传新 Excel、切换单日和多日维度。单个广告系列转化量大于 500 时会自动按 max(实际ROI, 1.06) 计算赔付后 ROI，模块 5 重点看 H24 之后的增速变化。
         </p>
       </div>
       <div class="hero-actions panel-card">
@@ -687,8 +687,8 @@ tfoot td {
             <tr>
               <th>组别</th>
               <th>消耗</th>
-              <th>补贴前 ROI</th>
-              <th>补贴后 ROI</th>
+              <th>实际 ROI</th>
+              <th>赔付后 ROI</th>
               <th>账户数</th>
               <th>剧目数</th>
             </tr>
@@ -725,8 +725,8 @@ tfoot td {
             <tr>
               <th>分类</th>
               <th>消耗</th>
-              <th>补贴前 ROI</th>
-              <th>补贴后 ROI</th>
+              <th>实际 ROI</th>
+              <th>赔付后 ROI</th>
               <th>国家数</th>
               <th>账户数</th>
             </tr>
@@ -764,14 +764,14 @@ tfoot td {
             <tr>
               <th>日期</th>
               <th>A组消耗</th>
-              <th>A组补贴前 ROI</th>
-              <th>A组补贴后 ROI</th>
+              <th>A组实际 ROI</th>
+              <th>A组赔付后 ROI</th>
               <th>B组消耗</th>
-              <th>B组补贴前 ROI</th>
-              <th>B组补贴后 ROI</th>
+              <th>B组实际 ROI</th>
+              <th>B组赔付后 ROI</th>
               <th>总消耗</th>
-              <th>总补贴前 ROI</th>
-              <th>总补贴后 ROI</th>
+              <th>总实际 ROI</th>
+              <th>总赔付后 ROI</th>
             </tr>
           </thead>
           <tbody id="daily-summary-body"></tbody>
@@ -817,8 +817,8 @@ tfoot td {
             <tr>
               <th>国家</th>
               <th>消耗</th>
-              <th>补贴前 ROI</th>
-              <th>补贴后 ROI</th>
+              <th>实际 ROI</th>
+              <th>赔付后 ROI</th>
             </tr>
           </thead>
           <tbody id="country-body"></tbody>
@@ -840,8 +840,8 @@ tfoot td {
             <tr>
               <th>负责人</th>
               <th>消耗</th>
-              <th>补贴前 ROI</th>
-              <th>补贴后 ROI</th>
+              <th>实际 ROI</th>
+              <th>赔付后 ROI</th>
               <th>账户数</th>
             </tr>
           </thead>
@@ -887,8 +887,8 @@ tfoot td {
             <tr>
               <th>账户</th>
               <th>消耗</th>
-              <th>补贴前 ROI</th>
-              <th>补贴后 ROI</th>
+              <th>实际 ROI</th>
+              <th>赔付后 ROI</th>
               <th>汇总 ROI</th>
               <th>广告数</th>
             </tr>
@@ -937,8 +937,8 @@ tfoot td {
               <th>剧目</th>
               <th>消耗</th>
               <th>H24 ROI</th>
-              <th>补贴前整体 ROI</th>
-              <th>补贴后整体 ROI</th>
+              <th>实际整体 ROI</th>
+              <th>赔付后整体 ROI</th>
               <th>广告数</th>
             </tr>
           </thead>
@@ -997,11 +997,10 @@ tfoot td {
   <script>
     window.__INITIAL_SOURCE__ = "zl.xlsx";
     window.__INITIAL_ROWS__ = [];
-    window.__PAGE_CONFIG__ = {"mode": "group", "pageId": "a", "groupKey": "a", "groupLabel": "A组（北京）", "dataPath": "data/group-a", "legacyDataPath": "data/group-a.json", "publicUrl": "https://aks74uk.github.io/a.html", "storageKey": "overseas_dashboard_github_token_a", "autoPublish": true, "heroTitle": "A组（北京）投放看板", "heroText": "A组专用链接。只看 A 组，上传 Excel 后点“更新”会自动发布到公网。第一次发布前输入一次 GitHub token，本机浏览器会自动记住。补贴账户按逐条广告 max(真实ROI, 1.05) 计算补贴后 ROI。", "actionTitle": "A组上传并发布", "bossUrl": "https://aks74uk.github.io/"};
+    window.__PAGE_CONFIG__ = {"mode": "group", "pageId": "a", "groupKey": "a", "groupLabel": "A组（北京）", "dataPath": "data/group-a", "legacyDataPath": "data/group-a.json", "publicUrl": "https://aks74uk.github.io/a.html", "storageKey": "overseas_dashboard_github_token_a", "autoPublish": true, "heroTitle": "A组（北京）投放看板", "heroText": "A组专用链接。只看 A 组，上传 Excel 后点“更新”会自动发布到公网。第一次发布前输入一次 GitHub token，本机浏览器会自动记住。单个广告系列转化量大于 500 时，赔付后 ROI 按 max(实际ROI, 1.06) 计算。", "actionTitle": "A组上传并发布", "bossUrl": "https://aks74uk.github.io/"};
   </script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
-const SUBSIDY_ACCOUNT = 'Reelife-zl-260407-01-SINO-TT';
 const OWNER_RULES_BY_GROUP = {
   a: [
     { key: 'zl', label: '张丽' },
@@ -1012,12 +1011,6 @@ const OWNER_RULES_BY_GROUP = {
     { key: 'zcc', label: '周重丞' },
     { key: 'zzc', label: '周重丞' },
   ],
-};
-const SUBSIDY_SERIES_BY_GROUP = {
-  b: new Set([
-    'Reelife-zzc-gz-0421-01-iaa小程序-tecdo-TT',
-    'Reelife-lix-gz-0421-01-iaa小程序-tecdo-TT',
-  ]),
 };
 const ROI_DAYS = [0, 1, 2, 3, 4, 5, 6, 13];
 const DISPLAY_ROI_DAYS = [0, 1, 2, 3, 4, 5, 6];
@@ -1042,6 +1035,7 @@ const WORKBOOK_HEADER_ALIASES = {
   seriesName: ['系列名称', 'Campaign name'],
   spend: ['消耗', 'Cost'],
   overallRoas: ['广告收入 ROAS (TikTok)', 'Ad revenue ROAS (TikTok)'],
+  conversionCount: ['转化量', 'Conversions', 'Conversion'],
 };
 const ENGLISH_REVENUE_HEADER_CANDIDATES = {
   0: ['Day 0 ad revenue'],
@@ -1117,9 +1111,10 @@ function extractDramaTitle(seriesName) {
   return text.split(/\s+-\s+mini series ads/i)[0].trim().replace(/[-\s]+$/, '') || '未识别剧目';
 }
 
-function isSubsidizedRow(groupKey, account, seriesName) {
-  if (account === SUBSIDY_ACCOUNT) return true;
-  return SUBSIDY_SERIES_BY_GROUP[groupKey]?.has(String(seriesName || '').trim()) || false;
+function getPayoutAdjustedRoas(actualRoas, conversionCount) {
+  const roas = Number(actualRoas || 0);
+  const conversions = Number(conversionCount || 0);
+  return conversions > 500 ? Math.max(1.06, roas) : roas;
 }
 
 function getOwnerName(groupKey, account) {
@@ -1161,11 +1156,8 @@ function normalizeExistingRow(row, fallbackGroup = null) {
   const overallRevenueRaw = Number.isFinite(row.overall_revenue_raw)
     ? row.overall_revenue_raw
     : spend * overallRoasRaw;
-  const overallRoasPost = Number.isFinite(row.overall_roas_post)
-    ? row.overall_roas_post
-    : isSubsidizedRow(row.group_key || row.groupKey || groupMeta.groupKey, row.account, row.series_name)
-    ? Math.max(1.05, overallRoasRaw)
-    : overallRoasRaw;
+  const conversionCount = parseNumber(row.conversion_count ?? row.cv ?? row.conversions);
+  const overallRoasPost = getPayoutAdjustedRoas(overallRoasRaw, conversionCount);
   const overallRevenuePost = Number.isFinite(row.overall_revenue_post)
     ? row.overall_revenue_post
     : spend * overallRoasPost;
@@ -1179,6 +1171,7 @@ function normalizeExistingRow(row, fallbackGroup = null) {
     group_label: row.group_label || row.groupLabel || groupMeta.groupLabel || '未分组',
     date: parseDate(row.date),
     spend,
+    conversion_count: conversionCount,
     account: row.account || '-',
     country: normalizeCountryLabel(row.country),
     owner_name: row.owner_name || getOwnerName(row.group_key || row.groupKey || groupMeta.groupKey, row.account),
@@ -1203,6 +1196,7 @@ function expandPublishedRow(row) {
     country: row.c,
     date: row.d,
     spend: row.s,
+    conversion_count: row.cv ?? row.conversion_count,
     series_name: row.sn,
     revenue0_raw: row.r0,
     revenues_raw: row.rr,
@@ -1237,7 +1231,8 @@ function normalizeWorkbookRow(row, groupMeta = PAGE_CONFIG) {
 
   const overallRoasRaw = parseNumber(pickWorkbookValue(row, WORKBOOK_HEADER_ALIASES.overallRoas));
   const seriesName = String(pickWorkbookValue(row, WORKBOOK_HEADER_ALIASES.seriesName) || '').trim();
-  const overallRoasPost = isSubsidizedRow(groupMeta.groupKey, account, seriesName) ? Math.max(1.05, overallRoasRaw) : overallRoasRaw;
+  const conversionCount = parseNumber(pickWorkbookValue(row, WORKBOOK_HEADER_ALIASES.conversionCount));
+  const overallRoasPost = getPayoutAdjustedRoas(overallRoasRaw, conversionCount);
   const revenuesRaw = Object.fromEntries(ROI_DAYS.map((day) => [day, pickRevenueValue(row, day)]));
 
   return {
@@ -1250,6 +1245,7 @@ function normalizeWorkbookRow(row, groupMeta = PAGE_CONFIG) {
     country: normalizeCountryLabel(pickWorkbookValue(row, WORKBOOK_HEADER_ALIASES.country)),
     date,
     spend,
+    conversion_count: conversionCount,
     revenue0_raw: revenuesRaw[0],
     revenues_raw: revenuesRaw,
     overall_roas_raw: overallRoasRaw,
@@ -1279,8 +1275,7 @@ function getOverallRevenueRaw(row) {
 function getOverallRevenuePost(row) {
   if (Number.isFinite(row.overall_revenue_post)) return row.overall_revenue_post;
   if (Number.isFinite(row.overall_roas_post)) return row.spend * row.overall_roas_post;
-  if (isSubsidizedRow(row.group_key || row.groupKey, row.account, row.series_name)) return row.spend * Math.max(1.05, safeDiv(getOverallRevenueRaw(row), row.spend));
-  return getOverallRevenueRaw(row);
+  return row.spend * getPayoutAdjustedRoas(safeDiv(getOverallRevenueRaw(row), row.spend), row.conversion_count);
 }
 
 function listRecentDates(dates, limit = 5) {
@@ -1529,7 +1524,7 @@ function buildData(rows, filters) {
       '当前版本不排除任何一天，上传几天就展示几天。',
       '模块 1 默认展示最近三天，并按日期展示 A组、B组和总数据；模块 2 - 5 支持总数据/A组/B组切换。',
       PAGE_CONFIG.mode === 'boss' ? '总数据页新增了北京/广州分开及总数据美国/非美国汇总模块。' : '当前组页新增了美国 / 非美国 / 汇总模块，按已选日期统计。',
-      '补贴账户 Reelife-zl-260407-01-SINO-TT 按单条广告逐条计算：小于 105% 按 105%，高于等于 105% 按真实 ROI。',
+      '赔付规则：单个广告系列转化量大于 500 时，赔付后 ROI 按 max(实际ROI, 1.06) 计算；否则按实际 ROI。',
       '模块 2 - 5 默认展示总数据，也可以用上方筛选器切到 A组 或 B组。',
       '源表只有 ROI0-ROI6 和 ROI13，没有 ROI7；模块 5 已按要求保留两位小数。',
     ].filter(Boolean),
@@ -1608,8 +1603,8 @@ function renderSummaryCards(data) {
   const cards = [
     { label: '当前多选日期', value: summary.dateLabel, sub: `组别 ${summary.groupCount} 个 / 国家 ${summary.countryCount} 个 / 账户 ${summary.accountCount} 个 / 剧目 ${summary.dramaCount} 个` },
     { label: '总消耗', value: summary.spend, sub: `数据源：${state.sourceLabel}` },
-    { label: '整体 ROI（补贴前）', value: summary.overallRoasRaw, sub: '仅展示百分比，不展示收入绝对值' },
-    { label: '整体 ROI（补贴后）', value: summary.overallRoasPost, sub: '补贴账户按逐条广告 max(真实ROI, 1.05) 口径计算' },
+    { label: '整体 ROI（实际）', value: summary.overallRoasRaw, sub: '仅展示百分比，不展示收入绝对值' },
+    { label: '整体 ROI（赔付后）', value: summary.overallRoasPost, sub: '转化量大于 500 的广告系列按 max(实际ROI, 1.06) 口径计算' },
   ];
 
   document.getElementById('summary-grid').innerHTML = cards
@@ -1862,7 +1857,7 @@ function renderAccountTable(data) {
           <td>${row.spend_display}</td>
           <td>${row.overall_roas_raw_display}</td>
           <td>${row.overall_roas_post_display}</td>
-          <td class="compact-note">补前 ${row.overall_roas_raw_display}<br>补后 ${row.overall_roas_post_display}</td>
+          <td class="compact-note">实际 ${row.overall_roas_raw_display}<br>赔后 ${row.overall_roas_post_display}</td>
           <td>${row.ads}</td>
         </tr>
       `
@@ -1879,7 +1874,7 @@ function renderAccountTable(data) {
       <td>${money(totalSpend)}</td>
       <td>${pct(safeDiv(totalRaw, totalSpend))}</td>
       <td>${pct(safeDiv(totalPost, totalSpend))}</td>
-      <td class="compact-note">补前 ${pct(safeDiv(totalRaw, totalSpend))}<br>补后 ${pct(safeDiv(totalPost, totalSpend))}</td>
+      <td class="compact-note">实际 ${pct(safeDiv(totalRaw, totalSpend))}<br>赔后 ${pct(safeDiv(totalPost, totalSpend))}</td>
       <td>${totalAds}</td>
     </tr>
   `;
@@ -2135,6 +2130,7 @@ function compactRowsForPublish(rows) {
     c: row.country,
     d: row.date,
     s: Number(row.spend || 0),
+    cv: Number(row.conversion_count || 0),
     sn: row.series_name || '',
     r0: Number(row.revenue0_raw || 0),
     rr: row.revenues_raw || {},
