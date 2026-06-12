@@ -1066,6 +1066,22 @@
       </div>
     </section>
 
+    <section id="tomorrow-deep-forecast">
+      <div class="section-title">
+        <div>
+          <h2>明日深度预测</h2>
+          <p>按明日北京时间赛程生成比分和胜平负判断，并拆解阵容状态、伤病问题、整体实力、打法配合、气候适应和近期表现。</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <button class="primary" id="renderTomorrowDeepBtn">生成明日深度预测</button>
+        </div>
+        <div class="compare" id="tomorrowDeepPanel"></div>
+        <p class="footer-note">伤病与近期表现为赛前模型字段和手动情报口径，真实上线应接入官方伤停、首发名单、天气与赔率数据源。若临场阵容变化，应重新计算。</p>
+      </div>
+    </section>
+
     <section>
       <div class="section-title">
         <div>
@@ -1400,6 +1416,7 @@
       fillForecastOddsBtn: document.getElementById("fillForecastOddsBtn"),
       analyzeDailyForecastBtn: document.getElementById("analyzeDailyForecastBtn"),
       dailyOddsInput: document.getElementById("dailyOddsInput"),
+      renderTomorrowDeepBtn: document.getElementById("renderTomorrowDeepBtn"),
       aiQuestion: document.getElementById("aiQuestion"),
       askAiBtn: document.getElementById("askAiBtn"),
       scheduleRound: document.getElementById("scheduleRound"),
@@ -2333,6 +2350,123 @@
       return parts.join(" ") || "模型倾向清晰，但仍需赛前阵容和临场赔率确认。";
     }
 
+    function teamScoutProfile(team) {
+      const calc = calcTeam(team);
+      const s = scouting[team.name];
+      const base = Math.max(42, Math.min(92, calc.strength * .55 + team.history * .18 + team.upsetBase * .27));
+      return {
+        squad: s?.squad ?? Math.max(40, Math.min(92, calc.strength * .72 + team.history * .28)),
+        injury: s?.availability ?? Math.max(38, Math.min(90, base + (team.rank <= 20 ? 4 : 0) - (team.rank > 70 ? 4 : 0))),
+        strength: Math.max(35, Math.min(96, calc.strength * .68 + team.history * .22 + (["United States", "Canada", "Mexico"].includes(team.name) ? 8 : 0))),
+        tactic: s?.tactic ?? Math.max(40, Math.min(90, calc.rating * .6 + team.upsetBase * .22 + team.history * .18)),
+        cohesion: s?.cohesion ?? Math.max(40, Math.min(90, calc.rating * .48 + team.upsetBase * .28 + team.history * .24)),
+        climate: climateFit(team),
+        form: s?.form ?? Math.max(38, Math.min(90, calc.squadContext * .54 + team.history * .18 + team.upsetBase * .28)),
+        style: s?.style || team.note,
+        risk: s?.risk || "暂无明确伤停接入，按阵容深度、稳定性和近期强度做保守估计。"
+      };
+    }
+
+    function climateFit(team, item = null) {
+      const hostBoost = item && item.country === "MX" && team.name === "Mexico" ? 12
+        : item && item.country === "US" && team.name === "United States" ? 10
+          : item && item.country === "CA" && team.name === "Canada" ? 10
+            : 0;
+      const hotAdapt = ["Mexico", "Brazil", "Morocco", "Haiti", "Qatar", "Saudi Arabia", "Tunisia", "Senegal", "Ghana", "Ivory Coast", "Ecuador", "Colombia", "Panama", "Paraguay", "DR Congo", "Cape Verde"].includes(team.name) ? 8 : 0;
+      const coldTravelDrag = ["Norway", "Sweden", "Scotland", "New Zealand", "Czechia", "Switzerland"].includes(team.name) ? -3 : 0;
+      return Math.max(35, Math.min(95, 67 + hotAdapt + hostBoost + coldTravelDrag + (team.rank <= 20 ? 3 : 0)));
+    }
+
+    function deepFactorSummary(home, away, item) {
+      const hp = teamScoutProfile(home);
+      const ap = teamScoutProfile(away);
+      hp.climate = climateFit(home, item);
+      ap.climate = climateFit(away, item);
+      const weighted = profile => profile.squad * .18 + profile.injury * .15 + profile.strength * .22 + profile.tactic * .17 + profile.cohesion * .12 + profile.climate * .07 + profile.form * .09;
+      return {
+        home: hp,
+        away: ap,
+        homeScore: weighted(hp),
+        awayScore: weighted(ap)
+      };
+    }
+
+    function adjustedDeepMatrix(match, item) {
+      const factors = deepFactorSummary(match.home, match.away, item);
+      const factorDiff = (factors.homeScore - factors.awayScore) * .18;
+      const homeAdj = { ...match.home, rating: Math.max(1, Math.min(99, match.home.rating + factorDiff)) };
+      const awayAdj = { ...match.away, rating: Math.max(1, Math.min(99, match.away.rating - factorDiff)) };
+      return { matrix: scoreMatrix(homeAdj, awayAdj), factors };
+    }
+
+    function outcomeVerdict(matrix, home, away) {
+      const rows = [
+        { label: `${zh(home.name)}胜`, p: matrix.homeWin },
+        { label: "平局", p: matrix.draw },
+        { label: `${zh(away.name)}胜`, p: matrix.awayWin }
+      ].sort((a, b) => b.p - a.p);
+      return rows;
+    }
+
+    function factorLine(label, homeValue, awayValue, home, away) {
+      const diff = homeValue - awayValue;
+      const leader = Math.abs(diff) < 4 ? "接近" : diff > 0 ? zh(home.name) : zh(away.name);
+      return `<div class="metric"><span>${label}</span><b>${leader} · ${homeValue.toFixed(0)} / ${awayValue.toFixed(0)}</b></div>`;
+    }
+
+    function deepMatchCard(match, item) {
+      const { matrix, factors } = adjustedDeepMatrix(match, item);
+      const home = match.home;
+      const away = match.away;
+      const verdict = outcomeVerdict(matrix, home, away);
+      const scores = matrix.scores.slice(0, 3).map(score => `${scoreText(score)} ${(score.p * 100).toFixed(1)}%`).join(" / ");
+      const homeNoLose = matrix.homeWin + matrix.draw;
+      const awayNoLose = matrix.awayWin + matrix.draw;
+      const noLose = homeNoLose >= awayNoLose ? `${zh(home.name)}不败 ${(homeNoLose * 100).toFixed(1)}%` : `${zh(away.name)}不败 ${(awayNoLose * 100).toFixed(1)}%`;
+      const timeText = item ? `第 ${item.no} 场 · 北京时间 ${beijingTime(item.startDate)} · ${scheduleVenue(item)}` : "手动赔率比赛";
+      const reason = [
+        `${verdict[0].label}是当前最高概率方向，模型概率 ${(verdict[0].p * 100).toFixed(1)}%。`,
+        `比分集中在 ${scores}，低比分权重 ${(matrix.scores.filter(s => s.home + s.away <= 2).reduce((sum, s) => sum + s.p, 0) * 100).toFixed(1)}%。`,
+        factors.home.risk !== factors.away.risk ? `${zh(home.name)}风险：${factors.home.risk} ${zh(away.name)}风险：${factors.away.risk}` : factors.home.risk
+      ].join(" ");
+      return `
+        <div class="compare-box">
+          <h3>${zh(home.name)} vs ${zh(away.name)}</h3>
+          <p class="muted">${timeText}</p>
+          <div class="metric"><span>预测比分</span><b>${scores}</b></div>
+          <div class="metric"><span>胜平负</span><b>${verdict.map(row => `${row.label} ${(row.p * 100).toFixed(1)}%`).join(" · ")}</b></div>
+          <div class="metric"><span>稳健方向</span><b>${noLose}</b></div>
+          ${factorLine("阵容状态", factors.home.squad, factors.away.squad, home, away)}
+          ${factorLine("伤病可用性", factors.home.injury, factors.away.injury, home, away)}
+          ${factorLine("整体实力", factors.home.strength, factors.away.strength, home, away)}
+          ${factorLine("打法配合", factors.home.tactic, factors.away.tactic, home, away)}
+          ${factorLine("气候适应", factors.home.climate, factors.away.climate, home, away)}
+          ${factorLine("近期表现", factors.home.form, factors.away.form, home, away)}
+          <p class="muted">${reason}</p>
+        </div>
+      `;
+    }
+
+    function renderTomorrowDeepForecast() {
+      const dateKey = tomorrowBeijingKey();
+      const scheduleRows = scheduleForDate(dateKey);
+      const parsed = parsedDailyOdds();
+      const matches = scheduleRows.length
+        ? scheduleRows.map(item => {
+          const { home, away } = scheduleTeams(item.name);
+          const h = calcTeam(home);
+          const a = calcTeam(away);
+          return { item, match: analyzeOneMatchOdds({ home: h, away: a, pickOdds: { home: fairOdds(scoreMatrix(h, a).homeWin), draw: fairOdds(scoreMatrix(h, a).draw), away: fairOdds(scoreMatrix(h, a).awayWin) }, raw: item.name }) };
+        })
+        : parsed.map(match => ({ item: scheduleItemForParsed(match), match }));
+      const panel = document.getElementById("tomorrowDeepPanel");
+      if (!matches.length) {
+        panel.innerHTML = `<div class="compare-box"><h3>明日暂无可识别赛程</h3><p class="muted">${dateKey} 没有匹配到已知世界杯赛程。可在每日比赛预报里手动输入赔率后再生成。</p></div>`;
+        return;
+      }
+      panel.innerHTML = matches.map(({ match, item }) => deepMatchCard(match, item)).join("");
+    }
+
     function dailyPortfolioCandidates(forecasts, bankroll) {
       const candidateSets = forecasts
         .map(forecast => forecast.sets.filter(set => set.keys.length <= 2 && set.coverage >= .42).slice(0, 3))
@@ -2852,6 +2986,7 @@
       renderCombos();
       renderSchedule();
       renderDailyForecast();
+      renderTomorrowDeepForecast();
       renderAnalysis();
     }
 
@@ -2871,6 +3006,7 @@
     });
     els.fillForecastOddsBtn.addEventListener("click", fillDailyOddsFromSchedule);
     els.analyzeDailyForecastBtn.addEventListener("click", renderDailyForecast);
+    els.renderTomorrowDeepBtn.addEventListener("click", renderTomorrowDeepForecast);
     els.askAiBtn.addEventListener("click", askAiPredictor);
     els.scheduleRound.addEventListener("input", renderSchedule);
     els.scheduleSearch.addEventListener("input", renderSchedule);
