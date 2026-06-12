@@ -170,7 +170,7 @@ tr:last-child td { border-bottom: 0; }
               <th>组别</th>
               <th>分类</th>
               <th>消耗</th>
-              <th>补贴前 ROI</th>
+              <th>实际 ROI</th>
             </tr>
           </thead>
           <tbody id="group-body"></tbody>
@@ -191,14 +191,14 @@ tr:last-child td { border-bottom: 0; }
             <tr>
               <th>日期</th>
               <th>A组消耗</th>
-              <th>A组补贴前 ROI</th>
-              <th>A组补贴后 ROI</th>
+              <th>A组实际 ROI</th>
+              <th>A组赔付后 ROI</th>
               <th>B组消耗</th>
-              <th>B组补贴前 ROI</th>
-              <th>B组补贴后 ROI</th>
+              <th>B组实际 ROI</th>
+              <th>B组赔付后 ROI</th>
               <th>总消耗</th>
-              <th>总补贴前 ROI</th>
-              <th>总补贴后 ROI</th>
+              <th>总实际 ROI</th>
+              <th>总赔付后 ROI</th>
             </tr>
           </thead>
           <tbody id="daily-body"></tbody>
@@ -222,6 +222,7 @@ tr:last-child td { border-bottom: 0; }
     const money = (value) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(value || 0));
     const pct = (value) => `${(Number(value || 0) * 100).toFixed(2)}%`;
     const safeDiv = (a, b) => (b ? a / b : 0);
+    const getPayoutAdjustedRoas = (actualRoas, conversionCount) => (Number(conversionCount || 0) > 500 ? Math.max(1.06, Number(actualRoas || 0)) : Number(actualRoas || 0));
 
     function normalizeCountryLabel(value) {
       const text = String(value || '').trim();
@@ -234,6 +235,8 @@ tr:last-child td { border-bottom: 0; }
     function expandRow(row, fallback) {
       const revenues = row.rr || row.revenues_raw || {};
       const spend = Number(row.s || row.spend || 0);
+      const conversionCount = Number(row.cv || row.conversion_count || 0);
+      const actualRoas = Number(row.or || row.overall_roas_raw || 0);
       return {
         group_key: row.g || row.group_key || fallback.key,
         group_label: row.gl || row.group_label || fallback.label,
@@ -241,8 +244,9 @@ tr:last-child td { border-bottom: 0; }
         country: normalizeCountryLabel(row.c || row.country || '未标注'),
         date: row.d || row.date || '',
         spend,
-        overall_roas_raw: Number(row.or || row.overall_roas_raw || 0),
-        overall_roas_post: Number(row.op || row.overall_roas_post || 0),
+        conversion_count: conversionCount,
+        overall_roas_raw: actualRoas,
+        overall_roas_post: getPayoutAdjustedRoas(actualRoas, conversionCount),
       };
     }
 
@@ -299,8 +303,8 @@ tr:last-child td { border-bottom: 0; }
       const cards = [
         { label: '当前日期', value: activeDate, sub: `默认展示昨天；当前共 ${dates.length} 天历史` },
         { label: '总消耗', value: money(total.spend), sub: `${activeDate} 总消耗` },
-        { label: '补贴前 ROI', value: pct(total.roasRaw), sub: `${activeDate} 总补贴前 ROI` },
-        { label: '补贴后 ROI', value: pct(total.roasPost), sub: `${activeDate} 总补贴后 ROI` },
+        { label: '实际 ROI', value: pct(total.roasRaw), sub: `${activeDate} 总实际 ROI` },
+        { label: '赔付后 ROI', value: pct(total.roasPost), sub: `${activeDate} 总赔付后 ROI` },
       ];
       document.getElementById('summary-grid').innerHTML = cards.map((card) => `
         <article class="summary-card">
