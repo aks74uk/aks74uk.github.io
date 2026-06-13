@@ -1056,13 +1056,14 @@
           <input id="dailyDate" type="date" aria-label="选择预报日期">
           <input id="dailyBankroll" type="number" value="1000" min="0" step="10" aria-label="预报参考资金">
           <button id="tomorrowForecastBtn">载入明天赛程</button>
+          <button id="fetchDailyOddsBtn">从中国体彩接口获取</button>
           <button id="fillForecastOddsBtn">用模型公允赔率填充</button>
           <button class="primary" id="analyzeDailyForecastBtn">生成每日预报</button>
         </div>
         <textarea id="dailyOddsInput" aria-label="每日赔率输入" placeholder="格式：墨西哥 vs 南非 | 胜 1.55 平 4.10 负 6.20"></textarea>
         <div class="compare" id="dailyForecastPanel"></div>
         <div class="compare" id="dailyPortfolioPanel"></div>
-        <p class="footer-note">计算口径：不败方向等于胜平或平负两个互斥结果的覆盖组合；回报区间按等额分配到每个结果计算。该模块只做概率和风险研究，不构成投注指令或收益承诺。</p>
+        <p class="footer-note">计算口径：不败方向等于胜平或平负两个互斥结果的覆盖组合；多串按组合票拆成多注，每注 4 元，同倍数购买，剩余金额不参与回报计算。该模块只做概率和风险研究，不构成投注指令或收益承诺。</p>
       </div>
     </section>
 
@@ -1413,6 +1414,7 @@
       dailyDate: document.getElementById("dailyDate"),
       dailyBankroll: document.getElementById("dailyBankroll"),
       tomorrowForecastBtn: document.getElementById("tomorrowForecastBtn"),
+      fetchDailyOddsBtn: document.getElementById("fetchDailyOddsBtn"),
       fillForecastOddsBtn: document.getElementById("fillForecastOddsBtn"),
       analyzeDailyForecastBtn: document.getElementById("analyzeDailyForecastBtn"),
       dailyOddsInput: document.getElementById("dailyOddsInput"),
@@ -2469,30 +2471,107 @@
 
     function dailyPortfolioCandidates(forecasts, bankroll) {
       const candidateSets = forecasts
-        .map(forecast => forecast.sets.filter(set => set.keys.length <= 2 && set.coverage >= .42).slice(0, 3))
+        .map(forecast => forecast.sets
+          .filter(set => set.keys.length <= 2 && set.coverage >= .38)
+          .slice(0, 3)
+          .map(set => ({ ...set, forecast })))
         .filter(items => items.length);
-      return productPairs(candidateSets)
-        .flatMap(([left, right]) => left.flatMap(a => right.map(b => {
-          const comboCount = a.items.length * b.items.length;
-          const unit = comboCount ? bankroll / comboCount : 0;
-          const minReturn = unit * Math.min(...a.items.map(x => x.odds)) * Math.min(...b.items.map(x => x.odds));
-          const maxReturn = unit * Math.max(...a.items.map(x => x.odds)) * Math.max(...b.items.map(x => x.odds));
-          const expectedReturn = bankroll * a.splitExpected * b.splitExpected;
-          const coverage = a.coverage * b.coverage;
-          return {
-            a,
-            b,
-            comboCount,
-            coverage,
-            minReturn,
-            maxReturn,
-            expectedReturn,
-            score: coverage * 100 + Math.max(-20, Math.min(30, (expectedReturn / Math.max(1, bankroll) - 1) * 70)) + Math.min(18, minReturn / Math.max(1, bankroll) * 16)
-          };
-        })))
-        .filter(item => item.comboCount <= 4 && item.coverage >= .35)
+      return multiSetPortfolios(candidateSets, bankroll, 4, 4)
+        .filter(item => item.totalTickets <= 64 && item.coverage >= .22)
         .sort((a, b) => b.score - a.score)
-        .slice(0, 4);
+        .slice(0, 8);
+    }
+
+    function combinationsOfIndexes(total, size, start = 0, prefix = [], out = []) {
+      if (prefix.length === size) {
+        out.push(prefix.slice());
+        return out;
+      }
+      for (let i = start; i <= total - (size - prefix.length); i++) {
+        prefix.push(i);
+        combinationsOfIndexes(total, size, i + 1, prefix, out);
+        prefix.pop();
+      }
+      return out;
+    }
+
+    function cartesianSets(groups) {
+      return groups.reduce((acc, group) => acc.flatMap(left => group.map(item => [...left, item])), [[]]);
+    }
+
+    function outcomeBranches(sets) {
+      return cartesianSets(sets.map(set => set.items)).map(items => ({
+        items,
+        prob: items.reduce((acc, item) => acc * item.p, 1),
+        odds: items.reduce((acc, item) => acc * item.odds, 1)
+      }));
+    }
+
+    function calcTicketPortfolio(sets, bankroll, unitStake = 4) {
+      const totalTickets = sets.reduce((acc, set) => acc * set.items.length, 1);
+      const times = totalTickets ? Math.floor(bankroll / (totalTickets * unitStake)) : 0;
+      const actualCost = times * totalTickets * unitStake;
+      const unused = bankroll - actualCost;
+      const branches = outcomeBranches(sets);
+      const coveredBranches = branches.filter(branch => branch.prob > 0);
+      const returns = coveredBranches.map(branch => branch.odds * unitStake * times);
+      const minReturn = returns.length ? Math.min(...returns) : 0;
+      const maxReturn = returns.length ? Math.max(...returns) : 0;
+      const expectedReturn = coveredBranches.reduce((sum, branch) => sum + branch.prob * branch.odds * unitStake * times, 0);
+      const coverage = sets.reduce((acc, set) => acc * set.coverage, 1);
+      const avgOdds = coveredBranches.length
+        ? coveredBranches.reduce((sum, branch) => sum + branch.odds, 0) / coveredBranches.length
+        : 0;
+      return {
+        sets,
+        branches: coveredBranches,
+        totalTickets,
+        unitStake,
+        times,
+        actualCost,
+        unused,
+        minReturn,
+        maxReturn,
+        expectedReturn,
+        minNet: minReturn - actualCost,
+        maxNet: maxReturn - actualCost,
+        expectedNet: expectedReturn - actualCost,
+        coverage,
+        avgOdds,
+        score: coverage * 100 + Math.max(-25, Math.min(35, (expectedReturn / Math.max(1, actualCost) - 1) * 80)) + Math.min(18, Math.log2(Math.max(1.01, avgOdds)) * 8) - Math.max(0, totalTickets - 16) * .25
+      };
+    }
+
+    function multiSetPortfolios(candidateSets, bankroll, maxLegs = 4, unitStake = 4) {
+      const out = [];
+      const upper = Math.min(maxLegs, candidateSets.length);
+      for (let size = 2; size <= upper; size++) {
+        combinationsOfIndexes(candidateSets.length, size).forEach(indexes => {
+          cartesianSets(indexes.map(index => candidateSets[index])).forEach(sets => {
+            const portfolio = calcTicketPortfolio(sets, bankroll, unitStake);
+            if (portfolio.times > 0) out.push(portfolio);
+          });
+        });
+      }
+      return out;
+    }
+
+    function portfolioTitle(portfolio) {
+      return portfolio.sets.map(set => setText(set)).join(" 串 ");
+    }
+
+    function portfolioScoreText(portfolio) {
+      return portfolio.sets
+        .map(set => `${zh(set.match.home.name)}vs${zh(set.match.away.name)}：${set.forecast?.topScores || set.match.matrix.scores.slice(0, 2).map(scoreText).join("/")}`)
+        .join("；");
+    }
+
+    function portfolioMoneyText(portfolio) {
+      return `投入 ${portfolio.actualCost.toFixed(0)} 元（${portfolio.totalTickets} 注 × ${portfolio.unitStake} 元 × ${portfolio.times} 倍，剩余 ${portfolio.unused.toFixed(0)} 元）`;
+    }
+
+    function portfolioReturnText(portfolio) {
+      return `命中回报 ${portfolio.minReturn.toFixed(0)}-${portfolio.maxReturn.toFixed(0)} 元，净收益 ${portfolio.minNet.toFixed(0)}-${portfolio.maxNet.toFixed(0)} 元，期望回报 ${portfolio.expectedReturn.toFixed(0)} 元`;
     }
 
     function renderDailyForecast() {
@@ -2534,8 +2613,10 @@
           <h3>组合推演</h3>
           <div class="upset-list">${portfolios.map(item => `
             <div class="upset-item">
-              <div><b>${setText(item.a)} 串 ${setText(item.b)}</b>
-              <p class="muted" style="margin:6px 0 0;">覆盖率 ${(item.coverage * 100).toFixed(1)}% · ${item.comboCount} 个结果覆盖 · 参考回报 ${item.minReturn.toFixed(0)}-${item.maxReturn.toFixed(0)} · 期望 ${item.expectedReturn.toFixed(0)}</p></div>
+              <div><b>${portfolioTitle(item)}</b>
+              <p class="muted" style="margin:6px 0 0;">覆盖率 ${(item.coverage * 100).toFixed(1)}% · ${item.sets.length} 串 · ${portfolioMoneyText(item)}</p>
+              <p class="muted" style="margin:4px 0 0;">${portfolioReturnText(item)}</p>
+              <p class="muted" style="margin:4px 0 0;">比分参考：${portfolioScoreText(item)}</p></div>
             </div>`).join("") || `<p class="muted">当天比赛数量或赔率不足，暂不生成组合。</p>`}</div>
         </div>
       `;
@@ -2604,7 +2685,7 @@
     }
 
     function verdictPortfolio(p) {
-      if (p.coverage >= .68 && p.minReturn >= p.unit * 1.2) return "稳健覆盖";
+      if (p.coverage >= .68 && p.minReturn >= p.actualCost * .8) return "稳健覆盖";
       if (p.coverage >= .55) return "均衡观察";
       return "波动较高";
     }
@@ -2624,9 +2705,13 @@
         return;
       }
       const setsByMatch = parsed.map(match => outcomeSets(match));
-      const portfolios = productPairs(setsByMatch)
-        .flatMap(([left, right]) => left.flatMap(a => right.map(b => portfolioFromSets(a, b, bankroll))))
-        .filter(p => p.comboCount <= 4 && p.coverage >= .42)
+      const portfolios = multiSetPortfolios(
+        setsByMatch.map(sets => sets.filter(set => set.items.length <= 2 && set.coverage >= .38).slice(0, 3)),
+        bankroll,
+        4,
+        4
+      )
+        .filter(p => p.totalTickets <= 64 && p.coverage >= .22)
         .sort((a, b) => b.score - a.score)
         .slice(0, 5);
       const allPicks = parsed.flatMap(match => match.picks.map(p => ({ ...p, match })));
@@ -2647,8 +2732,9 @@
           <h3>稳健观察报告</h3>
           <div class="upset-list">${portfolios.map(p => `
             <div class="upset-item">
-              <div><b>${setText(p.a)} 串 ${setText(p.b)}</b>
-              <p class="muted" style="margin:6px 0 0;">${verdictPortfolio(p)} · 覆盖率 ${(p.coverage * 100).toFixed(1)}% · ${p.comboCount} 个观察方向 · 回报区间 ${p.minReturn.toFixed(0)}-${p.maxReturn.toFixed(0)} · 风险值 ${Math.max(1, Math.round(100 - p.coverage * 100))}</p></div>
+              <div><b>${portfolioTitle(p)}</b>
+              <p class="muted" style="margin:6px 0 0;">${verdictPortfolio(p)} · 覆盖率 ${(p.coverage * 100).toFixed(1)}% · ${p.sets.length} 串 · ${portfolioMoneyText(p)}</p>
+              <p class="muted" style="margin:4px 0 0;">${portfolioReturnText(p)} · 风险值 ${Math.max(1, Math.round(100 - p.coverage * 100))}</p></div>
             </div>`).join("") || `<p class="muted">当前赔率里没有形成足够清晰的覆盖组合。</p>`}</div>
         </div>
         <div class="compare-box">
@@ -2701,6 +2787,26 @@
           renderCombos();
         } catch (fallbackError) {
           document.getElementById("comboPanel").innerHTML = `<div class="compare-box"><h3>暂时无法自动获取</h3><p class="muted">后端接口：${error.message}。竞彩公开接口：${fallbackError.message}。可以先手动粘贴赔率。</p></div>`;
+        }
+      }
+    }
+
+    async function fetchDailyOdds() {
+      document.getElementById("dailyForecastPanel").innerHTML = `<div class="compare-box"><h3>正在读取中国体彩赔率</h3><p class="muted">优先请求后端实时接口，失败后尝试公开竞彩接口。</p></div>`;
+      document.getElementById("dailyPortfolioPanel").innerHTML = "";
+      try {
+        const data = await apiFetch("/api/odds/today");
+        if (!data.lines?.length) throw new Error(data.message || "接口没有返回可识别赔率");
+        els.dailyOddsInput.value = data.lines.join("\n");
+        renderDailyForecast();
+      } catch (error) {
+        try {
+          const data = await fetchSportteryPublicOdds();
+          if (!data.lines.length) throw new Error("竞彩公开接口没有返回在售胜平负赔率");
+          els.dailyOddsInput.value = data.lines.join("\n");
+          renderDailyForecast();
+        } catch (fallbackError) {
+          document.getElementById("dailyForecastPanel").innerHTML = `<div class="compare-box"><h3>暂时无法自动获取</h3><p class="muted">后端接口：${error.message}。竞彩公开接口：${fallbackError.message}。可以先手动粘贴赔率。</p></div>`;
         }
       }
     }
@@ -3004,6 +3110,7 @@
       els.dailyDate.value = tomorrowBeijingKey();
       fillDailyOddsFromSchedule();
     });
+    els.fetchDailyOddsBtn.addEventListener("click", fetchDailyOdds);
     els.fillForecastOddsBtn.addEventListener("click", fillDailyOddsFromSchedule);
     els.analyzeDailyForecastBtn.addEventListener("click", renderDailyForecast);
     els.renderTomorrowDeepBtn.addEventListener("click", renderTomorrowDeepForecast);
