@@ -997,7 +997,7 @@ tfoot td {
   <script>
     window.__INITIAL_SOURCE__ = "zl.xlsx";
     window.__INITIAL_ROWS__ = [];
-    window.__PAGE_CONFIG__ = {"mode": "group", "pageId": "a", "groupKey": "a", "groupLabel": "A组（北京）", "dataPath": "data/group-a", "legacyDataPath": "data/group-a.json", "publicUrl": "https://aks74uk.github.io/a.html", "storageKey": "overseas_dashboard_github_token_a", "autoPublish": true, "heroTitle": "A组（北京）投放看板", "heroText": "A组专用链接。只看 A 组，上传 Excel 后点“更新”会自动发布到公网。第一次发布前输入一次 GitHub token，本机浏览器会自动记住。仅对最新上传日期生效：按广告系列汇总转化量，若大于 500，则该系列赔付后 ROI 固定按 1.06 计算。", "actionTitle": "A组上传并发布", "bossUrl": "https://aks74uk.github.io/"};
+    window.__PAGE_CONFIG__ = {"mode": "group", "pageId": "a", "groupKey": "a", "groupLabel": "A组（北京）", "dataPath": "data/group-a", "legacyDataPath": "data/group-a.json", "publicUrl": "https://aks74uk.github.io/a.html", "storageKey": "overseas_dashboard_github_token_a", "autoPublish": true, "heroTitle": "A组（北京）投放看板", "heroText": "A组专用链接。只看 A 组，上传 Excel 后点“更新”会自动发布到公网。第一次发布前输入一次 GitHub token，本机浏览器会自动记住。仅对最新上传日期生效：按广告系列汇总转化量，若大于 500，则赔付后 ROI 按 max(实际ROI, 1.06) 计算。", "actionTitle": "A组上传并发布", "bossUrl": "https://aks74uk.github.io/"};
   </script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
@@ -1114,7 +1114,7 @@ function extractDramaTitle(seriesName) {
 function getPayoutAdjustedRoas(actualRoas, conversionCount) {
   const conversions = Number(conversionCount || 0);
   const roas = Number(actualRoas || 0);
-  return conversions > 500 ? 1.06 : roas;
+  return conversions > 500 ? Math.max(1.06, roas) : roas;
 }
 
 function getOwnerName(groupKey, account) {
@@ -1261,6 +1261,10 @@ function rowsFromWorkbook(workbook, groupMeta = PAGE_CONFIG) {
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
   const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' }).map((row) => normalizeWorkbookRow(row, groupMeta)).filter(Boolean);
+  return applySeriesPayoutRule(rows);
+}
+
+function applySeriesPayoutRule(rows) {
   const seriesConversions = new Map();
   rows.forEach((row) => {
     const key = `${row.date}||${row.series_name || ''}`;
@@ -1269,6 +1273,7 @@ function rowsFromWorkbook(workbook, groupMeta = PAGE_CONFIG) {
   return rows.map((row) => {
     const key = `${row.date}||${row.series_name || ''}`;
     const seriesConversionCount = Number(seriesConversions.get(key) || 0);
+    if (seriesConversionCount <= 0) return row;
     const overallRoasPost = getPayoutAdjustedRoas(row.overall_roas_raw, seriesConversionCount);
     return {
       ...row,
@@ -1542,7 +1547,7 @@ function buildData(rows, filters) {
       '当前版本不排除任何一天，上传几天就展示几天。',
       '模块 1 默认展示最近三天，并按日期展示 A组、B组和总数据；模块 2 - 5 支持总数据/A组/B组切换。',
       PAGE_CONFIG.mode === 'boss' ? '总数据页新增了北京/广州分开及总数据美国/非美国汇总模块。' : '当前组页新增了美国 / 非美国 / 汇总模块，按已选日期统计。',
-      '赔付规则：仅对最新上传日期生效；按广告系列汇总转化量，若广告系列转化量大于 500，则该系列下所有广告组赔付后 ROI 固定按 1.06 计算。',
+      '赔付规则：仅对最新上传日期生效；按广告系列汇总转化量，若广告系列转化量大于 500，则赔付后 ROI 按 max(实际ROI, 1.06) 计算。',
       '模块 2 - 5 默认展示总数据，也可以用上方筛选器切到 A组 或 B组。',
       '源表只有 ROI0-ROI6 和 ROI13，没有 ROI7；模块 5 已按要求保留两位小数。',
     ].filter(Boolean),
@@ -1622,7 +1627,7 @@ function renderSummaryCards(data) {
     { label: '当前多选日期', value: summary.dateLabel, sub: `组别 ${summary.groupCount} 个 / 国家 ${summary.countryCount} 个 / 账户 ${summary.accountCount} 个 / 剧目 ${summary.dramaCount} 个` },
     { label: '总消耗', value: summary.spend, sub: `数据源：${state.sourceLabel}` },
     { label: '整体 ROI（实际）', value: summary.overallRoasRaw, sub: '仅展示百分比，不展示收入绝对值' },
-    { label: '整体 ROI（赔付后）', value: summary.overallRoasPost, sub: '按广告系列汇总转化量；大于 500 的系列赔付后 ROI 固定按 1.06 计算' },
+    { label: '整体 ROI（赔付后）', value: summary.overallRoasPost, sub: '按广告系列汇总转化量；大于 500 的系列按 max(实际ROI, 1.06) 计算' },
   ];
 
   document.getElementById('summary-grid').innerHTML = cards
@@ -2103,7 +2108,7 @@ async function loadRowsFromDataPath(dataPath, fallbackRows, groupMeta) {
     if (String(dataPath).endsWith('.json')) {
       const rows = await fetchJson(`${dataPath}?t=${Date.now()}`);
       if (!Array.isArray(rows)) throw new Error('JSON 结构无效');
-      return rows.map((row) => normalizeExistingRow(expandPublishedRow(row), groupMeta)).filter((row) => row.date);
+      return applySeriesPayoutRule(rows.map((row) => normalizeExistingRow(expandPublishedRow(row), groupMeta)).filter((row) => row.date));
     }
 
     const index = await fetchJson(`${dataPath}/index.json?t=${Date.now()}`);
@@ -2120,19 +2125,19 @@ async function loadRowsFromDataPath(dataPath, fallbackRows, groupMeta) {
     const rows = payloads.filter((payload) => Array.isArray(payload)).flat();
     if (!Array.isArray(rows)) throw new Error('JSON 结构无效');
     if (!rows.length) throw new Error('分日数据为空');
-    return rows.map((row) => normalizeExistingRow(expandPublishedRow(row), groupMeta)).filter((row) => row.date);
+    return applySeriesPayoutRule(rows.map((row) => normalizeExistingRow(expandPublishedRow(row), groupMeta)).filter((row) => row.date));
   } catch (error) {
     const legacyPath = groupMeta?.legacyDataPath;
     if (legacyPath) {
       try {
         const rows = await fetchJson(`${legacyPath}?t=${Date.now()}`);
         if (!Array.isArray(rows)) throw new Error('JSON 结构无效');
-        return rows.map((row) => normalizeExistingRow(expandPublishedRow(row), groupMeta)).filter((row) => row.date);
+        return applySeriesPayoutRule(rows.map((row) => normalizeExistingRow(expandPublishedRow(row), groupMeta)).filter((row) => row.date));
       } catch (legacyError) {
         // ignore and fall through
       }
     }
-    return fallbackRows.map((row) => normalizeExistingRow(row, groupMeta)).filter((row) => row.date);
+    return applySeriesPayoutRule(fallbackRows.map((row) => normalizeExistingRow(row, groupMeta)).filter((row) => row.date));
   }
 }
 
