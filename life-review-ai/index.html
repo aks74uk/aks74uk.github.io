@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>忆生影像 | AI 生平回顾影片生成平台</title>
+    <meta
+      name="description"
+      content="面向殡仪馆的 AI 纪念影片生成平台，上传照片和生平简介，生成可审校的旁白、字幕、配音与生平回顾原片。"
+    />
+    <meta property="og:title" content="忆生影像 | AI 生平回顾影片生成平台" />
+    <meta
+      property="og:description"
+      content="上传照片和生平简介，生成可审校的旁白、字幕、配音与生平回顾原片。"
+    />
+    <meta property="og:image" content="assets/og.png" />
+    <style>
+      :root {
+        --background: #f4f1eb;
+        --foreground: #252927;
+        --muted: #6f756f;
+        --line: #d8d1c4;
+        --panel: #fffcf6;
+        --sage: #69786f;
+        --sage-dark: #34423a;
+        --copper: #9a7450;
+        --ink: #171b19;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--foreground);
+        font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      main {
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      .hero {
+        min-height: 92vh;
+        padding: 26px clamp(20px, 4vw, 64px) 72px;
+        background:
+          linear-gradient(118deg, rgba(244, 241, 235, 0.96) 0%, rgba(244, 241, 235, 0.9) 44%, rgba(214, 218, 207, 0.74) 100%),
+          radial-gradient(circle at 82% 18%, rgba(154, 116, 80, 0.22), transparent 30%),
+          linear-gradient(0deg, rgba(52, 66, 58, 0.08), rgba(52, 66, 58, 0));
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        max-width: 1180px;
+        margin: 0 auto 68px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--sage-dark);
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .brand-mark {
+        width: 30px;
+        height: 30px;
+        border: 2px solid var(--sage);
+        border-radius: 50%;
+        position: relative;
+      }
+
+      .brand-mark::after {
+        content: "";
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--copper);
+        top: 7px;
+        left: 7px;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 8px;
+        color: #536057;
+        font-size: 14px;
+      }
+
+      .nav-links a {
+        padding: 10px 14px;
+        border-radius: 999px;
+      }
+
+      .nav-links a:hover {
+        background: rgba(255, 252, 246, 0.75);
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 0.82fr);
+        gap: clamp(34px, 6vw, 90px);
+        align-items: center;
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+
+      .hero-copy {
+        max-width: 720px;
+      }
+
+      .eyebrow {
+        margin: 0 0 16px;
+        color: var(--copper);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        max-width: 760px;
+        margin-bottom: 24px;
+        color: var(--ink);
+        font-size: clamp(58px, 9vw, 112px);
+        line-height: 1;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        color: var(--ink);
+        font-size: clamp(30px, 4vw, 46px);
+        line-height: 1.13;
+        letter-spacing: 0;
+      }
+
+      .lead {
+        max-width: 640px;
+        margin-bottom: 32px;
+        color: #4f5752;
+        font-size: 19px;
+        line-height: 1.78;
+      }
+
+      .hero-actions,
+      .trust-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .primary-button,
+      .secondary-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 22px;
+        border-radius: 6px;
+        font-weight: 750;
+      }
+
+      .primary-button {
+        background: var(--sage-dark);
+        color: #fffaf0;
+        box-shadow: 0 14px 24px rgba(52, 66, 58, 0.18);
+      }
+
+      .secondary-button {
+        border: 1px solid rgba(52, 66, 58, 0.22);
+        background: rgba(255, 252, 246, 0.55);
+        color: var(--sage-dark);
+      }
+
+      .trust-row {
+        margin-top: 26px;
+        color: #5c665f;
+        font-size: 14px;
+      }
+
+      .trust-row span {
+        border-left: 2px solid var(--copper);
+        padding-left: 10px;
+      }
+
+      .memory-board {
+        position: relative;
+        padding: 28px;
+        border: 1px solid rgba(52, 66, 58, 0.16);
+        border-radius: 8px;
+        background: rgba(255, 252, 246, 0.68);
+        box-shadow: 0 30px 80px rgba(52, 66, 58, 0.13);
+      }
+
+      .photo-strip {
+        display: grid;
+        grid-template-columns: 1fr 0.72fr;
+        gap: 14px;
+      }
+
+      .photo-card {
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-start;
+        min-height: 150px;
+        padding: 16px;
+        border: 8px solid #fffaf0;
+        border-radius: 6px;
+        background:
+          linear-gradient(140deg, rgba(52, 66, 58, 0.64), rgba(105, 120, 111, 0.36)),
+          repeating-linear-gradient(45deg, #c8c0af 0 10px, #b5ad9d 10px 20px);
+        color: #fffaf0;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .photo-card.large {
+        min-height: 330px;
+        background:
+          linear-gradient(150deg, rgba(37, 41, 39, 0.48), rgba(154, 116, 80, 0.28)),
+          linear-gradient(90deg, #9fa79a, #d9d2c6);
+      }
+
+      .photo-card.portrait,
+      .photo-card.landscape {
+        min-height: 158px;
+      }
+
+      .preview-panel {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .preview-panel div {
+        min-height: 82px;
+        padding: 14px;
+        border-radius: 6px;
+        background: rgba(244, 241, 235, 0.9);
+      }
+
+      .preview-panel p {
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .preview-panel strong {
+        color: var(--sage-dark);
+        font-size: 15px;
+      }
+
+      .waveform {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        height: 80px;
+        margin-top: 20px;
+      }
+
+      .waveform span {
+        width: 7px;
+        border-radius: 99px;
+        background: linear-gradient(180deg, var(--copper), var(--sage));
+        opacity: 0.68;
+      }
+
+      .section {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 84px clamp(20px, 4vw, 64px);
+      }
+
+      .intro,
+      .safeguards,
+      .visual-sample {
+        display: grid;
+        grid-template-columns: 0.82fr 1fr;
+        gap: 56px;
+        align-items: start;
+      }
+
+      .intro p:last-child,
+      .safeguard-list p,
+      .demo-copy p,
+      .visual-copy p {
+        color: #59615b;
+        font-size: 17px;
+        line-height: 1.8;
+      }
+
+      .visual-sample {
+        grid-template-columns: 0.52fr 1fr;
+        padding-top: 18px;
+      }
+
+      .visual-sample img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 1px solid rgba(52, 66, 58, 0.14);
+        border-radius: 8px;
+        box-shadow: 0 24px 70px rgba(52, 66, 58, 0.14);
+      }
+
+      .workflow {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        padding-top: 18px;
+      }
+
+      .step,
+      .package {
+        min-height: 230px;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 252, 246, 0.7);
+      }
+
+      .step span {
+        color: var(--copper);
+        font-weight: 850;
+      }
+
+      .step h3 {
+        margin: 24px 0 12px;
+        font-size: 22px;
+      }
+
+      .step p,
+      .package span {
+        color: #606961;
+        line-height: 1.72;
+      }
+
+      .demo {
+        max-width: none;
+        background: #e8e3d8;
+        padding-left: max(20px, calc((100vw - 1180px) / 2 + 64px));
+        padding-right: max(20px, calc((100vw - 1180px) / 2 + 64px));
+      }
+
+      .demo-copy {
+        max-width: 760px;
+        margin-bottom: 34px;
+      }
+
+      .demo-grid {
+        display: grid;
+        grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1fr);
+        gap: 20px;
+        align-items: stretch;
+      }
+
+      .story-form,
+      .script-preview {
+        border: 1px solid rgba(52, 66, 58, 0.16);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .story-form {
+        display: grid;
+        gap: 16px;
+        padding: 22px;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        color: var(--sage-dark);
+        font-size: 14px;
+        font-weight: 750;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        border: 1px solid #d7cfbf;
+        border-radius: 6px;
+        background: #fffdf8;
+        color: var(--ink);
+        padding: 12px 13px;
+        outline: none;
+        font: inherit;
+      }
+
+      textarea {
+        resize: vertical;
+        line-height: 1.65;
+      }
+
+      input:focus,
+      textarea:focus {
+        border-color: var(--sage);
+        box-shadow: 0 0 0 3px rgba(105, 120, 111, 0.14);
+      }
+
+      .script-preview {
+        display: flex;
+        min-height: 520px;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .script-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 60px;
+        padding: 0 22px;
+        border-bottom: 1px solid var(--line);
+        color: var(--sage-dark);
+      }
+
+      .script-header span {
+        font-weight: 850;
+      }
+
+      .script-header strong {
+        color: var(--copper);
+        font-size: 13px;
+      }
+
+      pre {
+        flex: 1;
+        margin: 0;
+        padding: 24px;
+        overflow: auto;
+        white-space: pre-wrap;
+        color: #303632;
+        font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+        font-size: 16px;
+        line-height: 1.9;
+      }
+
+      .safeguards {
+        border-bottom: 1px solid var(--line);
+      }
+
+      .safeguard-list {
+        display: grid;
+        gap: 14px;
+      }
+
+      .safeguard-list p {
+        margin: 0;
+        padding: 20px 22px;
+        border-left: 3px solid var(--sage);
+        border-radius: 0 8px 8px 0;
+        background: rgba(255, 252, 246, 0.72);
+      }
+
+      .section-heading {
+        max-width: 700px;
+        margin-bottom: 32px;
+      }
+
+      .package-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+
+      .package {
+        min-height: 260px;
+      }
+
+      .package p {
+        color: var(--copper);
+        font-size: 14px;
+        font-weight: 850;
+      }
+
+      .package h3 {
+        margin-bottom: 18px;
+        font-size: 25px;
+      }
+
+      .cta {
+        max-width: 980px;
+        margin: 0 auto 72px;
+        padding: 48px clamp(24px, 5vw, 58px);
+        border-radius: 8px;
+        background: var(--sage-dark);
+        color: #fffaf0;
+        text-align: center;
+      }
+
+      .cta h2 {
+        max-width: 780px;
+        margin: 0 auto 28px;
+        color: #fffaf0;
+      }
+
+      .cta .eyebrow {
+        color: #d8b48f;
+      }
+
+      .cta .primary-button {
+        background: #fffaf0;
+        color: var(--sage-dark);
+      }
+
+      @media (max-width: 920px) {
+        .hero-grid,
+        .intro,
+        .safeguards,
+        .demo-grid,
+        .visual-sample {
+          grid-template-columns: 1fr;
+        }
+
+        .workflow,
+        .package-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .hero {
+          min-height: auto;
+        }
+
+        .nav {
+          margin-bottom: 44px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .nav {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .nav-links {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        h1 {
+          font-size: 54px;
+        }
+
+        .lead {
+          font-size: 17px;
+        }
+
+        .memory-board {
+          padding: 16px;
+        }
+
+        .photo-strip,
+        .preview-panel,
+        .workflow,
+        .package-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .photo-card.large {
+          min-height: 230px;
+        }
+
+        .section {
+          padding-top: 62px;
+          padding-bottom: 62px;
+        }
+
+        .demo {
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+
+        .script-header {
+          align-items: flex-start;
+          flex-direction: column;
+          justify-content: center;
+          padding: 14px 18px;
+        }
+
+        pre {
+          font-size: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <nav class="nav" aria-label="主导航">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <span>忆生影像</span>
+          </div>
+          <div class="nav-links">
+            <a href="#workflow">流程</a>
+            <a href="#demo">演示</a>
+            <a href="#pricing">合作</a>
+          </div>
+        </nav>
+
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">AI 生平回顾影片生成平台</p>
+            <h1>忆生影像</h1>
+            <p class="lead">
+              上传照片和生平简介，系统自动整理故事、生成旁白、配音、字幕与成片，
+              帮助工作人员在有限时间内交付一支体面、有温度的生平回顾片。
+            </p>
+            <div class="hero-actions">
+              <a class="primary-button" href="#demo">体验脚本生成</a>
+              <a class="secondary-button" href="#pricing">查看馆方合作</a>
+            </div>
+            <div class="trust-row" aria-label="平台特点">
+              <span>家属可审校</span>
+              <span>不做惊悚复活</span>
+              <span>适配告别厅播放</span>
+            </div>
+          </div>
+
+          <div class="memory-board" aria-label="纪念影片预览示意">
+            <div class="photo-strip">
+              <div class="photo-card large"><span>旧照</span></div>
+              <div class="photo-card portrait"><span>家庭</span></div>
+              <div class="photo-card landscape"><span>年代</span></div>
+            </div>
+            <div class="preview-panel">
+              <div>
+                <p>片名</p>
+                <strong>李富贵的一生</strong>
+              </div>
+              <div>
+                <p>时长</p>
+                <strong>5 分钟</strong>
+              </div>
+              <div>
+                <p>输出</p>
+                <strong>旁白 · 字幕 · 原片</strong>
+              </div>
+            </div>
+            <div class="waveform" aria-hidden="true">
+              <span style="height: 18px"></span><span style="height: 26px"></span><span style="height: 34px"></span><span style="height: 42px"></span><span style="height: 50px"></span><span style="height: 58px"></span><span style="height: 66px"></span><span style="height: 18px"></span><span style="height: 26px"></span><span style="height: 34px"></span><span style="height: 42px"></span><span style="height: 50px"></span><span style="height: 58px"></span><span style="height: 66px"></span><span style="height: 18px"></span><span style="height: 26px"></span><span style="height: 34px"></span><span style="height: 42px"></span><span style="height: 50px"></span><span style="height: 58px"></span><span style="height: 66px"></span><span style="height: 18px"></span><span style="height: 26px"></span><span style="height: 34px"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section intro">
+        <div>
+          <p class="eyebrow">为什么适合殡仪馆</p>
+          <h2>把“赶时间做视频”变成标准化服务</h2>
+        </div>
+        <p>
+          传统纪念片制作需要反复整理资料、写文案、配音、剪辑和修改。
+          忆生影像把这些环节变成一个可控流程，让工作人员保留最后审核权，
+          AI 负责起草和合成，降低交付压力。
+        </p>
+      </section>
+
+      <section class="section visual-sample">
+        <div class="visual-copy">
+          <p class="eyebrow">成片气质示意</p>
+          <h2>不喜庆，也不惊悚，重点是体面和怀念</h2>
+          <p>
+            页面示意采用暖白、灰绿、深墨和少量铜色，适合告别厅、家属预览页和馆方业务展示。
+          </p>
+        </div>
+        <img src="assets/og.png" alt="忆生影像产品视觉示意" />
+      </section>
+
+      <section class="section workflow" id="workflow">
+        <article class="step">
+          <span>01</span>
+          <h3>收集资料</h3>
+          <p>家属上传照片、姓名、生卒年份、生平简介和亲属称谓，工作人员可补充时间线。</p>
+        </article>
+        <article class="step">
+          <span>02</span>
+          <h3>生成脚本</h3>
+          <p>AI 将零散经历整理成温和、庄重、有细节的旁白稿，并自动生成字幕初稿。</p>
+        </article>
+        <article class="step">
+          <span>03</span>
+          <h3>合成原片</h3>
+          <p>系统匹配照片节奏、配音和背景音乐，导出可审校的 3 到 8 分钟纪念影片。</p>
+        </article>
+        <article class="step">
+          <span>04</span>
+          <h3>家属确认</h3>
+          <p>殡仪馆把预览链接发给家属确认，修改称谓、年份、照片顺序后再交付高清版本。</p>
+        </article>
+      </section>
+
+      <section class="section demo" id="demo">
+        <div class="demo-copy">
+          <p class="eyebrow">脚本生成演示</p>
+          <h2>输入几段真实经历，先生成可给家属看的旁白稿</h2>
+          <p>
+            这里是前台演示版。正式系统会继续生成照片分镜、配音、字幕和视频原片，
+            并保留人工修改入口。
+          </p>
+        </div>
+
+        <div class="demo-grid">
+          <form class="story-form">
+            <label>
+              逝者姓名
+              <input id="name" value="李富贵" />
+            </label>
+            <label>
+              出生年份
+              <input id="year" value="1924" />
+            </label>
+            <label>
+              出生地或成长地
+              <input id="hometown" value="河南李家湾" />
+            </label>
+            <label>
+              生平片段
+              <textarea id="story" rows="8">年轻时从村里走到县城谋生，做过粮行帮工，后来回到家乡照顾家庭。为人本分勤快，常教孩子们做事要认真、做人要厚道。</textarea>
+            </label>
+          </form>
+
+          <article class="script-preview">
+            <div class="script-header">
+              <span>旁白初稿</span>
+              <strong>约 1 分钟节选</strong>
+            </div>
+            <pre id="script"></pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="section safeguards">
+        <div>
+          <p class="eyebrow">产品边界</p>
+          <h2>庄重纪念，不制造冒犯感</h2>
+        </div>
+        <div class="safeguard-list">
+          <p>默认不生成“逝者开口说话”的复活式视频，避免家属不适。</p>
+          <p>每个年份、称谓、地点都进入审校清单，减少生平信息错误。</p>
+          <p>照片和资料支持到期删除，馆方可设置水印、权限和下载有效期。</p>
+        </div>
+      </section>
+
+      <section class="section packages" id="pricing">
+        <div class="section-heading">
+          <p class="eyebrow">馆方合作</p>
+          <h2>从单片试用到多门店工作台</h2>
+        </div>
+        <div class="package-grid">
+          <article class="package">
+            <p>基础版</p>
+            <h3>3 分钟纪念短片</h3>
+            <span>适合告别厅播放，含 AI 脚本、配音、字幕和 30 张照片。</span>
+          </article>
+          <article class="package">
+            <p>标准版</p>
+            <h3>5 分钟生平回顾</h3>
+            <span>加入时间线、家庭故事、双模板审校和高清下载。</span>
+          </article>
+          <article class="package">
+            <p>馆方版</p>
+            <h3>多门店工作台</h3>
+            <span>支持员工账号、订单管理、模板统一和品牌片头片尾。</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="cta">
+        <p class="eyebrow">下一步</p>
+        <h2>可以先为一家殡仪馆做 10 单试点，验证交付时间和家属反馈</h2>
+        <a class="primary-button" href="mailto:contact@example.com">联系合作演示</a>
+      </section>
+    </main>
+
+    <script>
+      const exampleStory =
+        "年轻时从村里走到县城谋生，做过粮行帮工，后来回到家乡照顾家庭。为人本分勤快，常教孩子们做事要认真、做人要厚道。";
+
+      function buildScript(name, year, hometown, story) {
+        const safeName = name.trim() || "李富贵";
+        const safeYear = year.trim() || "1924";
+        const safeHome = hometown.trim() || "李家湾";
+        const safeStory = story.trim() || exampleStory;
+
+        return `${safeName}，生于${safeYear}年。故事要从${safeHome}说起。那时候的村路还是泥土路，清晨能听见井边打水的声音，傍晚能看见炊烟从屋檐后慢慢升起来。
+
+小时候的${safeName}，常在院子里帮家里做些力所能及的事。上学时，他记性好，也有几分淘气。先生让孩子们背书，他总能先听别人念一遍，再把句子牢牢记住。多年以后，他还常笑着说，聪明只能帮一时，用心才能走一生。
+
+${safeStory}
+
+后来，日子慢慢向前走。${safeName}把辛苦藏在心里，把踏实留给家人。无论是在外奔波，还是回到家中，他总是先想着别人。孩子们记得他的叮嘱，亲友们记得他的厚道，邻里记得他遇事肯搭把手。
+
+如今岁月远去，许多旧路已经变成了新路，许多老屋也换了模样。但${safeName}走过的路、说过的话、留下的温暖，仍然被家人记在心里。愿这段影像，把思念轻轻留下，也把他的故事，长久地讲给后来的人听。`;
+      }
+
+      const fields = ["name", "year", "hometown", "story"].map((id) =>
+        document.getElementById(id),
+      );
+      const script = document.getElementById("script");
+
+      function render() {
+        script.textContent = buildScript(
+          fields[0].value,
+          fields[1].value,
+          fields[2].value,
+          fields[3].value,
+        );
+      }
+
+      fields.forEach((field) => field.addEventListener("input", render));
+      render();
+    </script>
+  </body>
+</html>
